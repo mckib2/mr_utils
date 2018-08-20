@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.linalg import fractional_matrix_power
+from time import time
 from get_gx_gy import get_gx_gy
 
 def grog_interp(kspace,Gx,Gy,traj,cartdims):
@@ -25,30 +26,31 @@ def grog_interp(kspace,Gx,Gy,traj,cartdims):
     kxs_round = np.round(kxs)
     kys_round = np.round(kys)
 
-    # Find
+    # Find distance between kxys and rounded kxys, these will be Gx,Gy powers
     dkxs = kxs_round - kxs
     dkys = kys_round - kys
 
+    # Precompute fractional matrix powers - this is the part that takes a long time
+    Gxf = np.zeros((dkxs.shape[0],dkxs.shape[1],Gx.shape[0],Gx.shape[1]),dtype='complex')
+    Gyf = np.zeros((dkys.shape[0],dkys.shape[1],Gy.shape[0],Gy.shape[1]),dtype='complex')
+    t0 = time()
     for ii in range(sx):
         for jj in range(nor):
-            # Pull this point's multi-coil signal
-            # thisInputSignal = kspace[ii,jj,:].squeeze()
+            Gxf[ii,jj,:,:] = fractional_matrix_power(Gx,dkxs[ii,jj])
+            Gyf[ii,jj,:,:] = fractional_matrix_power(Gy,dkys[ii,jj])
+        print('Precomp loop status: [%d%%]\r' % int(ii/sx*100),end='')
+    print('Time for precomp: %g sec' % (time()-t0))
 
-            # Get distance - is it quicker if we truncate?
-            # dkx = np.round(dkxs[ii,jj],decimals=5)
-            # dky = np.round(dkys[ii,jj],decimals=5)
-            # dkx = dkxs[ii,jj]
-            # dky = dkys[ii,jj]
-
-            # Shifted cartesian point, this is a time bottle-neck
-            shiftedPoint = np.linalg.multi_dot([ fractional_matrix_power(Gx,dkxs[ii,jj]),fractional_matrix_power(Gy,dkys[ii,jj]),kspace[ii,jj,:] ])
+    # Do the thing
+    for ii in range(sx):
+        for jj in range(nor):
 
             # Find matrix indices corresponding to k-space coordinates
             xx = int(kxs_round[ii,jj] + nrows/2)
             yy = int(kys_round[ii,jj] + ncols/2)
 
             # Load result into output matrix and bump the counter
-            kspace_out[xx,yy,:] += shiftedPoint
+            kspace_out[xx,yy,:] += np.linalg.multi_dot([ Gxf[ii,jj,:,:],Gyf[ii,jj,:,:],kspace[ii,jj,:] ])
             countMatrix[xx,yy] += 1
 
     # Lastly, use point-wise division of kspace_out by weightMatrix to average
@@ -83,6 +85,7 @@ def scgrog(kspace,traj,Gx,Gy,cartdims=None):
     # Interpolate frame-by-frame
     kspace_cart = np.zeros(cartdims,dtype='complex')
     for ii in range(kspace.shape[-1]):
+        print('Frame: %d' % ii)
         time_frame = kspace[:,:,:,ii]
         traj_frame = traj[:,:,ii]
         kspace_cart[:,:,:,ii] = grog_interp(time_frame,Gx,Gy,traj_frame,cartdims)
