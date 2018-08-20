@@ -162,8 +162,8 @@ if __name__ == '__main__':
     sys.path.append("..")
     from test_data.test_data import raw_data
 
-    # data = load_raw(raw_data,use='bart')
-    data = load_raw(raw_data,use='s2i')
+    data = load_raw(raw_data,use='bart')
+    # data = load_raw(raw_data,use='s2i')
     # data = load_raw(raw_data,use='rdi')
 
     for ii in range(4):
