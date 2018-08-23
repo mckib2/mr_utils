@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import fractional_matrix_power
 from time import time
-from get_gx_gy import get_gx_gy
+from .get_gx_gy import get_gx_gy
 
 def grog_interp(kspace,Gx,Gy,traj,cartdims):
     '''Moves radial k-space points onto a cartesian grid via the GROG method.
@@ -101,33 +101,4 @@ def scgrog(kspace,traj,Gx,Gy,cartdims=None):
 
 
 if __name__ == '__main__':
-
-    # Load in the test data
-    from scipy.io import loadmat
-    data = loadmat('test/test_gridder_data_4D.mat')['KSpaceData']
-    kspace = data['kSpace'][0][0]
-    traj = data['trajectory'][0][0]
-    cartdims = tuple(list(data['cartesianSize'][0][0][0]))
-
-    # First get Gx,Gy
-    Gx,Gy = get_gx_gy(kspace,traj,cartdims=cartdims)
-
-    # Check to make sure Gx,Gy are correct
-    data = loadmat('test/test_gx_gy_data.mat')
-    Gxm = data['Gx']
-    Gym = data['Gy']
-
-    assert(np.allclose(Gx,Gxm) == True)
-    assert(np.allclose(Gy,Gym) == True)
-    print('GET_GX_GY ran successfully!')
-
-    # Now use Gx,Gy to regrid using grog
-    kspace,mask = scgrog(kspace,traj,Gx,Gy,cartdims)
-
-    # Check our work to see if it worked
-    data = loadmat('test/grog_result.mat')
-    kspacem = data['officialCartesianKSpace']
-    maskm = data['officialKMask']
-    assert(np.allclose(kspace,kspacem) == True)
-    assert(np.allclose(mask,maskm) == True)
-    print('SCGROG ran successfully!')
+    pass
