@@ -65,18 +65,4 @@ def get_gx_gy(kspace,traj=None,kxs=None,kys=None,cartdims=None):
 
 
 if __name__ == '__main__':
-    from scipy.io import loadmat
-    data = loadmat('test/test_grog_data_4D.mat')
-    traj = data['testTrajectory3D']
-    kspace = data['testData4D']
-
-    Gx,Gy = get_gx_gy(kspace,traj)
-
-    # Test it against the known truth
-    data = loadmat('test/gx_gy_results.mat')
-    Gxm = data['officialGx']
-    Gym = data['officialGy']
-
-    assert(np.allclose(Gx,Gxm) == True)
-    assert(np.allclose(Gy,Gym) == True)
-    print('GET_GX_GY ran successfully!')
+    pass
