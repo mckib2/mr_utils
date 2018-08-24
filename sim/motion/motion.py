@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from test_data.phantom import modified_shepp_logan
-from time import sleep
-from skimage.transform import resize
 
 def create_frames(im,traj,backfill=0):
     num_frames = len(traj)
@@ -39,16 +37,14 @@ def play(frames):
 
 def create_frames_from_position(im,im_dims,positions,time_grid):
     # For each position, figure out the number of pixels we need to move
-    num_frames = len(positions)
     px2m_x = im.shape[0]/im_dims[0]
     px2m_y = im.shape[1]/im_dims[1]
+    positions_px = [ (np.round(px2m_x*pos[0]).astype(int),np.round(px2m_y*pos[1]).astype(int)) for pos in positions ]
 
-    positions_px = []
-    for pos in positions:
-        #  We'll go ahead and round to the pixel, could interpolate...
-        x_px = np.around(px2m_x*pos[0]).astype(int)
-        y_px = np.around(px2m_y*pos[1]).astype(int)
-        positions_px.append((x_px,y_px))
+    plt.plot([ pos[0] for pos in positions_px ])
+    plt.plot([ pos[1] for pos in positions_px ])
+    plt.show()
+    print(im.shape)
 
     # Find the max displacements to zeropad image to this new size
     dxmax = max(np.abs(positions_px),key=lambda t: t[0])[0]
@@ -60,18 +56,26 @@ def create_frames_from_position(im,im_dims,positions,time_grid):
 
     kspace = np.zeros(time_grid.shape,dtype='complex')
     idx = 0
+    prev_position = None
     for ii in range(time_grid.shape[0]):
         for jj in range(time_grid.shape[1]):
-            # Compute fft of frame
-            tmp = np.roll(frame0,positions_px[idx],axis=(0,1))
-            tmp = np.fft.fftshift(np.fft.fft2(tmp))
-            tmp_r = resize(tmp.real,time_grid.shape,anti_aliasing=True)
-            tmp_i = resize(tmp.imag,time_grid.shape,anti_aliasing=True)
-            tmp = tmp_r + 1j*tmp_i
+            # Keep track of the position, if it repeats, then we don't have to
+            # recalculate
+            if prev_position != positions_px[idx]:
+                # Store prev position for next time around
+                prev_position = positions_px[idx]
+                
+                # Compute fft of frame
+                tmp = np.roll(frame0,positions_px[idx],axis=(0,1))
+                tmpfft = np.fft.fftshift(np.fft.fft2(tmp))
 
-            # Grab the pixel we need
-            kspace[ii,jj] = tmp[ii,jj]
+            # The frame is too big, so find the subarray that corresponds to
+            # ii,jj, take the mean of the subarray and use this as px value.
+            tmp = np.array_split(tmpfft,time_grid.shape[0],axis=0)[ii]
+            tmp = np.array_split(tmp,time_grid.shape[1],axis=1)[jj]
+            kspace[ii,jj] = np.mean(tmp)
             idx += 1
+        print('Status: [%d%%]\r' % (ii/time_grid.shape[0]*100),end='')
 
     return(kspace)
 

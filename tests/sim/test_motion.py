@@ -9,13 +9,14 @@ class SimMotionTestCase(unittest.TestCase):
         from test_data.phantom import modified_shepp_logan
 
         # Load in a shepp logan phantom, 2D
-        dim = 64
+        dim = 128*2
         im = modified_shepp_logan((dim,dim,dim))[:,:,int(dim/2)]
-        im_dims = (.01,.01) # cm x cm image
+        im_dims = (.05,.05) # cm x cm image
 
         # Create a position function for the object in image space
-        # pos = (lambda t: t*.001,lambda t: 0)
-        pos = (lambda t: np.sin(t*.001),lambda t: 0)
+        # pos = (lambda t: 0,lambda t: 0)
+        # pos = (lambda t: .0035*t,lambda t: 0)
+        pos = (lambda t: .0025*np.sin(t*5),lambda t: 0)
 
         # The time grid defines the kspace trajectory and the times each voxel
         # gets measured
