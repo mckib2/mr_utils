@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from test_data.phantom import modified_shepp_logan
 from time import sleep
+from skimage.transform import resize
 
 def create_frames(im,traj,backfill=0):
     num_frames = len(traj)
@@ -36,19 +37,56 @@ def play(frames):
         plt.imshow(frames[:,:,ii])
         plt.show()
 
-def cartesian_acquire(im,vel,t):
+def create_frames_from_position(im,im_dims,positions,time_grid):
+    # For each position, figure out the number of pixels we need to move
+    num_frames = len(positions)
+    px2m_x = im.shape[0]/im_dims[0]
+    px2m_y = im.shape[1]/im_dims[1]
 
-    # Discretize the velocity vector
-    traj = []
-    for tt in t:
-        traj.append(((vel[0])(tt),(vel[1])(tt)))
+    positions_px = []
+    for pos in positions:
+        #  We'll go ahead and round to the pixel, could interpolate...
+        x_px = np.around(px2m_x*pos[0]).astype(int)
+        y_px = np.around(px2m_y*pos[1]).astype(int)
+        positions_px.append((x_px,y_px))
+
+    # Find the max displacements to zeropad image to this new size
+    dxmax = max(np.abs(positions_px),key=lambda t: t[0])[0]
+    dymax = max(np.abs(positions_px),key=lambda t: t[1])[1]
+    dmax = max([dxmax,dymax]) # use only the max to make it square
+
+    # First frame is zero-padded original image
+    frame0 = np.pad(im,((dmax,dmax),(dmax,dmax)),mode='constant')
+
+    kspace = np.zeros(time_grid.shape,dtype='complex')
+    idx = 0
+    for ii in range(time_grid.shape[0]):
+        for jj in range(time_grid.shape[1]):
+            # Compute fft of frame
+            tmp = np.roll(frame0,positions_px[idx],axis=(0,1))
+            tmp = np.fft.fftshift(np.fft.fft2(tmp))
+            tmp_r = resize(tmp.real,time_grid.shape,anti_aliasing=True)
+            tmp_i = resize(tmp.imag,time_grid.shape,anti_aliasing=True)
+            tmp = tmp_r + 1j*tmp_i
+
+            # Grab the pixel we need
+            kspace[ii,jj] = tmp[ii,jj]
+            idx += 1
+
+    return(kspace)
+
+def cartesian_acquire(im,im_dims,pos,time_grid):
+
+    # Discretize the positions using the time grid
+    positions = []
+    for t in time_grid.flatten():
+        positions.append(((pos[0])(t),(pos[1])(t)))
 
     # Create frames for each time point t
-    frames = create_frames(im,traj)
+    kspace = create_frames_from_position(im,im_dims,positions,time_grid)
 
-    kspace = np.zeros(frames.shape,dtype='complex')
-    for ii in range(frames.shape[-1]):
-        kspace
+    plt.imshow(np.abs(np.fft.ifft2(kspace)),cmap='gray')
+    plt.show()
 
 if __name__ == '__main__':
     pass
