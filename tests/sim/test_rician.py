@@ -9,7 +9,7 @@ class RicianNoiseTestCase(unittest.TestCase):
     def setUp(self):
         num_samples = 100
         self.M = np.linspace(0,7,num_samples)
-        self.A = 0
+        self.A = 2
 
         # The expressions from paper and scipy docs are different, use this to convert
         self.correction = lambda sigma: np.exp(-self.A**2/(2*sigma**2) + self.A**2/2 + self.M**2/(2*sigma**4) - self.M**2/(2*sigma**2))
