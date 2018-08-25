@@ -1,6 +1,5 @@
 # Python port of Gadgetron's 2D partial_fourier_POCS
 import numpy as np
-import matplotlib.pyplot as plt
 
 ISMRMRD_FILTER_GAUSSIAN = 0
 ISMRMRD_FILTER_HANNING = 1
