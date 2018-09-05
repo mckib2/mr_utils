@@ -3,6 +3,11 @@ from pathlib import Path
 ## DAT FILES
 bssfp_phantom = str(Path('test_data/raw/bssfp_phantom.dat').resolve())
 
+# For Single Voxel Simulation
+single_voxel_512 = str(Path('test_data/tests/sim/single_voxel/single_voxel_512.dat').resolve())
+single_voxel_256_0 = str(Path('test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
+single_voxel_256_1 = str(Path('test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
+
 ## MAT FILES
 # For SC-GROG:
 test_grog_data_4D = str(Path('test_data/tests/gridding/scgrog/test_grog_data_4D.mat').resolve())
