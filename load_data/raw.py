@@ -3,7 +3,7 @@ import numpy as np
 def load_raw(
     filename,
     use='bart',
-    bart_args='-A'
+    bart_args='-A',
     s2i_ROS=True):
 
     if use == 'bart':
