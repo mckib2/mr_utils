@@ -40,7 +40,7 @@ if __name__ == '__main__':
     lims = .005
     num_x = 4
     num_y = 8
-    num_slices = 3
+    num_slices = 5
     X,Y,Z = create_grid((-lims,lims,num_x),(-lims,lims,num_y),(-lims,lims,num_slices))
 
     # Initialize omegas to random frequencies
@@ -66,5 +66,10 @@ if __name__ == '__main__':
 
     # Phase Encode
     Gx,Gy,Gz = 0,20e-3,0 # Hz/T
+    W = apply_gradients((X,Y,Z),(Gx,Gy,Gz))
+    show_slices((X,Y,Z),W)
+
+    # Frequency Encode
+    Gx,Gy,Gz = 10e-3,20e-3,0 # Hz/T
     W = apply_gradients((X,Y,Z),(Gx,Gy,Gz))
     show_slices((X,Y,Z),W)
