@@ -8,22 +8,22 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.TR = 6e-3
         self.T1,self.T2 = 1,.8
         self.alpha = np.pi/3
+        self.df = 100
 
     def test_ssfp_sim(self):
-        from sim.ssfp import ssfp,get_theta,elliptical_params,ssfp_from_ellipse
+        from mr_utils.sim.ssfp import ssfp,get_theta,elliptical_params,ssfp_from_ellipse
 
         # Do it the "normal" way
-        theta = get_theta(self.TR,100)
-        I0 = ssfp(self.T1,self.T2,self.TR,self.alpha,theta)
+        I0 = ssfp(self.T1,self.T2,self.TR,self.alpha,self.df)
 
         # Now do it using the elliptical model
         M,a,b = elliptical_params(self.T1,self.T2,self.TR,self.alpha)
-        I1 = ssfp_from_ellipse(M,a,b,theta)
+        I1 = ssfp_from_ellipse(M,a,b,self.TR,self.df)
 
         self.assertTrue(np.allclose(I0,I1))
 
     def test_make_ellipse(self):
-        from sim.ssfp import elliptical_params,get_cart_elliptical_params,make_cart_ellipse
+        from mr_utils.sim.ssfp import elliptical_params,get_cart_elliptical_params,make_cart_ellipse
 
         M,a,b = elliptical_params(self.T1,self.T2,self.TR,self.alpha)
         xc,yc,A,B = get_cart_elliptical_params(M,a,b)
@@ -38,7 +38,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(res,np.ones(res.shape)))
 
     def test_center_of_mass(self):
-        from sim.ssfp import elliptical_params,get_center_of_mass,get_center_of_mass_nmr
+        from mr_utils.sim.ssfp import elliptical_params,get_center_of_mass,get_center_of_mass_nmr
 
         M,a,b = elliptical_params(self.T1,self.T2,self.TR,self.alpha)
         cm0 = get_center_of_mass(M,a,b)
@@ -47,7 +47,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(cm0,cm1))
 
     def test_spectrum(self):
-        from sim.ssfp import spectrum
+        from mr_utils.sim.ssfp import spectrum
 
         # This is mostly just to show how it's used
         sig = spectrum(self.T1,self.T2,self.TR,self.alpha)
@@ -57,8 +57,8 @@ class EllipticalSignalTestCase(unittest.TestCase):
         plt.plot(np.angle(sig))
         plt.show()
 
-    def test_banding_sim(self):
-        from sim.ssfp import banding_sim_nmr,elliptical_params,banding_sim_elliptical
+    def test_banding_sim_2d(self):
+        from mr_utils.sim.ssfp import ssfp,elliptical_params,ssfp_from_ellipse
 
         # To get periodic banding like we want to see, we need some serious
         # field inhomogeneity.
@@ -68,25 +68,21 @@ class EllipticalSignalTestCase(unittest.TestCase):
         y = np.zeros(dim)
         field_map,_ = np.meshgrid(x,y)
 
-        # Show the field map
-        # fig, ax = plt.subplots()
-        # divider = make_axes_locatable(ax)
-        # cax = divider.append_axes('right',size='5%',pad=0.05)
-        # im = ax.imshow(field_map)
-        # fig.colorbar(im,cax=cax,orientation='vertical')
+        # # Show the field map
+        # plt.imshow(field_map)
         # plt.show()
 
-        # Generate simulated banding image explicitly using NMR parameters
-        sig0 = banding_sim_nmr(self.T1,self.T2,self.TR,self.alpha,field_map)
+        # # Generate simulated banding image explicitly using NMR parameters
+        sig0 = ssfp(self.T1,self.T2,self.TR,self.alpha,field_map)
         # plt.subplot(2,1,1)
-        # plt.imshow(np.angle(sig0))
+        # plt.imshow(np.abs(sig0))
         # plt.subplot(2,1,2)
-        # plt.plot(np.angle(sig0[int(dim/2),:]))
+        # plt.plot(np.abs(sig0[int(dim/2),:]))
         # plt.show()
 
         # Generate simulated banding image using elliptical signal model
         M,a,b = elliptical_params(self.T1,self.T2,self.TR,self.alpha)
-        sig1 =  banding_sim_elliptical(M,a,b,self.TR,field_map)
+        sig1 =  ssfp_from_ellipse(M,a,b,self.TR,field_map)
 
         self.assertTrue(np.allclose(sig0,sig1))
 

@@ -1,16 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def ssfp(T1,T2,TR,alpha,theta,M0=1):
+def ssfp(T1,T2,TR,alpha,field_map,M0=1):
     '''SSFP transverse signal right after RF pulse.
 
     T1 -- longitudinal exponential decay time constant.
     T2 -- transverse exponential decay time constant.
     TR -- repetition time.
     alpha -- flip angle.
-    theta -- spin phase evolution per repetition time, prop to B0 field
-             inhomogeneity.
+    field_map -- B0 field map.
 
     Implementation of equations [1-2] in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -18,6 +16,7 @@ def ssfp(T1,T2,TR,alpha,theta,M0=1):
         medicine 71.3 (2014): 927-933.
     '''
 
+    theta = get_theta(TR,field_map)
     E1 = np.exp(-TR/T1)
     E2 = np.exp(-TR/T2)
     ca = np.cos(alpha)
@@ -27,8 +26,8 @@ def ssfp(T1,T2,TR,alpha,theta,M0=1):
     den = (1 - E1*ca)*(1 - E2*ct) - E2*(E1 - ca)*(E2 - ct)
     Mx = M0*(1 - E1)*sa*(1 - E2*ct)/den
     My = -M0*(1 - E1)*E2*sa*st/den
-
     Mxy = Mx + 1j*My
+    Mxy *= get_bssfp_phase(TR,field_map)
     return(Mxy)
 
 def elliptical_params(T1,T2,TR,alpha,M0=1):
@@ -58,8 +57,13 @@ def elliptical_params(T1,T2,TR,alpha,M0=1):
     b = E2*(1 - E1)*(1 + ca)/den
     return(M,a,b)
 
-def ssfp_from_ellipse(M,a,b,theta):
+def ssfp_from_ellipse(M,a,b,TR,field_map):
+    '''Simulate banding artifacts given elliptical signal params and field map.
+    '''
+
+    theta = get_theta(TR,field_map)
     I = M*(1 - a*np.exp(1j*theta))/(1 - b*np.cos(theta))
+    I *= get_bssfp_phase(TR,field_map)
     return(I)
 
 def  get_geo_center(M,a,b):
@@ -107,9 +111,19 @@ def spectrum(T1,T2,TR,alpha):
 
     # Get all possible off-resonance frequencies
     df = np.linspace(-1/TR,1/TR,100)
-    theta = get_theta(TR,df)
-    sig = ssfp(T1,T2,TR,alpha,theta)
+    sig = ssfp(T1,T2,TR,alpha,df)
     return(sig)
+
+def get_bssfp_phase(TR,field_map):
+    '''Addition bSSFP phase factor.
+
+    This is exp(-i \phi) from end of p. 930 in
+        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+        bSSFP imaging with an elliptical signal model." Magnetic resonance in
+        medicine 71.3 (2014): 927-933.
+    '''
+    phi = np.exp(-1j*np.pi*field_map*TR)
+    return(phi)
 
 def get_theta(TR,field_map):
     '''Get theta, spin phase per repetition time, given off-resonance.
@@ -123,21 +137,6 @@ def get_theta(TR,field_map):
 
     theta = 2*np.pi*field_map*TR
     return(theta)
-
-def banding_sim_elliptical(M,a,b,TR,field_map):
-    '''Simulate banding artifacts given elliptical signal params and field map.
-    '''
-
-    theta = get_theta(TR,field_map)
-    sig = ssfp_from_ellipse(M,a,b,theta)
-    return(sig)
-
-def banding_sim_nmr(T1,T2,TR,alpha,field_map):
-    '''Simulate banding artifacts given NMR params and field map.'''
-
-    theta = get_theta(TR,field_map)
-    sig = ssfp(T1,T2,TR,alpha,theta)
-    return(sig)
 
 if __name__ == '__main__':
     pass

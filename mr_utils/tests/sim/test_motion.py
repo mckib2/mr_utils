@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 class SimMotionTestCase(unittest.TestCase):
 
     def test_motion(self):
-        from sim.motion import cartesian_acquire
-        from test_data.phantom import modified_shepp_logan
+        from mr_utils.sim.motion import cartesian_acquire
+        from mr_utils.test_data.phantom import modified_shepp_logan
 
         # Load in a shepp logan phantom, 2D
-        dim = 128*2
+        dim = 64
         im = modified_shepp_logan((dim,dim,dim))[:,:,int(dim/2)]
         im_dims = (.05,.05) # cm x cm image
 
