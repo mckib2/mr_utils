@@ -132,7 +132,7 @@ def banding_sim_elliptical(M,a,b,TR,field_map):
     sig = ssfp_from_ellipse(M,a,b,theta)
     return(sig)
 
-def banding_sim_nmr(T1,T2,TR,alpha,field_map,hi=0):
+def banding_sim_nmr(T1,T2,TR,alpha,field_map):
     '''Simulate banding artifacts given NMR params and field map.'''
 
     theta = get_theta(TR,field_map)
