@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from test_data.phantom import modified_shepp_logan
+from mr_utils.test_data.phantom import modified_shepp_logan
 
 def create_frames(im,traj,backfill=0):
     num_frames = len(traj)
@@ -64,7 +64,7 @@ def create_frames_from_position(im,im_dims,positions,time_grid):
             if prev_position != positions_px[idx]:
                 # Store prev position for next time around
                 prev_position = positions_px[idx]
-                
+
                 # Compute fft of frame
                 tmp = np.roll(frame0,positions_px[idx],axis=(0,1))
                 tmpfft = np.fft.fftshift(np.fft.fft2(tmp))

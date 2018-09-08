@@ -5,8 +5,8 @@ from scipy.io import loadmat
 class SCGrogTestCase(unittest.TestCase):
 
     def test_get_gx_gy_results(self):
-        from test_data import test_grog_data_4D,gx_gy_results
-        from gridding.scgrog import get_gx_gy
+        from mr_utils.test_data import test_grog_data_4D,gx_gy_results
+        from mr_utils.gridding.scgrog import get_gx_gy
 
         # Load in test data
         data = loadmat(test_grog_data_4D)
@@ -25,9 +25,9 @@ class SCGrogTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(Gy,Gym))
 
     def test_scgrog(self):
-        from test_data import test_gridder_data_4D,test_gx_gy_data,grog_result
-        from gridding.scgrog import get_gx_gy
-        from gridding import scgrog
+        from mr_utils.test_data import test_gridder_data_4D,test_gx_gy_data,grog_result
+        from mr_utils.gridding.scgrog import get_gx_gy
+        from mr_utils.gridding import scgrog
 
         # Load in the test data
         data = loadmat(test_gridder_data_4D)['KSpaceData']

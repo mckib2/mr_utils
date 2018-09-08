@@ -1,5 +1,5 @@
 import unittest
-from sim.noise import rician,rayleigh,rayleigh_mean
+from mr_utils.sim.noise import rician,rayleigh,rayleigh_mean
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import rayleigh as rayleigh_scipy

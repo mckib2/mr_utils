@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 class PartialFourerPOCSTestCase(unittest.TestCase):
 
     def test_partial_fourier_pocs(self):
-        from recon.partial_fourier import partial_fourier_pocs
-        from test_data.phantom import modified_shepp_logan
+        from mr_utils.recon.partial_fourier import partial_fourier_pocs
+        from mr_utils.test_data.phantom import modified_shepp_logan
 
         # Get something to test on
         dim = 64

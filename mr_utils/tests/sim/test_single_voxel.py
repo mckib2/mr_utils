@@ -1,8 +1,8 @@
 import unittest
-from test_data.phantom import modified_shepp_logan
+from mr_utils.test_data.phantom import modified_shepp_logan
 import matplotlib.pyplot as plt
 import numpy as np
-from sim.single_voxel import single_voxel_imaging,combine_images
+from mr_utils.sim.single_voxel import single_voxel_imaging,combine_images
 
 class SingleVoxelImagingTestCase(unittest.TestCase):
 
@@ -56,24 +56,25 @@ class SingleVoxelImagingTestCase(unittest.TestCase):
         # plt.show()
 
     def test_single_voxel_phantom_data(self):
-        from test_data import single_voxel_512,single_voxel_256_0,single_voxel_256_1
-        from load_data import load_raw
+        from mr_utils.test_data import single_voxel_512,single_voxel_256_0,single_voxel_256_1
+        from mr_utils.load_data import load_raw
 
-        im = load_raw(single_voxel_512,use='s2i',s2i_ROS=True)
-        im0 = load_raw(single_voxel_256_0,use='s2i',s2i_ROS=True)
-        im1 = load_raw(single_voxel_256_1,use='s2i',s2i_ROS=True)
-
-        # Need to combine averages and do something about coils...
-
-        im_hat = combine_images(im0,im1)
-
-        plt.subplot(1,3,1)
-        plt.imshow(im[:,1:-1])
-        plt.subplot(1,3,2)
-        plt.imshow(im_hat)
-        plt.subplot(1,3,3)
-        plt.imshow(im[:,1:-1] - im_hat)
-        plt.show()
+        pass
+        # im = load_raw(single_voxel_512,use='s2i',s2i_ROS=True)
+        # im0 = load_raw(single_voxel_256_0,use='s2i',s2i_ROS=True)
+        # im1 = load_raw(single_voxel_256_1,use='s2i',s2i_ROS=True)
+        #
+        # # Need to combine averages and do something about coils...
+        #
+        # im_hat = combine_images(im0,im1)
+        #
+        # plt.subplot(1,3,1)
+        # plt.imshow(im[:,1:-1])
+        # plt.subplot(1,3,2)
+        # plt.imshow(im_hat)
+        # plt.subplot(1,3,3)
+        # plt.imshow(im[:,1:-1] - im_hat)
+        # plt.show()
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.alpha = np.pi/3
 
     def test_ssfp_sim(self):
-        from sim.ssfp import ssfp,get_theta,elliptical_params,ssfp_from_ellipse
+        from mr_utils.sim.ssfp import ssfp,get_theta,elliptical_params,ssfp_from_ellipse
 
         # Do it the "normal" way
         theta = get_theta(self.TR,100)
@@ -23,7 +23,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(I0,I1))
 
     def test_make_ellipse(self):
-        from sim.ssfp import elliptical_params,get_cart_elliptical_params,make_cart_ellipse
+        from mr_utils.sim.ssfp import elliptical_params,get_cart_elliptical_params,make_cart_ellipse
 
         M,a,b = elliptical_params(self.T1,self.T2,self.TR,self.alpha)
         xc,yc,A,B = get_cart_elliptical_params(M,a,b)
@@ -38,7 +38,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(res,np.ones(res.shape)))
 
     def test_center_of_mass(self):
-        from sim.ssfp import elliptical_params,get_center_of_mass,get_center_of_mass_nmr
+        from mr_utils.sim.ssfp import elliptical_params,get_center_of_mass,get_center_of_mass_nmr
 
         M,a,b = elliptical_params(self.T1,self.T2,self.TR,self.alpha)
         cm0 = get_center_of_mass(M,a,b)
@@ -47,7 +47,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(cm0,cm1))
 
     def test_spectrum(self):
-        from sim.ssfp import spectrum
+        from mr_utils.sim.ssfp import spectrum
 
         # This is mostly just to show how it's used
         sig = spectrum(self.T1,self.T2,self.TR,self.alpha)
@@ -58,7 +58,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         plt.show()
 
     def test_banding_sim(self):
-        from sim.ssfp import banding_sim_nmr,elliptical_params,banding_sim_elliptical
+        from mr_utils.sim.ssfp import banding_sim_nmr,elliptical_params,banding_sim_elliptical
 
         # To get periodic banding like we want to see, we need some serious
         # field inhomogeneity.
