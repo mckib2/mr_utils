@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 class SCRReorderingTestCase(unittest.TestCase):
 
     def setUp(self):
-        from test_data import Coil1_data,mask,tv_prior,recon
+        from mr_utils.test_data import Coil1_data,mask,tv_prior,recon
 
         # Load in the test test data
         self.kspace = loadmat(Coil1_data)['Coil1']
@@ -18,8 +18,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.alpha1 = .002
 
     def test_sort_real_imag_parts_space(self):
-        from recon.reordering import sort_real_imag_parts_space
-        from test_data import true_orderings
+        from mr_utils.recon.reordering import sort_real_imag_parts_space
+        from mr_utils.test_data import true_orderings
 
         # Get true reorderings, offset by 1 since MATLAB is 1-based indexing
         orderings = loadmat(true_orderings)
@@ -39,8 +39,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertEqual(np.sum(np.abs(sort_order_real_y - self.sort_order_real_y)),0)
 
     def test_TVG_re_order(self):
-        from recon.reordering import sort_real_imag_parts_space,TVG_re_order
-        from test_data import TV_re_order
+        from mr_utils.recon.reordering import sort_real_imag_parts_space,TVG_re_order
+        from mr_utils.test_data import TV_re_order
 
         data = loadmat(TV_re_order)
         true_TV_term_reorder_update_real = data['TV_term_reorder_update_real']
@@ -61,8 +61,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(TV_term_reorder_update_imag,true_TV_term_reorder_update_imag))
 
     def test_TV_term_update(self):
-        from test_data import TV_term_update
-        from recon.reordering import TVG
+        from mr_utils.test_data import TV_term_update
+        from mr_utils.recon.reordering import TVG
 
         # Load in the truth data
         true_TV_term_update = loadmat(TV_term_update)['TV_term_update']
@@ -82,8 +82,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(TV_term_update,true_TV_term_update))
 
     def test_scr_reordering_adluru_fidelity_update(self):
-        from test_data import fidelity_update
-        from recon.reordering import sort_real_imag_parts_space
+        from mr_utils.test_data import fidelity_update
+        from mr_utils.recon.reordering import sort_real_imag_parts_space
 
         # Get the truth data
         true_fidelity_update = loadmat(fidelity_update)['fidelity_update']
@@ -108,8 +108,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(fidelity_update,true_fidelity_update))
 
     def test_scr_reordering_adluru_true_prior_1_iter(self):
-        from recon.reordering import scr_reordering_adluru
-        from test_data import recon_at_iter_1
+        from mr_utils.recon.reordering import scr_reordering_adluru
+        from mr_utils.test_data import recon_at_iter_1
 
         # Load truth data
         recon_1 = loadmat(recon_at_iter_1)['img_est']
@@ -126,8 +126,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(recon_1,im_est))
 
     def test_scr_reordering_adluru_true_prior_2_iter(self):
-        from recon.reordering import scr_reordering_adluru
-        from test_data import recon_at_iter_2
+        from mr_utils.recon.reordering import scr_reordering_adluru
+        from mr_utils.test_data import recon_at_iter_2
 
         # Load truth data
         recon_2 = loadmat(recon_at_iter_2)['img_est']
@@ -144,8 +144,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(recon_2,im_est))
 
     def test_scr_reordering_adluru_true_prior_10_iter(self):
-        from recon.reordering import scr_reordering_adluru
-        from test_data import recon_at_iter_10
+        from mr_utils.recon.reordering import scr_reordering_adluru
+        from mr_utils.test_data import recon_at_iter_10
 
         # Load truth data
         recon_10 = loadmat(recon_at_iter_10)['img_est']
@@ -162,8 +162,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(recon_10,im_est))
 
     def test_scr_reordering_adluru_true_prior_50_iter(self):
-        from recon.reordering import scr_reordering_adluru
-        from test_data import recon_at_iter_50
+        from mr_utils.recon.reordering import scr_reordering_adluru
+        from mr_utils.test_data import recon_at_iter_50
 
         # Load truth data
         recon_50 = loadmat(recon_at_iter_50)['img_est']
@@ -180,8 +180,8 @@ class SCRReorderingTestCase(unittest.TestCase):
         self.assertTrue(np.allclose(recon_50,im_est))
 
     def test_scr_reordering_adluru_true_prior_100_iter(self):
-        from recon.reordering import scr_reordering_adluru
-        from test_data import recon_at_iter_100
+        from mr_utils.recon.reordering import scr_reordering_adluru
+        from mr_utils.test_data import recon_at_iter_100
 
         # Load truth data
         recon_100 = loadmat(recon_at_iter_100)['img_est']

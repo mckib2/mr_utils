@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
-from sim.noise import rician
+from mr_utils.sim.noise import rician
 from scipy.stats import rice
 
 class RicianNoiseTestCase(unittest.TestCase):
