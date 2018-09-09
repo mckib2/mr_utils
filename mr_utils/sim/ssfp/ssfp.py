@@ -23,11 +23,21 @@ def ssfp(T1,T2,TR,alpha,field_map,M0=1):
     sa = np.sin(alpha)
     ct = np.cos(theta)
     st = np.sin(theta)
-    den = (1 - E1*ca)*(1 - E2*ct) - E2*(E1 - ca)*(E2 - ct)
-    Mx = M0*(1 - E1)*sa*(1 - E2*ct)/den
-    My = -M0*(1 - E1)*E2*sa*st/den
-    Mxy = Mx + 1j*My
-    Mxy *= get_bssfp_phase(TR,field_map)
+
+    # If field_map and T1 or T2 are matrices, then we need to do matrix
+    # operations.
+    if (np.array([ T1,T2 ]).size > 2) and (np.array(field_map).size > 1):
+
+        den = (1 - E1*ca)[:,None]*(1 - np.outer(E2,ct)) - (E2*(E1 - ca))[:,None]*(E2[:,None] - ct)
+        Mx = M0*((1 - E1)*sa)[:,None]*(1 - np.outer(E2,ct))/den
+        My = -M0*np.outer((1 - E1)*E2*sa,st)/den
+        Mxy = (Mx + 1j*My)*get_bssfp_phase(TR,field_map)
+    else:
+        den = (1 - E1*ca)*(1 - E2*ct) - E2*(E1 - ca)*(E2 - ct)
+        Mx = M0*(1 - E1)*sa*(1 - E2*ct)/den
+        My = -M0*(1 - E1)*E2*sa*st/den
+        Mxy = Mx + 1j*My
+        Mxy *= get_bssfp_phase(TR,field_map)
     return(Mxy)
 
 def elliptical_params(T1,T2,TR,alpha,M0=1):
@@ -117,11 +127,12 @@ def spectrum(T1,T2,TR,alpha):
 def get_bssfp_phase(TR,field_map):
     '''Addition bSSFP phase factor.
 
-    This is exp(-i \phi) from end of p. 930 in
+    This is exp(-i phi) from end of p. 930 in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
         bSSFP imaging with an elliptical signal model." Magnetic resonance in
         medicine 71.3 (2014): 927-933.
     '''
+
     phi = np.exp(-1j*np.pi*field_map*TR)
     return(phi)
 
