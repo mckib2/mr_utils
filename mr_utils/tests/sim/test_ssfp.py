@@ -2,6 +2,28 @@ import unittest
 import numpy as np
 import matplotlib.pyplot as plt
 
+class DictionaryTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.TR = 6e-6
+        self.T1s = np.linspace(0,1,11)[1:] # T1 can't be 0
+        self.T2s = np.linspace(0,1,11)[1:] # T2 can't be 0
+        self.alphas = np.linspace(np.pi/3,2*np.pi/3,10)
+        self.df = np.linspace(-1/self.TR,1/self.TR,100)
+
+    def test_dictionary(self):
+        from mr_utils.sim.ssfp import ssfp_dictionary,ssfp_dictionary_for_loop
+
+        # Make sure we get the same answer whether we build dictionary from
+        # matrix operations or iterate through a for loop:
+        D0,keys0 = ssfp_dictionary(self.T1s,self.T2s,self.TR,self.alphas,self.df)
+        D1,keys1 = ssfp_dictionary_for_loop(self.T1s,self.T2s,self.TR,self.alphas,self.df)
+        self.assertTrue(np.allclose(D0,D1))
+
+        # # Look at the dictionary
+        # plt.plot(np.abs(D0.T))
+        # plt.show()
+
 class EllipticalSignalTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -51,11 +73,11 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
         # This is mostly just to show how it's used
         sig = spectrum(self.T1,self.T2,self.TR,self.alpha)
-        plt.subplot(2,1,1)
-        plt.plot(np.abs(sig))
-        plt.subplot(2,1,2)
-        plt.plot(np.angle(sig))
-        plt.show()
+        # plt.subplot(2,1,1)
+        # plt.plot(np.abs(sig))
+        # plt.subplot(2,1,2)
+        # plt.plot(np.angle(sig))
+        # plt.show()
 
     def test_banding_sim_2d(self):
         from mr_utils.sim.ssfp import ssfp,elliptical_params,ssfp_from_ellipse
