@@ -54,8 +54,10 @@ def ssfp_dictionary_for_loop(T1s,T2s,TR,alphas,df):
     return(D,keys)
 
 def find_atom(sig,D,keys):
-    '''Find params of dictionary atom closest to observed signal profile.
-    '''
+    '''Find params of dictionary atom closest to observed signal profile.'''
+
+    # Make sig and columns of D comparable
+
 
     # Use MSE metric between each column of D and sig
     res = np.sqrt(np.sum(np.abs(D - sig)**2,axis=1))
