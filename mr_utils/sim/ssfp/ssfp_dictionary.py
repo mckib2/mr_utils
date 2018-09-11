@@ -41,6 +41,7 @@ def ssfp_dictionary(T1s,T2s,TR,alphas,df):
     return(D,keys)
 
 def ssfp_dictionary_for_loop(T1s,T2s,TR,alphas,df):
+    '''Verification for ssfp_dictionary generation.'''
 
     # Get keys from supplied params
     keys = get_keys(T1s,T2s,alphas)
@@ -51,6 +52,19 @@ def ssfp_dictionary_for_loop(T1s,T2s,TR,alphas,df):
     for ii in range(N):
         D[ii,:] = ssfp(keys[0,ii],keys[1,ii],TR,keys[2,ii],df)
     return(D,keys)
+
+def find_atom(sig,D,keys):
+    '''Find params of dictionary atom closest to observed signal profile.'''
+
+    # Make sig and columns of D comparable
+
+
+    # Use MSE metric between each column of D and sig
+    res = np.sqrt(np.sum(np.abs(D - sig)**2,axis=1))
+
+    # Take the lowest MSE to be the correct atom and get the key
+    param_est = keys[:,np.argmin(res)]
+    return(param_est)
 
 if __name__ == '__main__':
     pass

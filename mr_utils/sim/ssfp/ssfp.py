@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def ssfp(T1,T2,TR,alpha,field_map,M0=1):
+def ssfp(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
     '''SSFP transverse signal right after RF pulse.
 
     T1 -- longitudinal exponential decay time constant.
@@ -16,7 +16,7 @@ def ssfp(T1,T2,TR,alpha,field_map,M0=1):
         medicine 71.3 (2014): 927-933.
     '''
 
-    theta = get_theta(TR,field_map)
+    theta = get_theta(TR,field_map,phase_cyc)
     E1 = np.exp(-TR/T1)
     E2 = np.exp(-TR/T2)
     ca = np.cos(alpha)
@@ -31,13 +31,14 @@ def ssfp(T1,T2,TR,alpha,field_map,M0=1):
         den = (1 - E1*ca)[:,None]*(1 - np.outer(E2,ct)) - (E2*(E1 - ca))[:,None]*(E2[:,None] - ct)
         Mx = M0*((1 - E1)*sa)[:,None]*(1 - np.outer(E2,ct))/den
         My = -M0*np.outer((1 - E1)*E2*sa,st)/den
-        Mxy = (Mx + 1j*My)*get_bssfp_phase(TR,field_map)
+        Mxy = Mx + 1j*My
     else:
         den = (1 - E1*ca)*(1 - E2*ct) - E2*(E1 - ca)*(E2 - ct)
         Mx = M0*(1 - E1)*sa*(1 - E2*ct)/den
         My = -M0*(1 - E1)*E2*sa*st/den
         Mxy = Mx + 1j*My
-        Mxy *= get_bssfp_phase(TR,field_map)
+
+    Mxy *= get_bssfp_phase(TR,field_map)
     return(Mxy)
 
 def elliptical_params(T1,T2,TR,alpha,M0=1):
@@ -67,11 +68,11 @@ def elliptical_params(T1,T2,TR,alpha,M0=1):
     b = E2*(1 - E1)*(1 + ca)/den
     return(M,a,b)
 
-def ssfp_from_ellipse(M,a,b,TR,field_map):
+def ssfp_from_ellipse(M,a,b,TR,field_map,phase_cyc=0):
     '''Simulate banding artifacts given elliptical signal params and field map.
     '''
 
-    theta = get_theta(TR,field_map)
+    theta = get_theta(TR,field_map,phase_cyc)
     I = M*(1 - a*np.exp(1j*theta))/(1 - b*np.cos(theta))
     I *= get_bssfp_phase(TR,field_map)
     return(I)
@@ -124,19 +125,34 @@ def spectrum(T1,T2,TR,alpha):
     sig = ssfp(T1,T2,TR,alpha,df)
     return(sig)
 
-def get_bssfp_phase(TR,field_map):
-    '''Addition bSSFP phase factor.
+def get_bssfp_phase(TR,field_map,delta_cs=0,phi_rf=0,phi_edd=0,phi_drift=0):
+    '''Additional bSSFP phase factors.
+
+    TR -- repetition time.
+    field_map -- off-resonance map (Hz).
+    delta_cs -- chemical shift of species w.r.t. the water peak (Hz).
+    phi_rf -- RF phase offset, related to the combination of Tx/Rx phases (rad).
+    phi_edd -- phase errors due to eddy current effects (rad).
+    phi_drift -- phase errors due to B0 drift (rad).
 
     This is exp(-i phi) from end of p. 930 in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
         bSSFP imaging with an elliptical signal model." Magnetic resonance in
         medicine 71.3 (2014): 927-933.
+
+    In Hoff's paper the equation is not explicitly given for phi, so we
+    implement equation [5] that gives more detailed terms, found in
+        Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
+        simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
+        free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
     '''
 
-    phi = np.exp(-1j*np.pi*field_map*TR)
-    return(phi)
+    TE = TR/2 # assume bSSFP
+    phi = 2*np.pi*(delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
+    phase = np.exp(-1j*phi)
+    return(phase)
 
-def get_theta(TR,field_map):
+def get_theta(TR,field_map,phase_cyc=0):
     '''Get theta, spin phase per repetition time, given off-resonance.
 
     Equation for theta=2*pi*df*TR is in Appendix A of
@@ -146,8 +162,57 @@ def get_theta(TR,field_map):
         Resonance in Medicine 46.1 (2001): 149-158.
     '''
 
-    theta = 2*np.pi*field_map*TR
+    theta = 2*np.pi*field_map*TR + phase_cyc
     return(theta)
+
+def get_cross_point(I1,I2,I3,I4):
+    '''Find the intersection of two straight lines connecting diagonal pairs.
+
+    (xi,yi) are the real and imaginary parts of complex valued pixels in four
+    bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
+    with 0 < i <= 4.
+
+    This are Equations [11-12] from:
+        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+        bSSFP imaging with an elliptical signal model." Magnetic resonance in
+        medicine 71.3 (2014): 927-933.
+
+    There is  a typo in the paper for equation [12] fixed in this
+    implementation.  The first term of the numerator should have (y2 - y4)
+    instead of (x2 - y4) as written.
+    '''
+
+    x1,y1 = I1.real,I1.imag
+    x2,y2 = I2.real,I2.imag
+    x3,y3 = I3.real,I3.imag
+    x4,y4 = I4.real,I4.imag
+
+    den = (x1 - x3)*(y2 - y4) + (x2 - x4)*(y3 - y1)
+    x0 = ((x1*y3 - x3*y1)*(x2 - x4) - (x2*y4 - x4*y2)*(x1 - x3))/den
+    y0 = ((x1*y3 - x3*y1)*(y2 - y4) - (x2*y4 - x4*y2)*(y1 - y3))/den
+    return(x0,y0)
+
+def get_complex_cross_point(I1,I2,I3,I4):
+    '''Find the intersection of two straight lines connecting diagonal pairs.
+
+    (xi,yi) are the real and imaginary parts of complex valued pixels in four
+    bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
+    with 0 < i <= 4.
+
+    This is Equation [13] from:
+        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+        bSSFP imaging with an elliptical signal model." Magnetic resonance in
+        medicine 71.3 (2014): 927-933.
+    '''
+
+    x1,y1 = I1.real,I1.imag
+    x2,y2 = I2.real,I2.imag
+    x3,y3 = I3.real,I3.imag
+    x4,y4 = I4.real,I4.imag
+
+    den = (x1 - x3)*(y2 - y4) + (x2 - x4)*(y3 - y1)
+    M = ((x1*y3 - x3*y1)*(I2 - I4) - (x2*y4 - x4*y2)*(I1 - I3))/den
+    return(M)
 
 if __name__ == '__main__':
     pass
