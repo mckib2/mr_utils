@@ -30,3 +30,15 @@ recon_at_iter_1 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_i
 recon_at_iter_2 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_2.mat').resolve())
 recon_at_iter_10 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_10.mat').resolve())
 recon_at_iter_50 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_50.mat').resolve())
+
+# For elliptical signal model:
+I1 = str(Path('mr_utils/test_data/tests/recon/ssfp/I1.mat').resolve())
+I2 = str(Path('mr_utils/test_data/tests/recon/ssfp/I2.mat').resolve())
+I3 = str(Path('mr_utils/test_data/tests/recon/ssfp/I3.mat').resolve())
+I4 = str(Path('mr_utils/test_data/tests/recon/ssfp/I4.mat').resolve())
+Id = str(Path('mr_utils/test_data/tests/recon/ssfp/Id.mat').resolve())
+I = str(Path('mr_utils/test_data/tests/recon/ssfp/I.mat').resolve())
+I_max_mag = str(Path('mr_utils/test_data/tests/recon/ssfp/I_max_mag.mat').resolve())
+CS = str(Path('mr_utils/test_data/tests/recon/ssfp/CS.mat').resolve())
+w13 = str(Path('mr_utils/test_data/tests/recon/ssfp/w13.mat').resolve())
+w24 = str(Path('mr_utils/test_data/tests/recon/ssfp/w24.mat').resolve())

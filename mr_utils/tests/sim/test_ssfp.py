@@ -5,11 +5,17 @@ import matplotlib.pyplot as plt
 class DictionaryTestCase(unittest.TestCase):
 
     def setUp(self):
+        # Haystack
         self.TR = 6e-6
         self.T1s = np.linspace(0,1,11)[1:] # T1 can't be 0
         self.T2s = np.linspace(0,1,11)[1:] # T2 can't be 0
         self.alphas = np.linspace(np.pi/3,2*np.pi/3,10)
         self.df = np.linspace(-1/self.TR,1/self.TR,100)
+
+        # Needle
+        self.T10 = self.T1s[6]
+        self.T20 = self.T2s[3]
+        self.alpha0 = self.alphas[5]
 
     def test_dictionary(self):
         from mr_utils.sim.ssfp import ssfp_dictionary,ssfp_dictionary_for_loop
@@ -23,6 +29,16 @@ class DictionaryTestCase(unittest.TestCase):
         # # Look at the dictionary
         # plt.plot(np.abs(D0.T))
         # plt.show()
+
+    def test_find_atom(self):
+        from mr_utils.sim.ssfp import ssfp,ssfp_dictionary,find_atom
+
+        D,keys = ssfp_dictionary(self.T1s,self.T2s,self.TR,self.alphas,self.df)
+        sig = ssfp(self.T10,self.T20,self.TR,self.alpha0,self.df)
+        found_params = find_atom(sig,D,keys)
+        actual_params = np.array([ self.T10,self.T20,self.alpha0 ])
+
+        self.assertTrue(np.allclose(actual_params,found_params))
 
 class EllipticalSignalTestCase(unittest.TestCase):
 
@@ -107,6 +123,22 @@ class EllipticalSignalTestCase(unittest.TestCase):
         sig1 =  ssfp_from_ellipse(M,a,b,self.TR,field_map)
 
         self.assertTrue(np.allclose(sig0,sig1))
+
+    def test_cross_point(self):
+        from mr_utils.sim.ssfp import ssfp,get_cross_point,get_complex_cross_point
+
+        # Get four phase cycled images
+        I1 = ssfp(self.T1,self.T2,self.TR,self.alpha,self.df,phase_cyc=0)
+        I2 = ssfp(self.T1,self.T2,self.TR,self.alpha,self.df,phase_cyc=np.pi/2)
+        I3 = ssfp(self.T1,self.T2,self.TR,self.alpha,self.df,phase_cyc=np.pi)
+        I4 = ssfp(self.T1,self.T2,self.TR,self.alpha,self.df,phase_cyc=3*np.pi/2)
+
+        # Find cross points
+        x0,y0 = get_cross_point(I1,I2,I3,I4)
+        M = get_complex_cross_point(I1,I2,I3,I4)
+
+        # Make sure we get the same answer
+        self.assertTrue(np.allclose(x0 + 1j*y0,M))
 
 if __name__ == '__main__':
     unittest.main()
