@@ -32,6 +32,8 @@ class GSReconTestCase(unittest.TestCase):
         # matrix at once
         I0 = gs_recon_for_loop(self.I1,self.I2,self.I3,self.I4)
         I1 = gs_recon(self.I1,self.I2,self.I3,self.I4)
+        plt.plot(np.abs(I1[100,:]))
+        plt.show()
         self.assertTrue(np.allclose(I0,I1))
 
     def test_max_magnitudes(self):
@@ -46,15 +48,18 @@ class GSReconTestCase(unittest.TestCase):
     def test_noisy_gs_recon(self):
         from mr_utils.recon.ssfp import gs_recon,gs_recon_for_loop
 
-        m = 0
-        std = .1
-        n1 = np.random.normal(m,std,size=self.I1.shape)
-        n2 = np.random.normal(m,std,size=self.I1.shape)
-        n3 = np.random.normal(m,std,size=self.I1.shape)
-        n4 = np.random.normal(m,std,size=self.I1.shape)
+        # Add in gaussian noise on both real,imag channels
+        m,std = 0,.08
+        n1 = np.random.normal(m,std,size=self.I1.shape) + 1j*np.random.normal(m,std,size=self.I1.shape)
+        n2 = np.random.normal(m,std,size=self.I1.shape) + 1j*np.random.normal(m,std,size=self.I1.shape)
+        n3 = np.random.normal(m,std,size=self.I1.shape) + 1j*np.random.normal(m,std,size=self.I1.shape)
+        n4 = np.random.normal(m,std,size=self.I1.shape) + 1j*np.random.normal(m,std,size=self.I1.shape)
 
         I0 = gs_recon(self.I1 + n1,self.I2 + n2,self.I3 + n3,self.I4 + n4)
         I1 = gs_recon_for_loop(self.I1 + n1,self.I2 + n2,self.I3 + n3,self.I4 + n4)
+
+        # plt.imshow(np.abs(I0))
+        # plt.show()
 
         self.assertTrue(np.allclose(I0,I1))
 
