@@ -1,4 +1,5 @@
 from pathlib import Path
+from mr_utils.load_data import load_mat
 
 ## DAT FILES
 bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
@@ -32,13 +33,53 @@ recon_at_iter_10 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_
 recon_at_iter_50 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_50.mat').resolve())
 
 # For elliptical signal model:
-I1 = str(Path('mr_utils/test_data/tests/recon/ssfp/I1.mat').resolve())
-I2 = str(Path('mr_utils/test_data/tests/recon/ssfp/I2.mat').resolve())
-I3 = str(Path('mr_utils/test_data/tests/recon/ssfp/I3.mat').resolve())
-I4 = str(Path('mr_utils/test_data/tests/recon/ssfp/I4.mat').resolve())
-Id = str(Path('mr_utils/test_data/tests/recon/ssfp/Id.mat').resolve())
-I = str(Path('mr_utils/test_data/tests/recon/ssfp/I.mat').resolve())
-I_max_mag = str(Path('mr_utils/test_data/tests/recon/ssfp/I_max_mag.mat').resolve())
-CS = str(Path('mr_utils/test_data/tests/recon/ssfp/CS.mat').resolve())
-w13 = str(Path('mr_utils/test_data/tests/recon/ssfp/w13.mat').resolve())
-w24 = str(Path('mr_utils/test_data/tests/recon/ssfp/w24.mat').resolve())
+class EllipticalSignal(object):
+    @staticmethod
+    def I1():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/I1.mat').resolve())
+        return(load_mat(path,key='I1'))
+
+    @staticmethod
+    def I2():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/I2.mat').resolve())
+        return(load_mat(path,key='I2'))
+
+    @staticmethod
+    def I3():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/I3.mat').resolve())
+        return(load_mat(path,key='I3'))
+
+    @staticmethod
+    def I4():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/I4.mat').resolve())
+        return(load_mat(path,key='I4'))
+
+    @staticmethod
+    def Id():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/Id.mat').resolve())
+        return(load_mat(path,key='M'))
+
+    @staticmethod
+    def I():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/I.mat').resolve())
+        return(load_mat(path,key='I'))
+
+    @staticmethod
+    def I_max_mag():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/I_max_mag.mat').resolve())
+        return(load_mat(path,key='maximum'))
+
+    @staticmethod
+    def CS():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/CS.mat').resolve())
+        return(load_mat(path,key='CS'))
+
+    @staticmethod
+    def w13():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/w13.mat').resolve())
+        return(load_mat(path,key='w1'))
+
+    @staticmethod
+    def w24():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/w24.mat').resolve())
+        return(load_mat(path,key='w2'))

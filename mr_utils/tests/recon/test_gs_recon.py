@@ -65,48 +65,43 @@ class GSReconTestCase(unittest.TestCase):
 class GSReconKneeData(unittest.TestCase):
 
     def setUp(self):
-        from mr_utils.test_data import I1,I2,I3,I4
-        self.I1 = loadmat(I1)['I1']
-        self.I2 = loadmat(I2)['I2']
-        self.I3 = loadmat(I3)['I3']
-        self.I4 = loadmat(I4)['I4']
+        from mr_utils.test_data import EllipticalSignal
+
+        # Load in truth data
+        self.I1 = EllipticalSignal.I1()
+        self.I2 = EllipticalSignal.I2()
+        self.I3 = EllipticalSignal.I3()
+        self.I4 = EllipticalSignal.I4()
+        self.I_max_mag = EllipticalSignal.I_max_mag()
+        self.CS = EllipticalSignal.CS()
+        self.Id = EllipticalSignal.Id()
+        self.w13 = EllipticalSignal.w13()
+        self.w24 = EllipticalSignal.w24()
+        self.I = EllipticalSignal.I()
 
     def test_max_magnitudes(self):
-        from mr_utils.test_data import I_max_mag
         from mr_utils.recon.ssfp import get_max_magnitudes
-
-        I_max_mag = loadmat(I_max_mag)['maximum']
 
         # Make sure we both find the same maximum magnitude values
         I_max_mag_py = get_max_magnitudes(self.I1,self.I2,self.I3,self.I4)
-        self.assertTrue(np.allclose(I_max_mag,I_max_mag_py))
+        self.assertTrue(np.allclose(self.I_max_mag,I_max_mag_py))
 
     def test_complex_sum(self):
-        from mr_utils.test_data import CS
         from mr_utils.recon.ssfp import complex_sum
 
-        CS = loadmat(CS)['CS']
-
         CS_py = complex_sum(self.I1,self.I2,self.I3,self.I4)
-        self.assertTrue(np.allclose(CS_py,CS))
+        self.assertTrue(np.allclose(CS_py,self.CS))
 
     def test_direct_solution(self):
-        from mr_utils.test_data import Id
         from mr_utils.sim.ssfp import get_complex_cross_point
 
-        Id = loadmat(Id)['M']
-
         Id_py = get_complex_cross_point(self.I1,self.I2,self.I3,self.I4)
-        self.assertTrue(np.allclose(Id_py,Id))
+        self.assertTrue(np.allclose(Id_py,self.Id))
 
     def test_weighted_combination(self):
-        from mr_utils.test_data import w13,w24
         from mr_utils.recon.ssfp import compute_Iw,complex_sum,get_max_magnitudes,get_complex_cross_point
-
-        w13 = loadmat(w13)['w1']
-        w24 = loadmat(w24)['w2']
-        Iw13 = self.I1*w13 + self.I3*(1 - w13)
-        Iw24 = self.I2*w24 + self.I4*(1 - w24)
+        Iw13 = self.I1*self.w13 + self.I3*(1 - self.w13)
+        Iw24 = self.I2*self.w24 + self.I4*(1 - self.w24)
 
         # A little processing to get where we need to to compare weighted combs
         Id = get_complex_cross_point(self.I1,self.I2,self.I3,self.I4)
@@ -119,12 +114,10 @@ class GSReconKneeData(unittest.TestCase):
         self.assertTrue(np.allclose(Iw13,Iw13_py))
 
     def test_gs_recon_knee(self):
-        from mr_utils.test_data import I
         from mr_utils.recon.ssfp import gs_recon
 
-        I0 = loadmat(I)['I']
-        I1 = gs_recon(self.I1,self.I2,self.I3,self.I4)
-        self.assertTrue(np.allclose(I0,I1))
+        I = gs_recon(self.I1,self.I2,self.I3,self.I4)
+        self.assertTrue(np.allclose(I,self.I))
 
 if __name__ == '__main__':
     unittest.main()
