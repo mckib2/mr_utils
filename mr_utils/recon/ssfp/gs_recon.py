@@ -47,7 +47,7 @@ def gs_recon_for_loop(I1,I2,I3,I4):
 
         # Regularize with complex sum
         if (np.abs(Id[ii]) > np.abs(I1[ii])) and (np.abs(Id[ii]) > np.abs(I2[ii])) and (np.abs(Id[ii]) > np.abs(I3[ii])) and (np.abs(Id[ii]) > np.abs(I4[ii])):
-            Id[ii] = I1[ii] + I2[ii] + I3[ii] + I4[ii]
+            Id[ii] = complex_sum(I1[ii],I2[ii],I3[ii],I4[ii])
     Id = Id.reshape(shape0)
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
@@ -62,6 +62,11 @@ def gs_recon_for_loop(I1,I2,I3,I4):
     # noise
     I = (Iw13 + Iw24)/2
     return(I)
+
+def complex_sum(I1,I2,I3,I4):
+    #  Should we divide by 4? That's not in Neal's paper
+    CS = (I1 + I2 + I3 + I4)/4
+    return(CS)
 
 def gs_recon(I1,I2,I3,I4):
     '''Full Geometric Solution method following Xiang and Hoff's 2014 paper.
@@ -82,7 +87,7 @@ def gs_recon(I1,I2,I3,I4):
     I_max_mag = get_max_magnitudes(I1,I2,I3,I4)
 
     # Compute complex sum
-    CS = I1 + I2 + I3 + I4
+    CS = complex_sum(I1,I2,I3,I4)
 
     # For each pixel, if the magnitude if greater than the maximum magnitude of
     # all four input images, then replace the pixel with the CS solution.  This
@@ -90,7 +95,6 @@ def gs_recon(I1,I2,I3,I4):
     # singularities
     mask = np.abs(Id) > I_max_mag
     Id[mask] = CS[mask]
-    # I = Id
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
     Iw13 = compute_Iw(I1,I3,Id)
@@ -101,21 +105,22 @@ def gs_recon(I1,I2,I3,I4):
     I = (Iw13 + Iw24)/2
     return(I)
 
-def compute_Iw(I0,I1,Id,patch_size=(5,5)):
+def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     '''Computes weighted sum of image pair (I0,I1).
 
     I0 -- 1st of pair of diagonal images (relative phase cycle of 0).
     I1 -- 2nd of pair of diagonal images (relative phase cycle of 180 deg).
     Id -- result of regularized direct solution.
     patch_size -- size of patches in pixels (x,y).
+    mode -- mode of numpy.pad. Probably choose 'constant' or 'edge'.
 
     Image pair (I0,I1) are phase cycled bSSFP images that are different by
     180 degrees.  Id is the image given by the direct method (Equation [13])
     after regularization by the complex sum.  This function solves for the
     weights by regional differential energy minimization.  The 'regional'
     part means that the image is split into patches of size patch_size with
-    edge boundary conditions (pads with the edge values of the image).  The
-    weighted sum of the image pair is returned.
+    edge boundary conditions (pads with the edge values given by mode option).
+    The weighted sum of the image pair is returned.
 
     This function implements Equations [14,18], or steps 4--5 from Fig. 2 in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -129,8 +134,8 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5)):
 
     # Pad the image so we can generate patches where we need them
     edge_pad = [ int(p/2) for p in patch_size ]
-    numerator = np.pad(numerator,pad_width=edge_pad,mode='edge')
-    den = np.pad(den,pad_width=edge_pad,mode='edge')
+    numerator = np.pad(numerator,pad_width=edge_pad,mode=mode)
+    den = np.pad(den,pad_width=edge_pad,mode=mode)
 
     # Separate out into patches of size patch_size
     numerator_patches = view_as_windows(numerator,patch_size)
