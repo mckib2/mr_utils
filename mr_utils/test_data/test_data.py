@@ -11,11 +11,48 @@ single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_
 
 ## MAT FILES
 # For SC-GROG:
-test_grog_data_4D = str(Path('mr_utils/test_data/tests/gridding/scgrog/test_grog_data_4D.mat').resolve())
-gx_gy_results = str(Path('mr_utils/test_data/tests/gridding/scgrog/gx_gy_results.mat').resolve())
-test_gridder_data_4D = str(Path('mr_utils/test_data/tests/gridding/scgrog/test_gridder_data_4D.mat').resolve())
-test_gx_gy_data = str(Path('mr_utils/test_data/tests/gridding/scgrog/test_gx_gy_data.mat').resolve())
-grog_result = str(Path('mr_utils/test_data/tests/gridding/scgrog/grog_result.mat').resolve())
+class SCGROG(object):
+
+    @staticmethod
+    def test_grog_data_4D():
+        path = str(Path('mr_utils/test_data/tests/gridding/scgrog/test_grog_data_4D.mat').resolve())
+        data = load_mat(path)
+        traj = data['testTrajectory3D']
+        kspace = data['testData4D']
+        return(kspace,traj)
+
+    @staticmethod
+    def gx_gy_results():
+        path = str(Path('mr_utils/test_data/tests/gridding/scgrog/gx_gy_results.mat').resolve())
+        data = load_mat(path)
+        Gxm = data['officialGx']
+        Gym = data['officialGy']
+        return(Gxm,Gym)
+
+    @staticmethod
+    def test_gridder_data_4D():
+        path = str(Path('mr_utils/test_data/tests/gridding/scgrog/test_gridder_data_4D.mat').resolve())
+        data = load_mat(path,'KSpaceData')
+        kspace = data['kSpace'][0][0]
+        traj = data['trajectory'][0][0]
+        cartdims = tuple(list(data['cartesianSize'][0][0][0]))
+        return(kspace,traj,cartdims)
+
+    @staticmethod
+    def test_gx_gy_data():
+        path = str(Path('mr_utils/test_data/tests/gridding/scgrog/test_gx_gy_data.mat').resolve())
+        data = load_mat(path)
+        Gxm = data['Gx']
+        Gym = data['Gy']
+        return(Gxm,Gym)
+
+    @staticmethod
+    def grog_result():
+        path = str(Path('mr_utils/test_data/tests/gridding/scgrog/grog_result.mat').resolve())
+        data = load_mat(path)
+        kspacem = data['officialCartesianKSpace']
+        maskm = data['officialKMask']
+        return(kspacem,maskm)
 
 # For scr_reordering_adluru:
 Coil1_data = str(Path('mr_utils/test_data/tests/recon/reordering/Coil1_data.mat').resolve())
