@@ -56,8 +56,8 @@ class SingleVoxelImagingTestCase(unittest.TestCase):
         # plt.show()
 
     def test_single_voxel_phantom_data(self):
-        from mr_utils.test_data import single_voxel_512,single_voxel_256_0,single_voxel_256_1
-        from mr_utils.load_data import load_raw
+        # from mr_utils.test_data import single_voxel_512,single_voxel_256_0,single_voxel_256_1
+        # from mr_utils.load_data import load_raw
 
         pass
         # im = load_raw(single_voxel_512,use='s2i',s2i_ROS=True)
