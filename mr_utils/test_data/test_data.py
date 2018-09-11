@@ -55,19 +55,83 @@ class SCGROG(object):
         return(kspacem,maskm)
 
 # For scr_reordering_adluru:
-Coil1_data = str(Path('mr_utils/test_data/tests/recon/reordering/Coil1_data.mat').resolve())
-mask = str(Path('mr_utils/test_data/tests/recon/reordering/mask.mat').resolve())
-tv_prior = str(Path('mr_utils/test_data/tests/recon/reordering/tv_prior.mat').resolve())
-recon = str(Path('mr_utils/test_data/tests/recon/reordering/recon.mat').resolve())
-true_orderings = str(Path('mr_utils/test_data/tests/recon/reordering/true_orderings.mat').resolve())
-TV_re_order = str(Path('mr_utils/test_data/tests/recon/reordering/TV_re_order.mat').resolve())
-TV_term_update = str(Path('mr_utils/test_data/tests/recon/reordering/TV_term_update.mat').resolve())
-fidelity_update = str(Path('mr_utils/test_data/tests/recon/reordering/fidelity_update.mat').resolve())
-recon_at_iter_100 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_100.mat').resolve())
-recon_at_iter_1 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_1.mat').resolve())
-recon_at_iter_2 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_2.mat').resolve())
-recon_at_iter_10 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_10.mat').resolve())
-recon_at_iter_50 = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_50.mat').resolve())
+class SCRReordering(object):
+
+    @staticmethod
+    def Coil1_data():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/Coil1_data.mat').resolve())
+        return(load_mat(path,'Coil1'))
+
+    @staticmethod
+    def mask():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/mask.mat').resolve())
+        return(load_mat(path,'mask'))
+
+    @staticmethod
+    def tv_prior():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/tv_prior.mat').resolve())
+        return(load_mat(path,'tv_prior'))
+
+    @staticmethod
+    def recon():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/recon.mat').resolve())
+        return(load_mat(path,'img_est'))
+
+    @staticmethod
+    def true_orderings():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/true_orderings.mat').resolve())
+
+        # offset by 1 since MATLAB is 1-based indexing
+        orderings = load_mat(path)
+        sort_order_real_x = orderings['sort_order_real_x'] - 1
+        sort_order_imag_x = orderings['sort_order_imag_x'] - 1
+        sort_order_real_y = orderings['sort_order_real_y'] - 1
+        sort_order_imag_y = orderings['sort_order_imag_y'] - 1
+
+        return(sort_order_real_x,sort_order_imag_x,sort_order_real_y,sort_order_imag_y)
+
+    @staticmethod
+    def TV_re_order():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/TV_re_order.mat').resolve())
+        data = load_mat(path)
+        a = data['TV_term_reorder_update_real']
+        b = data['TV_term_reorder_update_imag']
+        return(a,b)
+
+    @staticmethod
+    def TV_term_update():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/TV_term_update.mat').resolve())
+        return(load_mat(path,'TV_term_update'))
+
+    @staticmethod
+    def fidelity_update():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/fidelity_update.mat').resolve())
+        return(load_mat(path,'fidelity_update'))
+
+    @staticmethod
+    def recon_at_iter_100():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_100.mat').resolve())
+        return(load_mat(path,'img_est'))
+
+    @staticmethod
+    def recon_at_iter_1():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_1.mat').resolve())
+        return(load_mat(path,'img_est'))
+
+    @staticmethod
+    def recon_at_iter_2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_2.mat').resolve())
+        return(load_mat(path,'img_est'))
+
+    @staticmethod
+    def recon_at_iter_10():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_10.mat').resolve())
+        return(load_mat(path,'img_est'))
+
+    @staticmethod
+    def recon_at_iter_50():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_50.mat').resolve())
+        return(load_mat(path,'img_est'))
 
 # For elliptical signal model:
 class EllipticalSignal(object):

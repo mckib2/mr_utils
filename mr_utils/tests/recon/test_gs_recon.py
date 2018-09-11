@@ -1,10 +1,6 @@
 import unittest
 import numpy as np
 import matplotlib.pyplot as plt
-import warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=ImportWarning)
-    from scipy.io import loadmat
 
 class GSReconTestCase(unittest.TestCase):
 
