@@ -12,9 +12,7 @@ class GRAPPAUnitTest(unittest.TestCase):
         pass
 
     def test_recon(self):
-        from mr_utils.recon import grappa
         from mr_utils.test_data import GRAPPA
-        from mr_utils.test_data.coils import simple_csm
 
         # Get the shepp logan phantom
         im = GRAPPA.phantom_shl()
@@ -117,6 +115,36 @@ class GRAPPAUnitTest(unittest.TestCase):
 
         # plt.imshow(recon)
         # plt.show()
+
+    def test_grappa2d(self):
+        from mr_utils.recon.grappa import grappa2d
+        from mr_utils.test_data import GRAPPA
+
+        # Get everything set up with downsampling and such
+        im = GRAPPA.phantom_shl()
+        sens = GRAPPA.csm()
+        coils = sens*im
+        kspace = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(coils),axes=(1,2)))
+        Rx = 2
+        kspace_d = np.zeros(kspace.shape,dtype='complex')
+        kspace_d[:,::Rx,:] = kspace[:,::Rx,:]
+
+        # Get the undersampled image space coil images
+        coil_ims = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(kspace_d),axes=(1,2)))
+
+        # Get the autocalibration signal
+        center_row,pad = int(sens.shape[1]/2),8
+        mask = np.zeros(kspace_d.shape,dtype=bool)
+        mask[:,center_row-pad:center_row+pad,:] = True
+        acs = kspace[mask].reshape((sens.shape[0],-1,mask.shape[-1]))
+
+        # Run the recon
+        recon = grappa2d(coil_ims,sens,acs,Rx,Ry=1,kernel_size=(3,3))
+
+        # Check to see if the answers match
+        recon = np.sqrt(np.sum(np.abs(recon)**2,axis=0))
+        recon_mat = GRAPPA.Im_Recon()
+        self.assertTrue(np.allclose(recon,recon_mat))
 
 if __name__ == '__main__':
     unittest.main()
