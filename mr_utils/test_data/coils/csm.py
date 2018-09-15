@@ -17,7 +17,7 @@ def simple_csm(N,dims=(64,64)):
     angles = np.linspace(0,360,N,endpoint=False)
     sens = np.zeros((N,dims[0],dims[1]))
 
-    # we'll need to make it bigger so when we rotate we don't clip
+    # We'll need to make it bigger so when we rotate we don't clip
     pad = int(np.max(dims)*np.sqrt(2))
     x = np.linspace(0,1,dims[0]+pad)
     y = np.linspace(0,1,dims[1]+pad)
