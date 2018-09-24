@@ -180,5 +180,6 @@ class SCRReorderingTestCase(unittest.TestCase):
         # Is this too large of a difference?  I think it's numerical error...
         self.assertTrue(np.allclose(self.recon_100,im_est,rtol=.3))
 
+
 if __name__ == '__main__':
     unittest.main()
