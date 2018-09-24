@@ -186,7 +186,7 @@ def sort_real_imag_parts_space(full_data_recon_complex):
     return(sort_order_real_x,sort_order_imag_x,sort_order_real_y,sort_order_imag_y)
 
 
-def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8,niters=5000):
+def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8,reorder=True,niters=5000):
     '''Reconstruct undersampled data with spatial TV constraint and reordering.
 
     kspace -- undersampled k-space data
