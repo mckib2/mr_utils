@@ -64,13 +64,13 @@ class SCRReordering1D(unittest.TestCase):
         # Create a nonsmoothly varying 1D signal
         N = 70
         R = 2 # undersampling factor
+        np.random.seed(0)
         sig = np.fft.ifft(np.fft.fft(np.random.random(N)))
 
         # Put it in freq domain
         SIG = np.fft.fft(sig)
 
         # Randomly sample
-        np.random.seed(0)
         idx = np.random.permutation(N)
         idx = idx[0:int(N/R)]
         mask = np.zeros(SIG.shape)
@@ -95,6 +95,48 @@ class SCRReordering1D(unittest.TestCase):
         # plt.legend()
         # plt.show()
 
+    def test_reorder_every_iter(self):
+        from mr_utils.recon.reordering import scr_reordering_adluru
+
+        # Create a nonsmoothly varying 1D signal
+        N = 70
+        R = 2 # undersampling factor
+        np.random.seed(0)
+        sig = np.fft.ifft(np.fft.fft(np.random.random(N)))
+
+        # Put it in freq domain
+        SIG = np.fft.fft(sig)
+
+        # Randomly sample
+        idx = np.random.permutation(N)
+        idx = idx[0:int(N/R)]
+        mask = np.zeros(SIG.shape)
+        mask[idx] = 1
+
+        # Reconstruct using TV constraint
+        # Just guessing for both alphas...
+        alpha0 = .001
+        alpha1 = .09
+        recon = scr_reordering_adluru(SIG,mask,alpha0=alpha0,alpha1=alpha1,reorder=True,reorder_every_iter=False,niters=100).squeeze()
+        RECON = np.fft.fft(recon)
+        RECON[idx] = SIG[idx]
+        recon = np.fft.ifft(RECON)
+
+        recon_reorder_every_iter = scr_reordering_adluru(SIG,mask,alpha0=alpha0,alpha1=alpha1,reorder=True,reorder_every_iter=True,niters=100).squeeze()
+        RECON = np.fft.fft(recon_reorder_every_iter)
+        RECON[idx] = SIG[idx]
+        recon_reorder_every_iter = np.fft.ifft(RECON)
+
+        # Make sure we get less error
+        self.assertLess(np.sum( np.abs(sig - recon)**2 ),np.sum( np.abs(sig - recon_reorder_every_iter)**2 ))
+
+        # Show the result
+        plt.plot(np.abs(sig),label='Orig')
+        plt.plot(np.abs(np.fft.ifft(SIG*mask)),label='IFFT')
+        plt.plot(np.abs(np.abs(recon)),label='SCR')
+        plt.plot(np.abs(np.abs(recon_reorder_every_iter)),label='SCR (reordering every iteration)')
+        plt.legend()
+        plt.show()
 
 
 if '__name__' == '__main__':

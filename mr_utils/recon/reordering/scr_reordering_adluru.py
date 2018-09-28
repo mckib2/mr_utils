@@ -186,7 +186,7 @@ def sort_real_imag_parts_space(full_data_recon_complex):
     return(sort_order_real_x,sort_order_imag_x,sort_order_real_y,sort_order_imag_y)
 
 
-def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8,reorder=True,niters=5000):
+def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8,reorder=True,reorder_every_iter=False,niters=5000):
     '''Reconstruct undersampled data with spatial TV constraint and reordering.
 
     kspace -- Undersampled k-space data
@@ -196,6 +196,8 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
     alpha1 -- Weight of the TV term, regularization parameter
     beta2 -- beta squared, small constant to keep sqrt defined
     reorder -- Whether or not to reorder data
+    reorder_every_iter -- Whether or not to reorder each iteration based on
+                          current image estimate
     niters -- Number of iterations
 
     Ref: G.Adluru, E.V.R. DiBella. "Reordering for improved constrained
@@ -237,9 +239,14 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
         TV_term_update = TVG(img_est,beta2)*alpha1*0.5
 
         # Take a step
-        img_est += fidelity_update + TV_term_update 
+        img_est += fidelity_update + TV_term_update
         if reorder:
             img_est += TV_term_reorder_update
+
+        # If we asked to find a new reordering every step, go ahead and do so
+        if reorder_every_iter:
+            sort_order_real_x,sort_order_imag_x,sort_order_real_y,sort_order_imag_y = sort_real_imag_parts_space(img_est*1000)
+
 
         W_img_est = np.fft.ifftn(np.fft.fftn(img_est)*mask)
 
