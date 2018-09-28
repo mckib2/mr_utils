@@ -1,5 +1,6 @@
 from pathlib import Path
 from mr_utils.load_data import load_mat
+import numpy as np
 
 ## DAT FILES
 bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
@@ -184,3 +185,217 @@ class EllipticalSignal(object):
     def w24():
         path = str(Path('mr_utils/test_data/tests/recon/ssfp/w24.mat').resolve())
         return(load_mat(path,key='w2'))
+
+# For GRAPPA Recon
+class GRAPPA(object):
+
+    @staticmethod
+    def phantom_shl():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_shl.npy').resolve())
+        return(np.load(path))
+
+    @staticmethod
+    def csm():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_1.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_2.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_3.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_4.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_5.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_6.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        channels = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(channels)
+
+    @staticmethod
+    def phantom_ch():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_1.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_2.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_3.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_4.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_5.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_6.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        coils = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(coils)
+
+    @staticmethod
+    def phantom_ch_k():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_1_k.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_2_k.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_3_k.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_4_k.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_5_k.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_6_k.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        kspace = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(kspace)
+
+    @staticmethod
+    def phantom_ch_k_u():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_1_k_u.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_2_k_u.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_3_k_u.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_4_k_u.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_5_k_u.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_6_k_u.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        kspace = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(kspace)
+
+    @staticmethod
+    def phantom_ch_k_acl():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_1_k_acl.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_2_k_acl.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_3_k_acl.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_4_k_acl.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_5_k_acl.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_6_k_acl.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        kspace = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(kspace)
+
+    @staticmethod
+    def S_ch_temp():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_1_temp.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_2_temp.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_3_temp.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_4_temp.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_5_temp.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_6_temp.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        S0 = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(S0)
+
+    @staticmethod
+    def S_ch():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_1.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_2.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_3.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_4.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_5.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_6.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        S0 = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(S0)
+
+    @staticmethod
+    def S():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/S.npy').resolve())
+        S0 = np.load(path)
+        return(S0)
+
+    @staticmethod
+    def T():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/T.npy').resolve())
+        T0 = np.load(path)
+        return(T0)
+
+    @staticmethod
+    def W():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/W.npy').resolve())
+        W0 = np.load(path)
+        return(W0)
+
+    @staticmethod
+    def S_ch_new_temp():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_1_new_temp.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_2_new_temp.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_3_new_temp.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_4_new_temp.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_5_new_temp.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_6_new_temp.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        S0 = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(S0)
+
+    @staticmethod
+    def S_ch_new():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_1_new.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_2_new.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_3_new.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_4_new.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_5_new.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/S_ch_6_new.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        S0 = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(S0)
+
+    @staticmethod
+    def S_new():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/S_new.npy').resolve())
+        S0 = np.load(path)
+        return(S0)
+
+    @staticmethod
+    def T_new():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/T_new.npy').resolve())
+        T0 = np.load(path)
+        return(T0)
+
+    @staticmethod
+    def T_ch_new_M():
+        path1 = str(Path('mr_utils/test_data/tests/recon/grappa/T_ch_1_new_M.npy').resolve())
+        path2 = str(Path('mr_utils/test_data/tests/recon/grappa/T_ch_2_new_M.npy').resolve())
+        path3 = str(Path('mr_utils/test_data/tests/recon/grappa/T_ch_3_new_M.npy').resolve())
+        path4 = str(Path('mr_utils/test_data/tests/recon/grappa/T_ch_4_new_M.npy').resolve())
+        path5 = str(Path('mr_utils/test_data/tests/recon/grappa/T_ch_5_new_M.npy').resolve())
+        path6 = str(Path('mr_utils/test_data/tests/recon/grappa/T_ch_6_new_M.npy').resolve())
+        ch1 = np.load(path1)
+        ch2 = np.load(path2)
+        ch3 = np.load(path3)
+        ch4 = np.load(path4)
+        ch5 = np.load(path5)
+        ch6 = np.load(path6)
+        T0 = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
+        return(T0)
+
+    @staticmethod
+    def Im_Recon():
+        path = str(Path('mr_utils/test_data/tests/recon/grappa/Im_Recon.npy').resolve())
+        recon = np.load(path)
+        return(recon)
