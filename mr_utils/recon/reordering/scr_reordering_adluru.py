@@ -203,10 +203,14 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
     doi:10.1155/2008/341684.
     '''
 
+    if kspace.ndim == 1:
+        kspace = kspace[:,None]
+        mask = mask[:,None]
+
     # Find a place to start from
-    measuredImgDomain = np.fft.ifft2(kspace)
+    measuredImgDomain = np.fft.ifftn(kspace)
     img_est = measuredImgDomain.copy()
-    W_img_est = np.fft.ifft2(np.fft.fft2(img_est)*mask)
+    W_img_est = np.fft.ifftn(np.fft.fftn(img_est)*mask)
 
     # If we don't have one...use undersampled data as prior
     if prior is None:
@@ -232,8 +236,9 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
 
         # Take a step
         img_est += fidelity_update + TV_term_update + TV_term_reorder_update
+        # img_est += TV_term_update + TV_term_reorder_update
 
-        W_img_est = np.fft.ifft2(np.fft.fft2(img_est)*mask)
+        W_img_est = np.fft.ifftn(np.fft.fftn(img_est)*mask)
 
         print('Status: [%d%%]\r' % (100*ii/niters),end='')
     print('Total time: %g sec' % (time()-t0))
