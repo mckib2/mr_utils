@@ -189,13 +189,14 @@ def sort_real_imag_parts_space(full_data_recon_complex):
 def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8,reorder=True,niters=5000):
     '''Reconstruct undersampled data with spatial TV constraint and reordering.
 
-    kspace -- undersampled k-space data
+    kspace -- Undersampled k-space data
     mask -- Undersampling mask
     prior -- Prior image estimate, what to base reordering on
     alpha0 -- Weight of the fidelity term in cost function
     alpha1 -- Weight of the TV term, regularization parameter
     beta2 -- beta squared, small constant to keep sqrt defined
-    niters -- number of iterations
+    reorder -- Whether or not to reorder data
+    niters -- Number of iterations
 
     Ref: G.Adluru, E.V.R. DiBella. "Reordering for improved constrained
     reconstruction from undersampled k-space data". International Journal of
@@ -203,6 +204,7 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
     doi:10.1155/2008/341684.
     '''
 
+    # If we have a 1D signal, give it a dummy 2nd dimension
     if kspace.ndim == 1:
         kspace = kspace[:,None]
         mask = mask[:,None]
@@ -222,9 +224,9 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
     # gradient descent minimization
     t0 = time()
     for ii in range(niters):
-        # Find fidelity term
-        # W_img_est = np.fft.ifft2(np.fft.fft2(img_est)*mask)
-        fidelity_update = alpha0*(measuredImgDomain - W_img_est)
+        # Find fidelity term.  From equation (2), the factor of 2 should be in
+        # there, it's not in Ganesh's implementation
+        fidelity_update = 2*alpha0*(measuredImgDomain - W_img_est)
 
         # Spatial re-ordering - TV
         TV_term_reorder_update_real = TVG_re_order(img_est.real,beta2,sort_order_real_x,sort_order_real_y)
@@ -235,8 +237,9 @@ def scr_reordering_adluru(kspace,mask,prior=None,alpha0=1,alpha1=.002,beta2=1e-8
         TV_term_update = TVG(img_est,beta2)*alpha1*0.5
 
         # Take a step
-        img_est += fidelity_update + TV_term_update + TV_term_reorder_update
-        # img_est += TV_term_update + TV_term_reorder_update
+        img_est += fidelity_update + TV_term_update 
+        if reorder:
+            img_est += TV_term_reorder_update
 
         W_img_est = np.fft.ifftn(np.fft.fftn(img_est)*mask)
 
