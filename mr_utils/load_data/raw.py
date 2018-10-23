@@ -33,7 +33,10 @@ def load_raw(
     elif use == 's2i':
         from tempfile import NamedTemporaryFile
         from subprocess import Popen,PIPE
-        import ismrmrd
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore",category=FutureWarning)
+            import ismrmrd
 
         tmp_name = NamedTemporaryFile().name
 
