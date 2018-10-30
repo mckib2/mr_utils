@@ -3,6 +3,13 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=ImportWarning)
     from scipy.io import loadmat
 
+def deal_with_7_3_complex(data):
+    # Complex arrays will have a structured datatype...
+    dt = data.dtype
+    if 'imag' in dt.names:
+        data = data['real'] + 1j*data['imag']
+    return(data)
+
 def load_mat(filename,key=None):
     try:
         if key is None:
@@ -22,7 +29,7 @@ def load_mat(filename,key=None):
             if key is None:
                 data = {}
                 for k,v in f.items():
-                    data[k] = np.array(v)
+                    data[k] = deal_with_7_3_complex(np.array(v))
                 return(data)
             else:
-                return(np.array(f[key]))
+                return(deal_with_7_3_complex(np.array(f[key])))
