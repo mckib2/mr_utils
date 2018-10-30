@@ -137,4 +137,37 @@ def view(
         plt.show()
 
 if __name__ == '__main__':
-    pass
+
+    # Quick commandline interface
+    import argparse,json
+    parser = argparse.ArgumentParser(description='Image viewer to quickly inspect data.')
+
+    class StoreDictKeyPair(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            my_dict = {}
+            for kv in values.split(","):
+                k,v = kv.split("=")
+                my_dict[k] = v
+            setattr(namespace, self.dest, my_dict)
+
+
+    parser.add_argument('-f',metavar='filename',dest='filename',help='Name of the file including the file extension.',required=True)
+    parser.add_argument('--load_opts',action=StoreDictKeyPair,metavar='KEY1=VAL1,KEY2=VAL2...',help='Options to pass to data loader',default={})
+    parser.add_argument('--is_raw',action='store_true',help='Inform if data is raw. Will attempt to guess from extension.',default=None)
+    parser.add_argument('--raw_loader',choices=['s2i','bart','rdi'],help='Raw data loader to use (see mr_utils.load_data.load_raw).',default='s2i')
+    # parser.add_argument('prep -- Lambda function to process the data before it's displayed.
+    parser.add_argument('--fft',action='store_true',help='Whether or not to perform n-dimensional FFT of data.')
+    parser.add_argument('--fft_axes',nargs='*',type=int,metavar='axis',help='Axis to perform FFT over, determines dimension of n-dim FFT.',default=(0,1))
+    parser.add_argument('--fftshift',action='store_true',help='Whether or not to perform fftshift. Defaults to True if fft.',default=None)
+    parser.add_argument('--mag',action='store_true',help='View magnitude image. Defaults to True if data is complex.',default=None)
+    parser.add_argument('--cmap',help='Color map to use in plot.',default='gray')
+    parser.add_argument('--montage',action='store_true',help='View images as a montage.')
+    parser.add_argument('--montage_axis',nargs=1,type=int,metavar='axis',help='Which axis is the number of images to be shown.',default=-1)
+    parser.add_argument('--montage_opts',action=StoreDictKeyPair,metavar='KEY1=VAL1,KEY2=VAL2...',help='Additional options to pass to the skimage.util.montage.',default={'padding_width':2})
+    parser.add_argument('--movie',action='store_true',help='Whether or not the data is to be played as a movie.')
+    parser.add_argument('--movie_axis',nargs=1,type=int,metavar='axis',help='Which axis is the number of frames of the movie.',default=-1)
+    parser.add_argument('--movie_no_repeat',action='store_false',dest='movie_repeat',help='Whether or not to put movie on endless loop.',default=True)
+
+    args = parser.parse_args()
+
+    view(**vars(args))
