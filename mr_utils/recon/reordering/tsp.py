@@ -158,13 +158,16 @@ def ortools_tsp_solver():
     return(time_series,reorder)
 
 
-def generate_orderings():
+def generate_orderings(im=None):
     patch = True
     patch_size = (3,3)
     lpf = True
     lpf_factor = 6
 
-    im = get_slice(lpf=lpf,lpf_factor=lpf_factor)
+    if im is None:
+        im = get_slice(lpf=lpf,lpf_factor=lpf_factor)
+
+    # Split into real,imag
     im_real = im.real
     im_imag = im.imag
 
