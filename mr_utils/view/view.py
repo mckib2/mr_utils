@@ -123,7 +123,7 @@ def view(
     if movie:
         fig = plt.figure()
         data = np.moveaxis(data,movie_axis,-1)
-        im = plt.imshow(data[...,0])
+        im = plt.imshow(data[...,0],cmap=cmap)
 
         def updatefig(frame):
             im.set_array(data[...,frame])
@@ -132,6 +132,7 @@ def view(
         ani = animation.FuncAnimation(fig,updatefig,frames=data.shape[-1],interval=50,blit=True,repeat=movie_repeat)
         plt.show()
     else:
+        # Just a regular old 2d image...
         plt.imshow(data,cmap=cmap)
         plt.show()
 
