@@ -101,7 +101,7 @@ def view(
     # didn't tell us anything, it's going to crash anyway, so let's try
     # guessing what's going on...
     if (data.ndim > 2) and (not movie) and (not montage):
-        print('Data has more than 2 dimensions!',end=' ')
+        print('Data has %d dimensions!' % data.ndim,end=' ')
 
         # assume inplane resolution larger than movie/montage dim
         min_axis = np.argmin(data.shape)
