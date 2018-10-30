@@ -64,6 +64,7 @@ def view(
         if not len(list(load_opts)):
             keys = mat_keys(filename,no_print=True)
             if len(keys) == 1:
+                print('No key supplied, but one key for mat dictionary found (%s), using it...' % keys[0])
                 data = load_mat(filename,key=keys[0])
 
         # If we can't help the user out, just load it as normal
