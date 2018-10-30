@@ -4,10 +4,27 @@ import matplotlib.animation as animation
 import pathlib
 from mr_utils.load_data import load_raw,load_mat
 from skimage.util import montage as skimontage
-from mr_utils.view.mat_keys import mat_keys
+
+def mat_keys(filename,ignore_dbl_underscored=True,no_print=False):
+    '''Give the keys found in a .mat file.
+
+    filename -- .mat filename.
+    ignore_dbl_underscored -- Remove keys beginng with two underscores.
+    '''
+
+    data = load_mat(filename)
+    keys = list(data.keys())
+
+    if ignore_dbl_underscored:
+        keys = [ x for x in keys if not x.startswith('__') ]
+
+    if not no_print:
+        print('Keys: ',keys)
+
+    return(keys)
 
 def view(
-        filename,
+        image,
         load_opts={},
         is_raw=None,
         raw_loader='s2i',
@@ -16,6 +33,7 @@ def view(
         fft_axes=(0,1),
         fftshift=None,
         mag=None,
+        log=False,
         cmap='gray',
         montage=False,
         montage_axis=-1,
@@ -26,7 +44,7 @@ def view(
     ):
     '''Image viewer to quickly inspect data.
 
-    filename -- Name of the file including the file extension.
+    image -- Name of the file including the file extension or numpy array.
     load_opts -- Options to pass to data loader.
 
     is_raw -- Inform if data is raw. Will attempt to guess from extension.
@@ -38,6 +56,7 @@ def view(
     fftshift -- Whether or not to perform fftshift. Defaults to True if fft.
 
     mag -- View magnitude image. Defaults to True if data is complex.
+    log -- View log of magnitude data. Defaults to False.
     cmap -- Color map to use in plot.
 
     montage -- View images as a montage.
@@ -49,29 +68,35 @@ def view(
     movie_repeat -- Whether or not to put movie on endless loop.
     '''
 
-    # Find the file extension
-    ext = pathlib.Path(filename).suffix
-
-    # If the user says data is raw, then trust the user
-    if is_raw or (ext == '.dat'):
-        data = load_raw(filename,use=raw_loader)
-    elif ext == '.npy':
-        data = np.load(filename)
-    elif ext == '.mat':
-        # Help out the user a little bit...  If only one nontrivial key is
-        # found then go ahead and assume it's that one
-        data = None
-        if not len(list(load_opts)):
-            keys = mat_keys(filename,no_print=True)
-            if len(keys) == 1:
-                print('No key supplied, but one key for mat dictionary found (%s), using it...' % keys[0])
-                data = load_mat(filename,key=keys[0])
-
-        # If we can't help the user out, just load it as normal
-        if data is None:
-            data = load_mat(filename,**load_opts)
+    # If the user wants to look at numpy matrix, recognize that filename is the
+    # matrix:
+    if isinstance(image,np.ndarray):
+        print('Image is a numpy array!')
+        data = image
     else:
-        raise Exception('File type %s not understood!' % ext)
+        # Find the file extension
+        ext = pathlib.Path(image).suffix
+
+        # If the user says data is raw, then trust the user
+        if is_raw or (ext == '.dat'):
+            data = load_raw(image,use=raw_loader)
+        elif ext == '.npy':
+            data = np.load(image)
+        elif ext == '.mat':
+            # Help out the user a little bit...  If only one nontrivial key is
+            # found then go ahead and assume it's that one
+            data = None
+            if not len(list(load_opts)):
+                keys = mat_keys(image,no_print=True)
+                if len(keys) == 1:
+                    print('No key supplied, but one key for mat dictionary found (%s), using it...' % keys[0])
+                    data = load_mat(image,key=keys[0])
+
+            # If we can't help the user out, just load it as normal
+            if data is None:
+                data = load_mat(image,**load_opts)
+        else:
+            raise Exception('File type %s not understood!' % ext)
 
     # Perform n-dim FFT across fft_axes if desired
     if fft:
@@ -88,9 +113,12 @@ def view(
     if fftshift:
         data = np.fft.fftshift(data)
 
-    # Take absolute value to view if necessary
-    if (np.any(np.iscomplex(data))) or (mag is True):
+    # Take absolute value to view if necessary, must take abs before log
+    if (np.any(np.iscomplex(data))) or (mag is True) or (log is True):
         data = np.abs(data)
+
+        if log:
+            data = np.log(data)
 
     # Run any processing before imshow
     if callable(prep):
@@ -152,7 +180,7 @@ if __name__ == '__main__':
             setattr(namespace, self.dest, my_dict)
 
 
-    parser.add_argument('-f',metavar='filename',dest='filename',help='Name of the file including the file extension.',required=True)
+    parser.add_argument('-i',metavar='image',dest='image',help='Name of the file including the file extension or numpy array.',required=True)
     parser.add_argument('--load_opts',action=StoreDictKeyPair,metavar='KEY1=VAL1,KEY2=VAL2...',help='Options to pass to data loader',default={})
     parser.add_argument('--is_raw',action='store_true',help='Inform if data is raw. Will attempt to guess from extension.',default=None)
     parser.add_argument('--raw_loader',choices=['s2i','bart','rdi'],help='Raw data loader to use (see mr_utils.load_data.load_raw).',default='s2i')
@@ -161,6 +189,7 @@ if __name__ == '__main__':
     parser.add_argument('--fft_axes',nargs='*',type=int,metavar='axis',help='Axis to perform FFT over, determines dimension of n-dim FFT.',default=(0,1))
     parser.add_argument('--fftshift',action='store_true',help='Whether or not to perform fftshift. Defaults to True if fft.',default=None)
     parser.add_argument('--mag',action='store_true',help='View magnitude image. Defaults to True if data is complex.',default=None)
+    parser.add_argument('--log',action='store_true',help='View log of magnitude data. Defaults to False.')
     parser.add_argument('--cmap',help='Color map to use in plot.',default='gray')
     parser.add_argument('--montage',action='store_true',help='View images as a montage.')
     parser.add_argument('--montage_axis',nargs=1,type=int,metavar='axis',help='Which axis is the number of images to be shown.',default=-1)
