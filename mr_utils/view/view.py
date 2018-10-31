@@ -106,15 +106,16 @@ def view(
     # fft is performed, then fftshift will also be performed.  To override this
     # behavior, simply supply fftshift=False in the arguments.  Similarly, to
     # force fftshift even if no fft was performed, supply fftshift=True.
-    if (fft and (fftshift is None)):
+    if fft and (fftshift is None):
         fftshift = True
-    else:
+    elif fftshift is None:
         fftshift = False
+        
     if fftshift:
         data = np.fft.fftshift(data)
 
     # Take absolute value to view if necessary, must take abs before log
-    if (np.any(np.iscomplex(data))) or (mag is True) or (log is True):
+    if np.iscomplexobj(data) or (mag is True) or (log is True):
         data = np.abs(data)
 
         if log:
