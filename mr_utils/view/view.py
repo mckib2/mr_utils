@@ -170,6 +170,8 @@ def view(
         data = np.abs(data)
 
         if log:
+            # Don't take log of 0!
+            data[data == 0] = np.nan
             data = np.log(data)
 
     # Run any processing before imshow

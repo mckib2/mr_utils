@@ -15,12 +15,20 @@ single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_
 class SSFPMultiphase(object):
 
     @staticmethod
-    def ssfp_ankle_te_6_pc_0_and_90():
+    def ssfp_ankle_te_6_pc_0():
         path_0 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_0.npy').resolve())
+        data = np.load(path_0)
+        return(data)
+
+    def ssfp_ankle_te_6_pc_90():
         path_90 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_90.npy').resolve())
-        pc0 = np.load(path_0)
-        pc90 = np.load(path_90)
-        return(pc0,pc90)
+        data = np.load(path_90)
+        return(data)
+
+    def ssfp_ankle_te_6_pc_180():
+        path_180 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_180.npy').resolve())
+        data = np.load(path_180)
+        return(data)
 
 ## MAT FILES
 # For SC-GROG:
