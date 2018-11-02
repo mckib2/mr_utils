@@ -43,6 +43,7 @@ class MultiphaseTestCase(unittest.TestCase):
     def test_multiphase(self):
 
         view(self.kspace,fft=True,movie_axis=0,montage_axis=3)
+        # view(self.kspace,fft=True)
 
 
 if __name__ == '__main__':

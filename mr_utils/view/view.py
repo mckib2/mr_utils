@@ -95,6 +95,44 @@ def view(
             raise Exception('File type %s not understood!' % ext)
 
 
+    # Show the image.  Let's also try to help the user out again.  If we have
+    # 3 dimensions, one of them is probably a montage or a movie.  If the user
+    # didn't tell us anything, it's going to crash anyway, so let's try
+    # guessing what's going on...
+    if (data.ndim > 2) and (movie_axis is None) and (montage_axis is None):
+        print('Data has %d dimensions!' % data.ndim,end=' ')
+
+        # We will always assume that inplane resolution is larger than the
+        # movie/montage dimensions
+
+        # If only 3 dims, then one must be montage/movie dimension
+        if data.ndim == 3:
+            # assume inplane resolution larger than movie/montage dim
+            min_axis = np.argmin(data.shape)
+
+            # Assume 10 is the most we'll want to montage
+            if data.shape[min_axis] < 10:
+                print('Guessing axis %d is montage...' % min_axis)
+                montage_axis = min_axis
+            else:
+                print('Guessing axis %d is movie...' % min_axis)
+                movie_axis = min_axis
+
+        # If 4 dims, guess smaller dim will be montage, larger guess movie
+        elif data.ndim == 4:
+            montage_axis = np.argmin(data.shape)
+
+            # Consider the 4th dimension as the color channel in skimontage
+            montage_opts['multichannel'] = True
+
+            # Montage will go through skimontage which will remove the
+            # montage_axis dimension, so find the movie dimension without the
+            # montage dimension:
+            tmp = np.delete(data.shape[:],montage_axis)
+            movie_axis = np.argmin(tmp)
+
+            print('Guessing axis %d is montage, axis %d will be movie...' % (montage_axis,movie_axis))
+
 
     # fft and fftshift will require fft_axes.  If the user didn't give us
     # axes, let's try to guess them:
@@ -138,43 +176,6 @@ def view(
     if callable(prep):
         data = prep(data)
 
-    # Show the image.  Let's also try to help the user out again.  If we have
-    # 3 dimensions, one of them is probably a montage or a movie.  If the user
-    # didn't tell us anything, it's going to crash anyway, so let's try
-    # guessing what's going on...
-    if (data.ndim > 2) and (movie_axis is None) and (montage is None):
-        print('Data has %d dimensions!' % data.ndim,end=' ')
-
-        # We will always assume that inplane resolution is larger than the
-        # movie/montage dimensions
-
-        # If only 3 dims, then one must be montage/movie dimension
-        if data.ndim == 3:
-            # assume inplane resolution larger than movie/montage dim
-            min_axis = np.argmin(data.shape)
-
-            # Assume 10 is the most we'll want to montage
-            if data.shape[min_axis] < 10:
-                print('Guessing axis %d is montage...' % min_axis)
-                montage_axis = min_axis
-            else:
-                print('Guessing axis %d is movie...' % min_axis)
-                movie_axis = min_axis
-
-        # If 4 dims, guess smaller dim will be montage, larger guess movie
-        elif data.ndim == 4:
-            montage_axis = np.argmin(data.shape)
-
-            # Consider the 4th dimension as the color channel in skimontage
-            montage_opts['multichannel'] = True
-
-            # Montage will go through skimontage which will remove the
-            # montage_axis dimension, so find the movie dimension without the
-            # montage dimension:
-            tmp = np.delete(data.shape[:],montage_axis)
-            movie_axis = np.argmin(tmp)
-
-            print('Guessing axis %d is montage, axis %d will be movie...' % (montage_axis,movie_axis))
 
     if montage_axis is not None:
         # We can deal with 4 dimensions if we allow multichannel
