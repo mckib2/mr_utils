@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 def client(
     data,
-    address='localhost',
-    port=9002,
+    address=None,
+    port=None,
     outfile=None,
     in_group='/dataset',
     out_group=str(datetime.datetime.now()),
@@ -33,8 +33,8 @@ def client(
     This client allows you to connect to a Gadgetron server and process data.
 
     data -- Input file with file extension or numpy array.
-    address -- Hostname of Gadgetron host (usually IP address).
-    port -- Port to connect to, default is 9002.
+    address -- Hostname of Gadgetron. If not set, taken from profile config.
+    port -- Port to connect to. If not set, taken from profile config.
     outfile -- If provided, output will be saved to file with this name.
     in_group -- If input is hdf5, input data group name.
     out_group -- Output group name if file is written.
@@ -82,7 +82,16 @@ def client(
     con.register_reader(gt.GADGET_MESSAGE_DICOM_WITHNAME,
             gt.BlobAttribMessageReader('','dcm'))
 
-    # Connect to Gadgetron
+    # Connect to Gadgetron - if no host, port were supplied then look at the
+    # active profile to get the values
+    if (address is None) or (port is None):
+        from mr_utils.config import ProfileConfig
+        profile = ProfileConfig()
+        if address is None:
+            address = profile.get_config_val('gadgetron.host')
+        if port is None:
+            port = profile.get_config_val('gadgetron.port')
+
     logger.debug('Connecting to Gadgetron @ %s:%d' % (address,port))
     con.connect(address,port)
 
