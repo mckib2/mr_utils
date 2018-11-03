@@ -25,6 +25,7 @@ class GSCoilCombineTestCase(unittest.TestCase):
             self.csms.append(generate_birdcage_sensitivities(dim,number_of_coils=coil_num))
 
     def test_walsh(self):
+        # Make sure we know how to do walsh
 
         err = np.zeros(len(self.csms))
         for ii,csm in enumerate(self.csms):
@@ -38,6 +39,7 @@ class GSCoilCombineTestCase(unittest.TestCase):
         # print(err)
 
     def test_inati_iter(self):
+        # Make sure we know how to do inati
 
         err = np.zeros(len(self.csms))
         for ii,csm in enumerate(self.csms):
@@ -51,9 +53,20 @@ class GSCoilCombineTestCase(unittest.TestCase):
         # print(err)
 
     def test_gs_no_combine(self):
-        # Try solving GS coil by coil and then combine
+        from mr_utils.test_data.phantom import bssfp_2d_cylinder
 
-        
+        # Try solving GS coil by coil and then combine
+        dim = 64
+        pcs = np.zeros((4,dim,dim),dtype='complex')
+        for ii,pc in enumerate([ 0,np.pi/2,np.pi,3*np.pi/2 ]):
+            # pcs[ii,...] = bssfp_2d_cylinder(dims=(dim,dim),phase_cyc=pc)
+            im = bssfp_2d_cylinder(dims=(dim,dim),phase_cyc=pc)
+
+            for jj,csm in enumerate(self.csms):
+                coil_ims = im*csm
+                # view(coil_ims)
+
+        # view(pcs)
 
 if __name__ == '__main__':
     unittest.main()

@@ -15,7 +15,7 @@ class BSSFP2DSimTestCase(unittest.TestCase):
         X,Y = np.meshgrid(x,y)
         bottle_idx = np.sqrt(X**2 + Y**2) < .5
 
-        self.PD = np.random.normal(0,.1,(dim,dim))
+        self.PD = np.random.normal(0,0.1,(dim,dim)) # this controls noise level
         self.T1s = np.zeros((dim,dim))
         self.T2s = np.zeros((dim,dim))
 
@@ -52,7 +52,6 @@ class BSSFP2DSimTestCase(unittest.TestCase):
         from mr_utils.recon.ssfp import gs_recon
 
         pcs = np.zeros((4,self.dim,self.dim),dtype='complex')
-
         for ii,pc in enumerate([ 0,np.pi/2,np.pi,3*np.pi/2 ]):
             pcs[ii,...] = ssfp_mat(**self.args,phase_cyc=pc)
         # view(pcs)
