@@ -5,6 +5,8 @@ import warnings # We know skimage will complain about itself importing imp...
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=DeprecationWarning)
     from skimage.util.shape import view_as_windows
+from mr_utils import view
+from mr_utils.recon.util import sos
 
 class GRAPPAUnitTest(unittest.TestCase):
 
@@ -109,7 +111,7 @@ class GRAPPAUnitTest(unittest.TestCase):
 
         kspace_d[:,1:-1:Rx,1:-1] = lines
 
-        recon = np.sqrt(np.sum(np.abs(np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(kspace_d),axes=(1,2))))**2,axis=0))
+        recon = sos(np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(kspace_d),axes=(1,2))),axes=0)
         recon_mat = GRAPPA.Im_Recon()
         self.assertTrue(np.allclose(recon,recon_mat))
 
@@ -123,6 +125,7 @@ class GRAPPAUnitTest(unittest.TestCase):
         # Get everything set up with downsampling and such
         im = GRAPPA.phantom_shl()
         sens = GRAPPA.csm()
+        # view(sens)
         coils = sens*im
         kspace = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(coils),axes=(1,2)))
         Rx = 2
@@ -137,12 +140,13 @@ class GRAPPAUnitTest(unittest.TestCase):
         mask = np.zeros(kspace_d.shape,dtype=bool)
         mask[:,center_row-pad:center_row+pad,:] = True
         acs = kspace[mask].reshape((sens.shape[0],-1,mask.shape[-1]))
+        # view(acs)
 
         # Run the recon
         recon = grappa2d(coil_ims,sens,acs,Rx,Ry=1,kernel_size=(3,3))
 
         # Check to see if the answers match
-        recon = np.sqrt(np.sum(np.abs(recon)**2,axis=0))
+        recon = sos(recon,axes=0)
         recon_mat = GRAPPA.Im_Recon()
         self.assertTrue(np.allclose(recon,recon_mat))
 

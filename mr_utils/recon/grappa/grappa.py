@@ -13,7 +13,7 @@ def grappa2d(coil_ims,sens,acs,Rx,Ry,kernel_size=(3,3)):
     N = sens.shape[0] # number of coils
     S0 = np.zeros((N,(acs.shape[1]-2)*(acs.shape[2]-2),kernel_size[0]*kernel_size[1]),dtype='complex')
     for ii in range(N):
-        S0[ii,:,:] = view_as_windows(acs[ii,:,:],kernel_size).reshape((S0.shape[1],S0.shape[2]))
+        S0[ii,:,:] = view_as_windows(np.ascontiguousarray(acs[ii,:,:]),kernel_size).reshape((S0.shape[1],S0.shape[2]))
 
     # Remove the unknown values.  The remaiming values form source matrix,
     # S, for each coil
@@ -31,7 +31,7 @@ def grappa2d(coil_ims,sens,acs,Rx,Ry,kernel_size=(3,3)):
     # Make patches out of all acquired data (skip the missing lines)
     S0 = np.zeros((N,int((kspace_d.shape[1]-2)/Rx)*int((kspace_d.shape[2]-2)/Ry),kernel_size[0]*kernel_size[1]),dtype='complex')
     for ii in range(N):
-        S0[ii,:,:] = view_as_windows(kspace_d[ii,:,:],kernel_size,step=(Rx,Ry)).reshape((S0.shape[1],S0.shape[2]))
+        S0[ii,:,:] = view_as_windows(np.ascontiguousarray(kspace_d[ii,:,:]),kernel_size,step=(Rx,Ry)).reshape((S0.shape[1],S0.shape[2]))
 
     # Remove the unknown values.  The remaiming values form source matrix,
     # S, for each coil

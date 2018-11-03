@@ -4,7 +4,8 @@ def load_raw(
     filename,
     use='bart',
     bart_args='-A',
-    s2i_ROS=True):
+    s2i_ROS=True,
+    as_ismrmrd=False):
 
     if use == 'bart':
         from bart import bart,cfl
@@ -49,6 +50,11 @@ def load_raw(
             # Load in the file and start getting to work...
             # See https://github.com/ismrmrd/ismrmrd-python-tools/blob/master/recon_ismrmrd_dataset.py
             dset = ismrmrd.Dataset(tmp_name,'/dataset',False)
+
+            # If the user asked for the ismrmrd format, stop here and give it back
+            if as_ismrmrd:
+                print('Skipping everything else and only returning ismrmrd.Dataset!')
+                return(dset)
 
             header = ismrmrd.xsd.CreateFromDocument(dset.read_xml_header())
             enc = header.encoding[0]
