@@ -41,6 +41,31 @@ def ssfp(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
     Mxy *= get_bssfp_phase(TR,field_map)
     return(Mxy)
 
+def ssfp_mat(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
+    '''Assumes T1,T2,field_map are all matrices.'''
+
+    # All this nonsense so we don't divide by 0
+    E1 = np.zeros(T1.shape)
+    E1[T1 > 0] = np.exp(-TR/T1[T1 > 0])
+    E2 = np.zeros(T2.shape)
+    E2[T2 > 0] = np.exp(-TR/T2[T2 > 0])
+
+    # Precompute theta and some cos, sin
+    theta = get_theta(TR,field_map,phase_cyc)
+    ca = np.cos(alpha)
+    sa = np.sin(alpha)
+    ct = np.cos(theta)
+    st = np.sin(theta)
+
+    # Get to business
+    den = (1 - E1*ca)*(1 - E2*ct) - (E2*(E1 - ca))*(E2 - ct)
+    Mx = M0*((1 - E1)*sa)*(1 - E2*ct)/den
+    My = -M0*((1 - E1)*E2*sa*st)/den
+    Mxy = Mx + 1j*My
+    Mxy *= get_bssfp_phase(TR,field_map)
+
+    return(Mxy)
+
 def elliptical_params(T1,T2,TR,alpha,M0=1):
     '''Return ellipse parameters M,a,b.
 
