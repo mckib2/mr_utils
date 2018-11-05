@@ -230,8 +230,14 @@ def view(
         ani = animation.FuncAnimation(fig,updatefig,frames=data.shape[-1],interval=50,blit=True,repeat=movie_repeat)
         plt.show()
     else:
-        # Just a regular old 2d image...
-        plt.imshow(data,cmap=cmap)
+        if data.ndim == 1:
+            plt.plot(data)
+        elif data.ndim == 2:
+            # Just a regular old 2d image...
+            plt.imshow(data,cmap=cmap)
+        else:
+            raise ValueError('%d is too many dimensions!' % data.ndim)
+
         plt.show()
 
 if __name__ == '__main__':
