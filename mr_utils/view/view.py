@@ -33,6 +33,7 @@ def view(
         fft_axes=None,
         fftshift=None,
         mag=None,
+        phase=False,
         log=False,
         cmap='gray',
         montage_axis=None,
@@ -54,6 +55,7 @@ def view(
     fftshift -- Whether or not to perform fftshift. Defaults to True if fft.
 
     mag -- View magnitude image. Defaults to True if data is complex.
+    phase -- View phase image.
     log -- View log of magnitude data. Defaults to False.
     cmap -- Color map to use in plot.
 
@@ -69,6 +71,10 @@ def view(
     if isinstance(image,np.ndarray):
         print('Image is a numpy array!')
         data = image
+    elif type(image) is type([]):
+        # If user sends a list, try casting to numpy array
+        print('Image is a list, trying to cast as numpy array...')
+        data = np.array(image)
     else:
         # Find the file extension
         ext = pathlib.Path(image).suffix
@@ -173,6 +179,10 @@ def view(
             # Don't take log of 0!
             data[data == 0] = np.nan
             data = np.log(data)
+
+    # If we asked for phase, let's do that
+    if phase:
+        data = np.angle(data)
 
     # Run any processing before imshow
     if callable(prep):

@@ -1,6 +1,11 @@
 from pathlib import Path
 from mr_utils.load_data import load_mat
 import numpy as np
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=FutureWarning)
+    import h5py
+    import ismrmrd
 
 ## DAT FILES
 bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
@@ -9,6 +14,33 @@ bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
 single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_512.dat').resolve())
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
+
+## HDF5 FILES
+# For gadgetron
+class GadgetronClient(object):
+
+    @staticmethod
+    def true_output_data():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/true_output').resolve())
+        with h5py.File(path,'r') as f:
+            data = f['2018-11-02 20:35:19.785688']['image_0']['data'][:]
+        return(data)
+
+    @staticmethod
+    def input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def input_h5():
+        path = GadgetronClient.input_filename()
+        data = ismrmrd.Dataset(path,'dataset',False)
+        return(data)
+
+    @staticmethod
+    def raw_input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.dat').resolve())
+        return(path)
 
 ## NPY FILES
 # For ssfp multiphase:
