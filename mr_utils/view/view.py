@@ -180,9 +180,14 @@ def view(
             data[data == 0] = np.nan
             data = np.log(data)
 
-    # If we asked for phase, let's do that
-    if phase:
+
+    # If we asked for phase, let's work out how we'll do that
+    if phase and ((mag is None) or (mag is True)):
+        # TODO: figure out which axis to concatenate the phase onto
+        data = np.concatenate((data,np.angle(data)),axis=fft_axes[-1])
+    elif phase and (mag is False):
         data = np.angle(data)
+
 
     # Run any processing before imshow
     if callable(prep):
