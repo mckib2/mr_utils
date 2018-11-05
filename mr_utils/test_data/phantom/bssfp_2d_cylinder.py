@@ -12,7 +12,7 @@ def bssfp_2d_cylinder_params():
     }
     return(params)
 
-def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,phase_cyc=0):
+def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,phase_cyc=0,noise_std=.1):
     '''Simulates axial bSSFP scan of cylindrical phantom.
 
     TR -- Repetition time.
@@ -21,6 +21,8 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
     FOV -- Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
     radius -- Radius of cylinder in arbitrary units.
     field_map -- (dim_x,dim_y) field map. If None, linear gradient in x used.
+    phase_cyc -- Phase cycling used in simulated bSSFP acquisition.
+    noise_std -- Standard deviation of Gaussian noise added to proton density.
     '''
 
     # Grab the numerical parameters
@@ -32,7 +34,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
     X,Y = np.meshgrid(x,y)
     bottle_idx = np.sqrt(X**2 + Y**2) < radius
 
-    PD = np.random.normal(0,0.1,dims) # this controls noise level
+    PD = np.random.normal(0,noise_std,dims) # this controls noise level
     T1s = np.zeros(dims)
     T2s = np.zeros(dims)
 
