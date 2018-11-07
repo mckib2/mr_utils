@@ -26,9 +26,12 @@ class GSCoilCombineTestCase(unittest.TestCase):
         #     - Discover trends (if any) for number of coils
         #     - Do the same for knee data
         #         - Pay particular attention to smoothness in phase
+        #     - Look into why width increases with noise...
+        #     - Fix noise
 
         err = [] # @ each SNR, rmse for (recon method index,num coils index)
         for SNR in [ None,20,10,5,1 ]:
+        # for SNR in [ 20 ]:
             err.append(comparison_numerical_phantom(SNR))
 
 
