@@ -32,6 +32,7 @@ def view(
         fft=False,
         fft_axes=None,
         fftshift=None,
+        avg_axis=None,
         mag=None,
         phase=False,
         log=False,
@@ -40,6 +41,7 @@ def view(
         montage_opts={'padding_width':2},
         movie_axis=None,
         movie_repeat=True,
+        save_npy=False
     ):
     '''Image viewer to quickly inspect data.
 
@@ -54,6 +56,8 @@ def view(
     fft_axes -- Axis to perform FFT over, determines dimension of n-dim FFT.
     fftshift -- Whether or not to perform fftshift. Defaults to True if fft.
 
+    avg_axis -- Take average over given set of axes.
+
     mag -- View magnitude image. Defaults to True if data is complex.
     phase -- View phase image.
     log -- View log of magnitude data. Defaults to False.
@@ -64,6 +68,8 @@ def view(
 
     movie_axis -- Which axis is the number of frames of the movie.
     movie_repeat -- Whether or not to put movie on endless loop.
+
+    save_npy -- Whether or not to save the output as npy file.
     '''
 
     # If the user wants to look at numpy matrix, recognize that filename is the
@@ -100,6 +106,10 @@ def view(
         else:
             raise Exception('File type %s not understood!' % ext)
 
+
+    # Average out over any axis specified
+    if avg_axis is not None:
+        data = np.mean(data,axis=avg_axis)
 
     # Show the image.  Let's also try to help the user out again.  If we have
     # 3 dimensions, one of them is probably a montage or a movie.  If the user
@@ -239,6 +249,14 @@ def view(
             raise ValueError('%d is too many dimensions!' % data.ndim)
 
         plt.show()
+
+    # Save what we looked at if desired
+    if save_npy:
+        if ext:
+            filename = image
+        else:
+            filename = 'view-output'
+        np.save(filename,data)
 
 if __name__ == '__main__':
 
