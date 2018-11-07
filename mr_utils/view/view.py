@@ -4,6 +4,7 @@ import matplotlib.animation as animation
 import pathlib
 from mr_utils.load_data import load_raw,load_mat
 from skimage.util import montage as skimontage
+from ismrmrdtools.coils import calculate_csm_walsh,calculate_csm_inati_iter
 
 def mat_keys(filename,ignore_dbl_underscored=True,no_print=False):
     '''Give the keys found in a .mat file.
@@ -33,6 +34,8 @@ def view(
         fft_axes=None,
         fftshift=None,
         avg_axis=None,
+        coil_combine_axis=None,
+        coil_combine_method='walsh',
         mag=None,
         phase=False,
         log=False,
@@ -57,6 +60,8 @@ def view(
     fftshift -- Whether or not to perform fftshift. Defaults to True if fft.
 
     avg_axis -- Take average over given set of axes.
+    coil_combine_axis -- Which axis to perform coil combination over.
+    coil_combine_method -- Method to use to combine coils.
 
     mag -- View magnitude image. Defaults to True if data is complex.
     phase -- View phase image.
@@ -110,6 +115,12 @@ def view(
     # Average out over any axis specified
     if avg_axis is not None:
         data = np.mean(data,axis=avg_axis)
+
+    # Let's collapse the coil dimension using the specified algorithm
+    if coil_combine_axis is not None:
+        if coil_combine == 'walsh':
+            csm_walsh,_ = calculate_csm_walsh(data[jj,...])
+            pc_est_walsh[jj,...] = np.sum(csm_walsh*np.conj(coil_ims[jj,...]),axis=0)
 
     # Show the image.  Let's also try to help the user out again.  If we have
     # 3 dimensions, one of them is probably a montage or a movie.  If the user
