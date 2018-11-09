@@ -18,7 +18,8 @@ setup(
         "h5py>=2.7.1",
         "rawdatarinator>=0.1.9",
         "matplotlib>=2.1.1",
-        "ortools>=6.9.5824"
+        "ortools>=6.9.5824",
+        "scikit-image>=0.14.1"
     ],
     python_requires='>=3.5',
 )
