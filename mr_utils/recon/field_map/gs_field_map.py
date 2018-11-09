@@ -29,7 +29,6 @@ def gs_field_map(I0,I1,I2,I3,TR):
 
     # First phase unwrap
     gsfm[np.isnan(gsfm)] = False
-
     assert (np.min(gsfm) > -np.pi) and (np.max(gsfm) < np.pi)
     gsfm = unwrap_phase(gsfm)
 
