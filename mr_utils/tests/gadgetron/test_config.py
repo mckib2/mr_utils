@@ -2,6 +2,7 @@ import unittest
 from mr_utils.gadgetron.config import GadgetronConfig
 from mr_utils.test_data import GadgetronTestConfig
 from xml.etree import ElementTree as ET
+from xmldiff import main
 
 class GadgetronConfigTestCase(unittest.TestCase):
 
@@ -40,7 +41,8 @@ class GadgetronConfigTestCase(unittest.TestCase):
         # self.config.print()
 
         truth = GadgetronTestConfig.default_config()
-        self.assertTrue(ET.tostring(truth,encoding='utf-8',method='xml').decode('utf-8') == self.config.tostring())
+        res = len(main.diff_texts(truth.encode(),self.config.tostring().encode()))
+        self.assertTrue(res == 0)
 
 if __name__ == '__main__':
     unittest.main()
