@@ -4,6 +4,7 @@ import matplotlib.animation as animation
 import pathlib
 from mr_utils.load_data import load_raw,load_mat
 from skimage.util import montage as skimontage
+from ismrmrdtools.coils import calculate_csm_walsh,calculate_csm_inati_iter
 
 def mat_keys(filename,ignore_dbl_underscored=True,no_print=False):
     '''Give the keys found in a .mat file.
@@ -32,6 +33,9 @@ def view(
         fft=False,
         fft_axes=None,
         fftshift=None,
+        avg_axis=None,
+        coil_combine_axis=None,
+        coil_combine_method='walsh',
         mag=None,
         phase=False,
         log=False,
@@ -40,6 +44,7 @@ def view(
         montage_opts={'padding_width':2},
         movie_axis=None,
         movie_repeat=True,
+        save_npy=False
     ):
     '''Image viewer to quickly inspect data.
 
@@ -54,6 +59,10 @@ def view(
     fft_axes -- Axis to perform FFT over, determines dimension of n-dim FFT.
     fftshift -- Whether or not to perform fftshift. Defaults to True if fft.
 
+    avg_axis -- Take average over given set of axes.
+    coil_combine_axis -- Which axis to perform coil combination over.
+    coil_combine_method -- Method to use to combine coils.
+
     mag -- View magnitude image. Defaults to True if data is complex.
     phase -- View phase image.
     log -- View log of magnitude data. Defaults to False.
@@ -64,6 +73,8 @@ def view(
 
     movie_axis -- Which axis is the number of frames of the movie.
     movie_repeat -- Whether or not to put movie on endless loop.
+
+    save_npy -- Whether or not to save the output as npy file.
     '''
 
     # If the user wants to look at numpy matrix, recognize that filename is the
@@ -100,6 +111,18 @@ def view(
         else:
             raise Exception('File type %s not understood!' % ext)
 
+
+    # Average out over any axis specified
+    if avg_axis is not None:
+        data = np.mean(data,axis=avg_axis)
+
+    # Let's collapse the coil dimension using the specified algorithm
+    if coil_combine_axis is not None:
+        if coil_combine == 'walsh':
+            # # coil_ims =
+            # csm_walsh,_ = calculate_csm_walsh(data[jj,...])
+            # pc_est_walsh[jj,...] = np.sum(csm_walsh*np.conj(coil_ims[jj,...]),axis=0)
+            pass
 
     # Show the image.  Let's also try to help the user out again.  If we have
     # 3 dimensions, one of them is probably a montage or a movie.  If the user
@@ -180,9 +203,14 @@ def view(
             data[data == 0] = np.nan
             data = np.log(data)
 
-    # If we asked for phase, let's do that
-    if phase:
+
+    # If we asked for phase, let's work out how we'll do that
+    if phase and ((mag is None) or (mag is True)):
+        # TODO: figure out which axis to concatenate the phase onto
+        data = np.concatenate((data,np.angle(data)),axis=fft_axes[-1])
+    elif phase and (mag is False):
         data = np.angle(data)
+
 
     # Run any processing before imshow
     if callable(prep):
@@ -225,9 +253,23 @@ def view(
         ani = animation.FuncAnimation(fig,updatefig,frames=data.shape[-1],interval=50,blit=True,repeat=movie_repeat)
         plt.show()
     else:
-        # Just a regular old 2d image...
-        plt.imshow(data,cmap=cmap)
+        if data.ndim == 1:
+            plt.plot(data)
+        elif data.ndim == 2:
+            # Just a regular old 2d image...
+            plt.imshow(data,cmap=cmap)
+        else:
+            raise ValueError('%d is too many dimensions!' % data.ndim)
+
         plt.show()
+
+    # Save what we looked at if desired
+    if save_npy:
+        if ext:
+            filename = image
+        else:
+            filename = 'view-output'
+        np.save(filename,data)
 
 if __name__ == '__main__':
 

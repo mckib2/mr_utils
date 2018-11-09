@@ -3,7 +3,7 @@ from mr_utils.test_data import SSFPMultiphase
 from mr_utils import view
 import numpy as np
 from mr_utils.recon.grappa import grappa2d
-from mr_utils.recon.util import sos
+from mr_utils.utils import sos
 
 class MultiphaseTestCase(unittest.TestCase):
 
