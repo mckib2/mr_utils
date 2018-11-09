@@ -30,13 +30,14 @@ class GSCoilCombineTestCase(unittest.TestCase):
         #     - Fix noise
 
         err = [] # @ each SNR, rmse for (recon method index,num coils index)
-        for SNR in [ None,20,10,5,1 ]:
-        # for SNR in [ 20 ]:
+        # for SNR in [ None,50,20,10,5,1 ]:
+        for SNR in [ None ]:
             err.append(comparison_numerical_phantom(SNR))
 
 
-    def test_comparison_knee(self):
-        comparison_knee()
+    # def test_comparison_knee(self):
+    #
+    #     comparison_knee()
 
     # def test_espirit(self):
     #     from mr_utils.recon.espirit import espirit_2d
