@@ -17,7 +17,7 @@ class GSFMTestCase(unittest.TestCase):
         min_df,max_df = 0,500
         fx = np.linspace(min_df,max_df,dim)
         fy = np.zeros(dim)
-        _,field_map = np.meshgrid(fx,fy)
+        field_map,_ = np.meshgrid(fx,fy)
         # field_map = np.random.normal(0,1,(dim,dim))
         # view(field_map)
 
@@ -41,8 +41,8 @@ class GSFMTestCase(unittest.TestCase):
         field_map[recon == 0] = 0
         # view(np.sqrt(np.abs(field_map**2) - np.abs(recon**2)))
 
-
         view(np.abs(field_map - recon))
+        self.assertTrue(np.allclose(field_map,recon))
 
 if __name__ == '__main__':
     unittest.main()
