@@ -119,8 +119,10 @@ def view(
     # Let's collapse the coil dimension using the specified algorithm
     if coil_combine_axis is not None:
         if coil_combine == 'walsh':
-            csm_walsh,_ = calculate_csm_walsh(data[jj,...])
-            pc_est_walsh[jj,...] = np.sum(csm_walsh*np.conj(coil_ims[jj,...]),axis=0)
+            # # coil_ims =
+            # csm_walsh,_ = calculate_csm_walsh(data[jj,...])
+            # pc_est_walsh[jj,...] = np.sum(csm_walsh*np.conj(coil_ims[jj,...]),axis=0)
+            pass
 
     # Show the image.  Let's also try to help the user out again.  If we have
     # 3 dimensions, one of them is probably a montage or a movie.  If the user
