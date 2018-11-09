@@ -4,7 +4,8 @@ from mr_utils import view
 from mr_utils.recon.ssfp import gs_recon
 from ismrmrdtools.simulation import generate_birdcage_sensitivities
 from ismrmrdtools.coils import calculate_csm_walsh,calculate_csm_inati_iter
-from mr_utils.recon.util import sos,rmse
+from mr_utils.utils import sos
+from skimage.measure import compare_nrmse
 from mr_utils.test_data.phantom import bssfp_2d_cylinder
 from mr_utils.load_data import load_raw
 from scipy.signal import butter, lfilter
@@ -266,11 +267,11 @@ def comparison_numerical_phantom(SNR=None):
         # view(im_est_recon_then_walsh)
 
         # Compute error metrics
-        err[0,ii] = rmse(im_est_sos,true_im,noroot=True)
-        err[1,ii] = rmse(im_est_recon_then_walsh,true_im,noroot=True)
-        err[2,ii] = rmse(im_est_recon_then_inati,true_im,noroot=True)
-        err[3,ii] = rmse(im_est_walsh,true_im,noroot=True)
-        err[4,ii] = rmse(im_est_inati,true_im,noroot=True)
+        err[0,ii] = compare_nrmse(im_est_sos,true_im)
+        err[1,ii] = compare_nrmse(im_est_recon_then_walsh,true_im)
+        err[2,ii] = compare_nrmse(im_est_recon_then_inati,true_im)
+        err[3,ii] = compare_nrmse(im_est_walsh,true_im)
+        err[4,ii] = compare_nrmse(im_est_inati,true_im)
 
         im_est_sos[np.isnan(im_est_sos)] = 0
         im_est_recon_then_walsh[np.isnan(im_est_recon_then_walsh)] = 0

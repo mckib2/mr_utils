@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from mr_utils.sim.ssfp.gs_coil_combine_comparison import comparison_numerical_phantom,comparison_knee
+from mr_utils.coils.gs_comparison.gs_coil_combine_comparison import comparison_numerical_phantom,comparison_knee
 from mr_utils import view
 
 class GSCoilCombineTestCase(unittest.TestCase):
