@@ -217,7 +217,7 @@ class Connector(object):
         contents_with_nul = '%s\0' % contents
         self.sock.send(msg)
         self.sock.send(script_len)
-        self.sock.send(contents_with_nul)
+        self.sock.send(contents_with_nul.encode('utf-8'))
 
     def send_gadgetron_configuration_file(self, filename):
         msg = GadgetMessageIdentifier.pack(GADGET_MESSAGE_CONFIG_FILE)
