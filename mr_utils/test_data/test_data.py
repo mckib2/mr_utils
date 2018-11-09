@@ -15,6 +15,17 @@ single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_vo
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
+## XML FILES
+# For gadgetron
+class GadgetronTestConfig(object):
+
+    @staticmethod
+    def default_config():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/config/default.xml').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
 ## HDF5 FILES
 # For gadgetron
 class GadgetronClient(object):
