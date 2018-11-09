@@ -2,11 +2,13 @@
 # pipelines can be created in the script, modified conditionally, etc...
 
 import xml.etree.cElementTree as ET
+from tempfile import NamedTemporaryFile
 
 class GadgetronConfig(object):
 
     def __init__(self):
         self.get_stream_config()
+        # self.filename = None
 
     def get_stream_config(self):
         '''
@@ -87,6 +89,35 @@ class GadgetronConfig(object):
         val = ET.tostring(self.gadgetronStreamConfiguration,encoding='utf-8',method='xml').decode('utf-8')
         return(val)
 
+    # def get_filename(self):
+    #     '''Create a temporary file and hand back the filename.'''
+    #
+    #     if self.filename is None:
+    #         self.filename = NamedTemporaryFile().name
+    #     return(self.filename)
+
+
+
+def default_config():
+    config = GadgetronConfig()
+    config.add_reader('1008','GadgetIsmrmrdAcquisitionMessageReader')
+    config.add_reader('1026','GadgetIsmrmrdWaveformMessageReader')
+    config.add_writer('1022','MRIImageWriter')
+    config.add_gadget('RemoveROOversampling')
+    config.add_gadget('AccTrig','AcquisitionAccumulateTriggerGadget',props=[
+        ('trigger_dimension','repetition'),
+        ('sorting_dimension','slice')
+    ])
+    config.add_gadget('Buff','BucketToBufferGadget',props=[
+        ('N_dimension',''),
+        ('S_dimension',''),
+        ('split_slices','true')
+    ])
+    config.add_gadget('SimpleRecon')
+    config.add_gadget('ImageArraySplit')
+    config.add_gadget('Extract')
+    config.add_gadget('ImageFinish')
+    return(config)
 
 if __name__ == '__main__':
     pass
