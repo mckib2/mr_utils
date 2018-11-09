@@ -6,7 +6,7 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=DeprecationWarning)
     from skimage.util.shape import view_as_windows
 from mr_utils import view
-from mr_utils.recon.util import sos
+from mr_utils.utils import sos
 
 class GRAPPAUnitTest(unittest.TestCase):
 
