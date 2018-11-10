@@ -188,9 +188,9 @@ class XProtParser(object):
             def closeString(self):
                 return('</' + self.tag + '>')
 
-        # # escape invalid xml entities
-        # def xml_clean(string):
-        #     return(string.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;'))
+        # escape invalid xml entities
+        def xml_clean(string):
+            return(string.replace('&','&amp;').replace('<','&lt;').replace('>','&gt;'))
 
 
         def p_document(p):
@@ -232,6 +232,7 @@ class XProtParser(object):
 
         def p_line(p):
             '''line : tag LBRACE
+
                     | LANGLE modifier RANGLE tag LBRACE
                     | LANGLE modifier RANGLE LBRACE
                     | LBRACE
@@ -297,11 +298,11 @@ class XProtParser(object):
                             self.brace_state.append((p[5],self.node_label))
                             self.xml += n.openString()
                         else:
-                            # self.xml += n.openString() + xml_clean(p[4]) + n.closeString()
-                            self.xml += n.openString() + p[4] + n.closeString()
+                            self.xml += n.openString() + xml_clean(p[4]) + n.closeString()
+                            # self.xml += n.openString() + p[4] + n.closeString()
                     else:
-                        # self.xml += n.openString() + xml_clean(p[1]) + n.closeString()
-                        self.xml += n.openString() + p[1] + n.closeString()
+                        self.xml += n.openString() + xml_clean(p[1]) + n.closeString()
+                        # self.xml += n.openString() + p[1] + n.closeString()
 
 
         def p_tag(p):
@@ -348,24 +349,24 @@ class XProtParser(object):
         # Build the parser
         parser = yacc.yacc()
 
-        # # load in the real data
-        # info = cleanraw(filename)
-        xprot = xprot.replace('&','&amp;').replace('<class MiniHeader,class Parc::Component>','')
+        # load in the data
         result = parser.parse(xprot)
-
-        # We have multiple roots, so we need to provide a parent
-        # self.xml = '<doc_root>' + self.xml + '</doc_root>'
-        # print(self.xml)
 
         # Check to make sure all our braces matched up
         if len(self.brace_state) > 0:
             print('Mismatched Braces!')
 
-        print(self.xml.find('sWipMemBlock'))
+        # Give xml document a common parent
+        self.xml = '<doc_root>' + self.xml + '</doc_root>'
+
+
+        # print('Found Version', self.xml.find('Version'))
+        # print(self.xml.find('sWipMemBlock'))
 
         # Parse the string to make sure XML is well formed
-        try:
-            root = ET.fromstring(self.xml)
-            return(root)
-        except:
-            return(-1)
+        # try:
+        # print(self.xml)
+        root = ET.fromstring(self.xml)
+        return(root)
+        # except:
+            # return(-1)
