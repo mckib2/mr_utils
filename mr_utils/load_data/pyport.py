@@ -198,7 +198,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
     for b in range(num_buffers):
         if buffers[b]['name'] == 'Meas':
 
-            config_buffer = buffers[0]['buf'][:-2]
+            config_buffer = buffers[b]['buf'][:-2]
             # print(config_buffer)
 
             if debug_xml:
@@ -214,43 +214,47 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
                 raise RuntimeError()
 
             # Get some parameters - wip long
-            # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.alFree"), n);
-            n2 = n.find('MEAS.sWipMemBlock.alFree')
-            print(n2)
-            # if (n2):
-            #     wip_long = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else:
-            #     logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
-            #
-            # if (wip_long.size() == 0):
-            #     logging.error('Failed to find WIP long parameters')
-            #     raise RuntimeError()
+            n2 = n.find('ParamMap[@name="sWiPMemBlock"]/ParamLong[@name="alFree"]')
+            if n2 is not None:
+                for child in n2:
+                    wip_long.append(child.text)
+            else:
+                logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
 
-            # #Get some parameters - wip double
-            # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.adFree"), n);
-            # if (n2):
-            #     wip_double = apply_visitor(XProtocol::getStringValueArray(), *n2);
+            if len(wip_long) == 0:
+                logging.error('Failed to find WIP long parameters')
+                raise RuntimeError()
+
+            #Get some parameters - wip double
+            n2 = n.find('ParamMap[@name="sWiPMemBlock"]/ParamDouble[@name="adFree"]')
+            if n2 is not None:
+                for child in n2:
+                    wip_double.append(child.text)
+            else:
+                logging.warning('Search path: MEAS.sWipMemBlock.adFree not found')
+
+            if len(wip_double) == 0:
+                logging.error('Failed to find WIP double parameters')
+                raise RuntimeError()
+
+            # Get some parameters - dwell times
+            n2 = None
+            for el in n:
+                if len(el) and el[0].text == '"MEAS.sRXSPEC.alDwellTime"':
+                    n2 = el
+                    break
+            if (n2):
+                temp = [ el.text for el in n2 ]
+                temp = temp[1:]
+            else:
+                logging.warning('Search path: MEAS.sRXSPEC.alDwellTime not found.')
+
+            if len(temp) == 0:
+                logging.error('Failed to find dwell times')
+                raise RuntimeError()
             # else:
-            #     logging.warning('Search path: MEAS.sWipMemBlock.adFree not found')
-            #
-            # if (wip_double.size() == 0):
-            #     logging.error('Failed to find WIP double parameters')
-            #     raise RuntimeError()
-            #
-            # #Get some parameters - dwell times
-            # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sRXSPEC.alDwellTime"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-            # else:
-            #     logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
-            #
-            # if (temp.size() == 0):
-            #     logging.error('Failed to find dwell times')
-            #     raise RuntimeError()
-            # else:
-            #     dwell_time_0 = atoi(temp[0].c_str());
-            #
+            #     dwell_time_0 = atoi(temp[0].c_str())
+
             # # Get some parameters - trajectory
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.ucTrajectory"), n);
             # std::vector<std::string> temp;
@@ -577,7 +581,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert Siemens raw data format to ISMRMRD format.')
     parser.add_argument('-v',dest='version',action='store_true',help='Prints converter version and ISMRMRD version')
     parser.add_argument('-f',dest='file',help='<SIEMENS dat file>')
-    parser.add_argument('-z',dest='measNum',help='<Measurement number>',default=1,type=check_positive   )
+    parser.add_argument('-z',dest='measNum',help='<Measurement number>',default=1,type=check_positive)
     parser.add_argument('-m',dest='pMap',help='<Parameter map XML file>')
     parser.add_argument('-x',dest='pMapStyle',help='<Parameter stylesheet XSL file>')
     parser.add_argument('--user-map',help='<Provide a parameter map XML file>')
