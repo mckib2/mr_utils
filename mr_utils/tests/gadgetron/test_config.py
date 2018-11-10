@@ -34,7 +34,7 @@ class GadgetronConfigTestCase(unittest.TestCase):
 
         # Send gadgetron the local default configuration file
         config = default_config()
-        print(config)
+        # print(config)
         # data,header = client(filename,config_local=config.get_filename())
         data,header = client(filename,config_local=config.tostring())
 

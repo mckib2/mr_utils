@@ -1,0 +1,1064 @@
+Created by PLY version 3.10 (http://www.dabeaz.com/ply)
+
+Unused terminals:
+
+    COMMENT
+
+Grammar
+
+Rule 0     S' -> document
+Rule 1     document -> document line
+Rule 2     document -> line
+Rule 3     modifier -> DEFAULT
+Rule 4     modifier -> CLASS
+Rule 5     modifier -> PRECISION
+Rule 6     modifier -> MINSIZE
+Rule 7     modifier -> MAXSIZE
+Rule 8     modifier -> LABEL
+Rule 9     modifier -> TOOLTIP
+Rule 10    modifier -> LIMRANGE
+Rule 11    modifier -> LIMIT
+Rule 12    modifier -> REPR
+Rule 13    modifier -> POS
+Rule 14    modifier -> PARAM
+Rule 15    modifier -> CONTROL
+Rule 16    modifier -> LINE
+Rule 17    modifier -> DLL
+Rule 18    modifier -> CONTEXT
+Rule 19    modifier -> NAME
+Rule 20    modifier -> ID
+Rule 21    modifier -> USERVERSION
+Rule 22    modifier -> INFILE
+Rule 23    modifier -> VISIBLE
+Rule 24    modifier -> COM
+Rule 25    modifier -> UNIT
+Rule 26    modifier -> DICOM
+Rule 27    modifier -> MEAS
+Rule 28    modifier -> MEASYAPS
+Rule 29    modifier -> PHOENIX
+Rule 30    modifier -> SPICE
+Rule 31    line -> tag LBRACE
+Rule 32    line -> LANGLE modifier RANGLE tag LBRACE
+Rule 33    line -> LANGLE modifier RANGLE LBRACE
+Rule 34    line -> LBRACE
+Rule 35    line -> RBRACE
+Rule 36    line -> STRING
+Rule 37    line -> INTEGER
+Rule 38    line -> FLOAT
+Rule 39    line -> LANGLE modifier RANGLE STRING
+Rule 40    line -> LANGLE modifier RANGLE INTEGER
+Rule 41    line -> LANGLE modifier RANGLE FLOAT
+Rule 42    line -> LEFTHAND
+Rule 43    line -> LANGLE modifier RANGLE LEFTHAND
+Rule 44    line -> HEX
+Rule 45    line -> SCINOT
+Rule 46    tag -> LANGLE tagtype PERIOD STRING RANGLE
+Rule 47    tag -> LANGLE tagtype RANGLE
+Rule 48    tagtype -> PMAP
+Rule 49    tagtype -> PSTR
+Rule 50    tagtype -> PLNG
+Rule 51    tagtype -> PDBL
+Rule 52    tagtype -> PBOOL
+Rule 53    tagtype -> PARRAY
+Rule 54    tagtype -> PFUNCT
+Rule 55    tagtype -> PCHOICE
+Rule 56    tagtype -> PCARDLAYOUT
+Rule 57    tagtype -> PIPE
+Rule 58    tagtype -> PIPESERVICE
+Rule 59    tagtype -> EVENT
+Rule 60    tagtype -> CONN
+Rule 61    tagtype -> METHOD
+Rule 62    tagtype -> DEPEND
+Rule 63    tagtype -> PROTCOMP
+Rule 64    tagtype -> EVASTRTAB
+Rule 65    tagtype -> XPROT
+
+Terminals, with rules where they appear
+
+CLASS                : 4
+COM                  : 24
+COMMENT              : 
+CONN                 : 60
+CONTEXT              : 18
+CONTROL              : 15
+DEFAULT              : 3
+DEPEND               : 62
+DICOM                : 26
+DLL                  : 17
+EVASTRTAB            : 64
+EVENT                : 59
+FLOAT                : 38 41
+HEX                  : 44
+ID                   : 20
+INFILE               : 22
+INTEGER              : 37 40
+LABEL                : 8
+LANGLE               : 32 33 39 40 41 43 46 47
+LBRACE               : 31 32 33 34
+LEFTHAND             : 42 43
+LIMIT                : 11
+LIMRANGE             : 10
+LINE                 : 16
+MAXSIZE              : 7
+MEAS                 : 27
+MEASYAPS             : 28
+METHOD               : 61
+MINSIZE              : 6
+NAME                 : 19
+PARAM                : 14
+PARRAY               : 53
+PBOOL                : 52
+PCARDLAYOUT          : 56
+PCHOICE              : 55
+PDBL                 : 51
+PERIOD               : 46
+PFUNCT               : 54
+PHOENIX              : 29
+PIPE                 : 57
+PIPESERVICE          : 58
+PLNG                 : 50
+PMAP                 : 48
+POS                  : 13
+PRECISION            : 5
+PROTCOMP             : 63
+PSTR                 : 49
+RANGLE               : 32 33 39 40 41 43 46 47
+RBRACE               : 35
+REPR                 : 12
+SCINOT               : 45
+SPICE                : 30
+STRING               : 36 39 46
+TOOLTIP              : 9
+UNIT                 : 25
+USERVERSION          : 21
+VISIBLE              : 23
+XPROT                : 65
+error                : 
+
+Nonterminals, with rules where they appear
+
+document             : 1 0
+line                 : 1 2
+modifier             : 32 33 39 40 41 43
+tag                  : 31 32
+tagtype              : 46 47
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . document
+    (1) document -> . document line
+    (2) document -> . line
+    (31) line -> . tag LBRACE
+    (32) line -> . LANGLE modifier RANGLE tag LBRACE
+    (33) line -> . LANGLE modifier RANGLE LBRACE
+    (34) line -> . LBRACE
+    (35) line -> . RBRACE
+    (36) line -> . STRING
+    (37) line -> . INTEGER
+    (38) line -> . FLOAT
+    (39) line -> . LANGLE modifier RANGLE STRING
+    (40) line -> . LANGLE modifier RANGLE INTEGER
+    (41) line -> . LANGLE modifier RANGLE FLOAT
+    (42) line -> . LEFTHAND
+    (43) line -> . LANGLE modifier RANGLE LEFTHAND
+    (44) line -> . HEX
+    (45) line -> . SCINOT
+    (46) tag -> . LANGLE tagtype PERIOD STRING RANGLE
+    (47) tag -> . LANGLE tagtype RANGLE
+
+    LANGLE          shift and go to state 5
+    LBRACE          shift and go to state 4
+    RBRACE          shift and go to state 6
+    STRING          shift and go to state 7
+    INTEGER         shift and go to state 8
+    FLOAT           shift and go to state 9
+    LEFTHAND        shift and go to state 10
+    HEX             shift and go to state 11
+    SCINOT          shift and go to state 12
+
+    document                       shift and go to state 1
+    line                           shift and go to state 2
+    tag                            shift and go to state 3
+
+state 1
+
+    (0) S' -> document .
+    (1) document -> document . line
+    (31) line -> . tag LBRACE
+    (32) line -> . LANGLE modifier RANGLE tag LBRACE
+    (33) line -> . LANGLE modifier RANGLE LBRACE
+    (34) line -> . LBRACE
+    (35) line -> . RBRACE
+    (36) line -> . STRING
+    (37) line -> . INTEGER
+    (38) line -> . FLOAT
+    (39) line -> . LANGLE modifier RANGLE STRING
+    (40) line -> . LANGLE modifier RANGLE INTEGER
+    (41) line -> . LANGLE modifier RANGLE FLOAT
+    (42) line -> . LEFTHAND
+    (43) line -> . LANGLE modifier RANGLE LEFTHAND
+    (44) line -> . HEX
+    (45) line -> . SCINOT
+    (46) tag -> . LANGLE tagtype PERIOD STRING RANGLE
+    (47) tag -> . LANGLE tagtype RANGLE
+
+    LANGLE          shift and go to state 5
+    LBRACE          shift and go to state 4
+    RBRACE          shift and go to state 6
+    STRING          shift and go to state 7
+    INTEGER         shift and go to state 8
+    FLOAT           shift and go to state 9
+    LEFTHAND        shift and go to state 10
+    HEX             shift and go to state 11
+    SCINOT          shift and go to state 12
+
+    line                           shift and go to state 13
+    tag                            shift and go to state 3
+
+state 2
+
+    (2) document -> line .
+
+    LANGLE          reduce using rule 2 (document -> line .)
+    LBRACE          reduce using rule 2 (document -> line .)
+    RBRACE          reduce using rule 2 (document -> line .)
+    STRING          reduce using rule 2 (document -> line .)
+    INTEGER         reduce using rule 2 (document -> line .)
+    FLOAT           reduce using rule 2 (document -> line .)
+    LEFTHAND        reduce using rule 2 (document -> line .)
+    HEX             reduce using rule 2 (document -> line .)
+    SCINOT          reduce using rule 2 (document -> line .)
+    $end            reduce using rule 2 (document -> line .)
+
+
+state 3
+
+    (31) line -> tag . LBRACE
+
+    LBRACE          shift and go to state 14
+
+
+state 4
+
+    (34) line -> LBRACE .
+
+    LANGLE          reduce using rule 34 (line -> LBRACE .)
+    LBRACE          reduce using rule 34 (line -> LBRACE .)
+    RBRACE          reduce using rule 34 (line -> LBRACE .)
+    STRING          reduce using rule 34 (line -> LBRACE .)
+    INTEGER         reduce using rule 34 (line -> LBRACE .)
+    FLOAT           reduce using rule 34 (line -> LBRACE .)
+    LEFTHAND        reduce using rule 34 (line -> LBRACE .)
+    HEX             reduce using rule 34 (line -> LBRACE .)
+    SCINOT          reduce using rule 34 (line -> LBRACE .)
+    $end            reduce using rule 34 (line -> LBRACE .)
+
+
+state 5
+
+    (32) line -> LANGLE . modifier RANGLE tag LBRACE
+    (33) line -> LANGLE . modifier RANGLE LBRACE
+    (39) line -> LANGLE . modifier RANGLE STRING
+    (40) line -> LANGLE . modifier RANGLE INTEGER
+    (41) line -> LANGLE . modifier RANGLE FLOAT
+    (43) line -> LANGLE . modifier RANGLE LEFTHAND
+    (46) tag -> LANGLE . tagtype PERIOD STRING RANGLE
+    (47) tag -> LANGLE . tagtype RANGLE
+    (3) modifier -> . DEFAULT
+    (4) modifier -> . CLASS
+    (5) modifier -> . PRECISION
+    (6) modifier -> . MINSIZE
+    (7) modifier -> . MAXSIZE
+    (8) modifier -> . LABEL
+    (9) modifier -> . TOOLTIP
+    (10) modifier -> . LIMRANGE
+    (11) modifier -> . LIMIT
+    (12) modifier -> . REPR
+    (13) modifier -> . POS
+    (14) modifier -> . PARAM
+    (15) modifier -> . CONTROL
+    (16) modifier -> . LINE
+    (17) modifier -> . DLL
+    (18) modifier -> . CONTEXT
+    (19) modifier -> . NAME
+    (20) modifier -> . ID
+    (21) modifier -> . USERVERSION
+    (22) modifier -> . INFILE
+    (23) modifier -> . VISIBLE
+    (24) modifier -> . COM
+    (25) modifier -> . UNIT
+    (26) modifier -> . DICOM
+    (27) modifier -> . MEAS
+    (28) modifier -> . MEASYAPS
+    (29) modifier -> . PHOENIX
+    (30) modifier -> . SPICE
+    (48) tagtype -> . PMAP
+    (49) tagtype -> . PSTR
+    (50) tagtype -> . PLNG
+    (51) tagtype -> . PDBL
+    (52) tagtype -> . PBOOL
+    (53) tagtype -> . PARRAY
+    (54) tagtype -> . PFUNCT
+    (55) tagtype -> . PCHOICE
+    (56) tagtype -> . PCARDLAYOUT
+    (57) tagtype -> . PIPE
+    (58) tagtype -> . PIPESERVICE
+    (59) tagtype -> . EVENT
+    (60) tagtype -> . CONN
+    (61) tagtype -> . METHOD
+    (62) tagtype -> . DEPEND
+    (63) tagtype -> . PROTCOMP
+    (64) tagtype -> . EVASTRTAB
+    (65) tagtype -> . XPROT
+
+    DEFAULT         shift and go to state 17
+    CLASS           shift and go to state 18
+    PRECISION       shift and go to state 19
+    MINSIZE         shift and go to state 20
+    MAXSIZE         shift and go to state 21
+    LABEL           shift and go to state 22
+    TOOLTIP         shift and go to state 23
+    LIMRANGE        shift and go to state 24
+    LIMIT           shift and go to state 25
+    REPR            shift and go to state 26
+    POS             shift and go to state 27
+    PARAM           shift and go to state 28
+    CONTROL         shift and go to state 29
+    LINE            shift and go to state 30
+    DLL             shift and go to state 31
+    CONTEXT         shift and go to state 32
+    NAME            shift and go to state 33
+    ID              shift and go to state 34
+    USERVERSION     shift and go to state 35
+    INFILE          shift and go to state 36
+    VISIBLE         shift and go to state 37
+    COM             shift and go to state 38
+    UNIT            shift and go to state 39
+    DICOM           shift and go to state 40
+    MEAS            shift and go to state 41
+    MEASYAPS        shift and go to state 42
+    PHOENIX         shift and go to state 43
+    SPICE           shift and go to state 44
+    PMAP            shift and go to state 45
+    PSTR            shift and go to state 46
+    PLNG            shift and go to state 47
+    PDBL            shift and go to state 48
+    PBOOL           shift and go to state 49
+    PARRAY          shift and go to state 50
+    PFUNCT          shift and go to state 51
+    PCHOICE         shift and go to state 52
+    PCARDLAYOUT     shift and go to state 53
+    PIPE            shift and go to state 54
+    PIPESERVICE     shift and go to state 55
+    EVENT           shift and go to state 56
+    CONN            shift and go to state 57
+    METHOD          shift and go to state 58
+    DEPEND          shift and go to state 59
+    PROTCOMP        shift and go to state 60
+    EVASTRTAB       shift and go to state 61
+    XPROT           shift and go to state 62
+
+    modifier                       shift and go to state 15
+    tagtype                        shift and go to state 16
+
+state 6
+
+    (35) line -> RBRACE .
+
+    LANGLE          reduce using rule 35 (line -> RBRACE .)
+    LBRACE          reduce using rule 35 (line -> RBRACE .)
+    RBRACE          reduce using rule 35 (line -> RBRACE .)
+    STRING          reduce using rule 35 (line -> RBRACE .)
+    INTEGER         reduce using rule 35 (line -> RBRACE .)
+    FLOAT           reduce using rule 35 (line -> RBRACE .)
+    LEFTHAND        reduce using rule 35 (line -> RBRACE .)
+    HEX             reduce using rule 35 (line -> RBRACE .)
+    SCINOT          reduce using rule 35 (line -> RBRACE .)
+    $end            reduce using rule 35 (line -> RBRACE .)
+
+
+state 7
+
+    (36) line -> STRING .
+
+    LANGLE          reduce using rule 36 (line -> STRING .)
+    LBRACE          reduce using rule 36 (line -> STRING .)
+    RBRACE          reduce using rule 36 (line -> STRING .)
+    STRING          reduce using rule 36 (line -> STRING .)
+    INTEGER         reduce using rule 36 (line -> STRING .)
+    FLOAT           reduce using rule 36 (line -> STRING .)
+    LEFTHAND        reduce using rule 36 (line -> STRING .)
+    HEX             reduce using rule 36 (line -> STRING .)
+    SCINOT          reduce using rule 36 (line -> STRING .)
+    $end            reduce using rule 36 (line -> STRING .)
+
+
+state 8
+
+    (37) line -> INTEGER .
+
+    LANGLE          reduce using rule 37 (line -> INTEGER .)
+    LBRACE          reduce using rule 37 (line -> INTEGER .)
+    RBRACE          reduce using rule 37 (line -> INTEGER .)
+    STRING          reduce using rule 37 (line -> INTEGER .)
+    INTEGER         reduce using rule 37 (line -> INTEGER .)
+    FLOAT           reduce using rule 37 (line -> INTEGER .)
+    LEFTHAND        reduce using rule 37 (line -> INTEGER .)
+    HEX             reduce using rule 37 (line -> INTEGER .)
+    SCINOT          reduce using rule 37 (line -> INTEGER .)
+    $end            reduce using rule 37 (line -> INTEGER .)
+
+
+state 9
+
+    (38) line -> FLOAT .
+
+    LANGLE          reduce using rule 38 (line -> FLOAT .)
+    LBRACE          reduce using rule 38 (line -> FLOAT .)
+    RBRACE          reduce using rule 38 (line -> FLOAT .)
+    STRING          reduce using rule 38 (line -> FLOAT .)
+    INTEGER         reduce using rule 38 (line -> FLOAT .)
+    FLOAT           reduce using rule 38 (line -> FLOAT .)
+    LEFTHAND        reduce using rule 38 (line -> FLOAT .)
+    HEX             reduce using rule 38 (line -> FLOAT .)
+    SCINOT          reduce using rule 38 (line -> FLOAT .)
+    $end            reduce using rule 38 (line -> FLOAT .)
+
+
+state 10
+
+    (42) line -> LEFTHAND .
+
+    LANGLE          reduce using rule 42 (line -> LEFTHAND .)
+    LBRACE          reduce using rule 42 (line -> LEFTHAND .)
+    RBRACE          reduce using rule 42 (line -> LEFTHAND .)
+    STRING          reduce using rule 42 (line -> LEFTHAND .)
+    INTEGER         reduce using rule 42 (line -> LEFTHAND .)
+    FLOAT           reduce using rule 42 (line -> LEFTHAND .)
+    LEFTHAND        reduce using rule 42 (line -> LEFTHAND .)
+    HEX             reduce using rule 42 (line -> LEFTHAND .)
+    SCINOT          reduce using rule 42 (line -> LEFTHAND .)
+    $end            reduce using rule 42 (line -> LEFTHAND .)
+
+
+state 11
+
+    (44) line -> HEX .
+
+    LANGLE          reduce using rule 44 (line -> HEX .)
+    LBRACE          reduce using rule 44 (line -> HEX .)
+    RBRACE          reduce using rule 44 (line -> HEX .)
+    STRING          reduce using rule 44 (line -> HEX .)
+    INTEGER         reduce using rule 44 (line -> HEX .)
+    FLOAT           reduce using rule 44 (line -> HEX .)
+    LEFTHAND        reduce using rule 44 (line -> HEX .)
+    HEX             reduce using rule 44 (line -> HEX .)
+    SCINOT          reduce using rule 44 (line -> HEX .)
+    $end            reduce using rule 44 (line -> HEX .)
+
+
+state 12
+
+    (45) line -> SCINOT .
+
+    LANGLE          reduce using rule 45 (line -> SCINOT .)
+    LBRACE          reduce using rule 45 (line -> SCINOT .)
+    RBRACE          reduce using rule 45 (line -> SCINOT .)
+    STRING          reduce using rule 45 (line -> SCINOT .)
+    INTEGER         reduce using rule 45 (line -> SCINOT .)
+    FLOAT           reduce using rule 45 (line -> SCINOT .)
+    LEFTHAND        reduce using rule 45 (line -> SCINOT .)
+    HEX             reduce using rule 45 (line -> SCINOT .)
+    SCINOT          reduce using rule 45 (line -> SCINOT .)
+    $end            reduce using rule 45 (line -> SCINOT .)
+
+
+state 13
+
+    (1) document -> document line .
+
+    LANGLE          reduce using rule 1 (document -> document line .)
+    LBRACE          reduce using rule 1 (document -> document line .)
+    RBRACE          reduce using rule 1 (document -> document line .)
+    STRING          reduce using rule 1 (document -> document line .)
+    INTEGER         reduce using rule 1 (document -> document line .)
+    FLOAT           reduce using rule 1 (document -> document line .)
+    LEFTHAND        reduce using rule 1 (document -> document line .)
+    HEX             reduce using rule 1 (document -> document line .)
+    SCINOT          reduce using rule 1 (document -> document line .)
+    $end            reduce using rule 1 (document -> document line .)
+
+
+state 14
+
+    (31) line -> tag LBRACE .
+
+    LANGLE          reduce using rule 31 (line -> tag LBRACE .)
+    LBRACE          reduce using rule 31 (line -> tag LBRACE .)
+    RBRACE          reduce using rule 31 (line -> tag LBRACE .)
+    STRING          reduce using rule 31 (line -> tag LBRACE .)
+    INTEGER         reduce using rule 31 (line -> tag LBRACE .)
+    FLOAT           reduce using rule 31 (line -> tag LBRACE .)
+    LEFTHAND        reduce using rule 31 (line -> tag LBRACE .)
+    HEX             reduce using rule 31 (line -> tag LBRACE .)
+    SCINOT          reduce using rule 31 (line -> tag LBRACE .)
+    $end            reduce using rule 31 (line -> tag LBRACE .)
+
+
+state 15
+
+    (32) line -> LANGLE modifier . RANGLE tag LBRACE
+    (33) line -> LANGLE modifier . RANGLE LBRACE
+    (39) line -> LANGLE modifier . RANGLE STRING
+    (40) line -> LANGLE modifier . RANGLE INTEGER
+    (41) line -> LANGLE modifier . RANGLE FLOAT
+    (43) line -> LANGLE modifier . RANGLE LEFTHAND
+
+    RANGLE          shift and go to state 63
+
+
+state 16
+
+    (46) tag -> LANGLE tagtype . PERIOD STRING RANGLE
+    (47) tag -> LANGLE tagtype . RANGLE
+
+    PERIOD          shift and go to state 64
+    RANGLE          shift and go to state 65
+
+
+state 17
+
+    (3) modifier -> DEFAULT .
+
+    RANGLE          reduce using rule 3 (modifier -> DEFAULT .)
+
+
+state 18
+
+    (4) modifier -> CLASS .
+
+    RANGLE          reduce using rule 4 (modifier -> CLASS .)
+
+
+state 19
+
+    (5) modifier -> PRECISION .
+
+    RANGLE          reduce using rule 5 (modifier -> PRECISION .)
+
+
+state 20
+
+    (6) modifier -> MINSIZE .
+
+    RANGLE          reduce using rule 6 (modifier -> MINSIZE .)
+
+
+state 21
+
+    (7) modifier -> MAXSIZE .
+
+    RANGLE          reduce using rule 7 (modifier -> MAXSIZE .)
+
+
+state 22
+
+    (8) modifier -> LABEL .
+
+    RANGLE          reduce using rule 8 (modifier -> LABEL .)
+
+
+state 23
+
+    (9) modifier -> TOOLTIP .
+
+    RANGLE          reduce using rule 9 (modifier -> TOOLTIP .)
+
+
+state 24
+
+    (10) modifier -> LIMRANGE .
+
+    RANGLE          reduce using rule 10 (modifier -> LIMRANGE .)
+
+
+state 25
+
+    (11) modifier -> LIMIT .
+
+    RANGLE          reduce using rule 11 (modifier -> LIMIT .)
+
+
+state 26
+
+    (12) modifier -> REPR .
+
+    RANGLE          reduce using rule 12 (modifier -> REPR .)
+
+
+state 27
+
+    (13) modifier -> POS .
+
+    RANGLE          reduce using rule 13 (modifier -> POS .)
+
+
+state 28
+
+    (14) modifier -> PARAM .
+
+    RANGLE          reduce using rule 14 (modifier -> PARAM .)
+
+
+state 29
+
+    (15) modifier -> CONTROL .
+
+    RANGLE          reduce using rule 15 (modifier -> CONTROL .)
+
+
+state 30
+
+    (16) modifier -> LINE .
+
+    RANGLE          reduce using rule 16 (modifier -> LINE .)
+
+
+state 31
+
+    (17) modifier -> DLL .
+
+    RANGLE          reduce using rule 17 (modifier -> DLL .)
+
+
+state 32
+
+    (18) modifier -> CONTEXT .
+
+    RANGLE          reduce using rule 18 (modifier -> CONTEXT .)
+
+
+state 33
+
+    (19) modifier -> NAME .
+
+    RANGLE          reduce using rule 19 (modifier -> NAME .)
+
+
+state 34
+
+    (20) modifier -> ID .
+
+    RANGLE          reduce using rule 20 (modifier -> ID .)
+
+
+state 35
+
+    (21) modifier -> USERVERSION .
+
+    RANGLE          reduce using rule 21 (modifier -> USERVERSION .)
+
+
+state 36
+
+    (22) modifier -> INFILE .
+
+    RANGLE          reduce using rule 22 (modifier -> INFILE .)
+
+
+state 37
+
+    (23) modifier -> VISIBLE .
+
+    RANGLE          reduce using rule 23 (modifier -> VISIBLE .)
+
+
+state 38
+
+    (24) modifier -> COM .
+
+    RANGLE          reduce using rule 24 (modifier -> COM .)
+
+
+state 39
+
+    (25) modifier -> UNIT .
+
+    RANGLE          reduce using rule 25 (modifier -> UNIT .)
+
+
+state 40
+
+    (26) modifier -> DICOM .
+
+    RANGLE          reduce using rule 26 (modifier -> DICOM .)
+
+
+state 41
+
+    (27) modifier -> MEAS .
+
+    RANGLE          reduce using rule 27 (modifier -> MEAS .)
+
+
+state 42
+
+    (28) modifier -> MEASYAPS .
+
+    RANGLE          reduce using rule 28 (modifier -> MEASYAPS .)
+
+
+state 43
+
+    (29) modifier -> PHOENIX .
+
+    RANGLE          reduce using rule 29 (modifier -> PHOENIX .)
+
+
+state 44
+
+    (30) modifier -> SPICE .
+
+    RANGLE          reduce using rule 30 (modifier -> SPICE .)
+
+
+state 45
+
+    (48) tagtype -> PMAP .
+
+    PERIOD          reduce using rule 48 (tagtype -> PMAP .)
+    RANGLE          reduce using rule 48 (tagtype -> PMAP .)
+
+
+state 46
+
+    (49) tagtype -> PSTR .
+
+    PERIOD          reduce using rule 49 (tagtype -> PSTR .)
+    RANGLE          reduce using rule 49 (tagtype -> PSTR .)
+
+
+state 47
+
+    (50) tagtype -> PLNG .
+
+    PERIOD          reduce using rule 50 (tagtype -> PLNG .)
+    RANGLE          reduce using rule 50 (tagtype -> PLNG .)
+
+
+state 48
+
+    (51) tagtype -> PDBL .
+
+    PERIOD          reduce using rule 51 (tagtype -> PDBL .)
+    RANGLE          reduce using rule 51 (tagtype -> PDBL .)
+
+
+state 49
+
+    (52) tagtype -> PBOOL .
+
+    PERIOD          reduce using rule 52 (tagtype -> PBOOL .)
+    RANGLE          reduce using rule 52 (tagtype -> PBOOL .)
+
+
+state 50
+
+    (53) tagtype -> PARRAY .
+
+    PERIOD          reduce using rule 53 (tagtype -> PARRAY .)
+    RANGLE          reduce using rule 53 (tagtype -> PARRAY .)
+
+
+state 51
+
+    (54) tagtype -> PFUNCT .
+
+    PERIOD          reduce using rule 54 (tagtype -> PFUNCT .)
+    RANGLE          reduce using rule 54 (tagtype -> PFUNCT .)
+
+
+state 52
+
+    (55) tagtype -> PCHOICE .
+
+    PERIOD          reduce using rule 55 (tagtype -> PCHOICE .)
+    RANGLE          reduce using rule 55 (tagtype -> PCHOICE .)
+
+
+state 53
+
+    (56) tagtype -> PCARDLAYOUT .
+
+    PERIOD          reduce using rule 56 (tagtype -> PCARDLAYOUT .)
+    RANGLE          reduce using rule 56 (tagtype -> PCARDLAYOUT .)
+
+
+state 54
+
+    (57) tagtype -> PIPE .
+
+    PERIOD          reduce using rule 57 (tagtype -> PIPE .)
+    RANGLE          reduce using rule 57 (tagtype -> PIPE .)
+
+
+state 55
+
+    (58) tagtype -> PIPESERVICE .
+
+    PERIOD          reduce using rule 58 (tagtype -> PIPESERVICE .)
+    RANGLE          reduce using rule 58 (tagtype -> PIPESERVICE .)
+
+
+state 56
+
+    (59) tagtype -> EVENT .
+
+    PERIOD          reduce using rule 59 (tagtype -> EVENT .)
+    RANGLE          reduce using rule 59 (tagtype -> EVENT .)
+
+
+state 57
+
+    (60) tagtype -> CONN .
+
+    PERIOD          reduce using rule 60 (tagtype -> CONN .)
+    RANGLE          reduce using rule 60 (tagtype -> CONN .)
+
+
+state 58
+
+    (61) tagtype -> METHOD .
+
+    PERIOD          reduce using rule 61 (tagtype -> METHOD .)
+    RANGLE          reduce using rule 61 (tagtype -> METHOD .)
+
+
+state 59
+
+    (62) tagtype -> DEPEND .
+
+    PERIOD          reduce using rule 62 (tagtype -> DEPEND .)
+    RANGLE          reduce using rule 62 (tagtype -> DEPEND .)
+
+
+state 60
+
+    (63) tagtype -> PROTCOMP .
+
+    PERIOD          reduce using rule 63 (tagtype -> PROTCOMP .)
+    RANGLE          reduce using rule 63 (tagtype -> PROTCOMP .)
+
+
+state 61
+
+    (64) tagtype -> EVASTRTAB .
+
+    PERIOD          reduce using rule 64 (tagtype -> EVASTRTAB .)
+    RANGLE          reduce using rule 64 (tagtype -> EVASTRTAB .)
+
+
+state 62
+
+    (65) tagtype -> XPROT .
+
+    PERIOD          reduce using rule 65 (tagtype -> XPROT .)
+    RANGLE          reduce using rule 65 (tagtype -> XPROT .)
+
+
+state 63
+
+    (32) line -> LANGLE modifier RANGLE . tag LBRACE
+    (33) line -> LANGLE modifier RANGLE . LBRACE
+    (39) line -> LANGLE modifier RANGLE . STRING
+    (40) line -> LANGLE modifier RANGLE . INTEGER
+    (41) line -> LANGLE modifier RANGLE . FLOAT
+    (43) line -> LANGLE modifier RANGLE . LEFTHAND
+    (46) tag -> . LANGLE tagtype PERIOD STRING RANGLE
+    (47) tag -> . LANGLE tagtype RANGLE
+
+    LBRACE          shift and go to state 68
+    STRING          shift and go to state 69
+    INTEGER         shift and go to state 70
+    FLOAT           shift and go to state 71
+    LEFTHAND        shift and go to state 72
+    LANGLE          shift and go to state 66
+
+    tag                            shift and go to state 67
+
+state 64
+
+    (46) tag -> LANGLE tagtype PERIOD . STRING RANGLE
+
+    STRING          shift and go to state 73
+
+
+state 65
+
+    (47) tag -> LANGLE tagtype RANGLE .
+
+    LBRACE          reduce using rule 47 (tag -> LANGLE tagtype RANGLE .)
+
+
+state 66
+
+    (46) tag -> LANGLE . tagtype PERIOD STRING RANGLE
+    (47) tag -> LANGLE . tagtype RANGLE
+    (48) tagtype -> . PMAP
+    (49) tagtype -> . PSTR
+    (50) tagtype -> . PLNG
+    (51) tagtype -> . PDBL
+    (52) tagtype -> . PBOOL
+    (53) tagtype -> . PARRAY
+    (54) tagtype -> . PFUNCT
+    (55) tagtype -> . PCHOICE
+    (56) tagtype -> . PCARDLAYOUT
+    (57) tagtype -> . PIPE
+    (58) tagtype -> . PIPESERVICE
+    (59) tagtype -> . EVENT
+    (60) tagtype -> . CONN
+    (61) tagtype -> . METHOD
+    (62) tagtype -> . DEPEND
+    (63) tagtype -> . PROTCOMP
+    (64) tagtype -> . EVASTRTAB
+    (65) tagtype -> . XPROT
+
+    PMAP            shift and go to state 45
+    PSTR            shift and go to state 46
+    PLNG            shift and go to state 47
+    PDBL            shift and go to state 48
+    PBOOL           shift and go to state 49
+    PARRAY          shift and go to state 50
+    PFUNCT          shift and go to state 51
+    PCHOICE         shift and go to state 52
+    PCARDLAYOUT     shift and go to state 53
+    PIPE            shift and go to state 54
+    PIPESERVICE     shift and go to state 55
+    EVENT           shift and go to state 56
+    CONN            shift and go to state 57
+    METHOD          shift and go to state 58
+    DEPEND          shift and go to state 59
+    PROTCOMP        shift and go to state 60
+    EVASTRTAB       shift and go to state 61
+    XPROT           shift and go to state 62
+
+    tagtype                        shift and go to state 16
+
+state 67
+
+    (32) line -> LANGLE modifier RANGLE tag . LBRACE
+
+    LBRACE          shift and go to state 74
+
+
+state 68
+
+    (33) line -> LANGLE modifier RANGLE LBRACE .
+
+    LANGLE          reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    LBRACE          reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    RBRACE          reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    STRING          reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    INTEGER         reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    FLOAT           reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    LEFTHAND        reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    HEX             reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    SCINOT          reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+    $end            reduce using rule 33 (line -> LANGLE modifier RANGLE LBRACE .)
+
+
+state 69
+
+    (39) line -> LANGLE modifier RANGLE STRING .
+
+    LANGLE          reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    LBRACE          reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    RBRACE          reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    STRING          reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    INTEGER         reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    FLOAT           reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    LEFTHAND        reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    HEX             reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    SCINOT          reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+    $end            reduce using rule 39 (line -> LANGLE modifier RANGLE STRING .)
+
+
+state 70
+
+    (40) line -> LANGLE modifier RANGLE INTEGER .
+
+    LANGLE          reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    LBRACE          reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    RBRACE          reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    STRING          reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    INTEGER         reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    FLOAT           reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    LEFTHAND        reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    HEX             reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    SCINOT          reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+    $end            reduce using rule 40 (line -> LANGLE modifier RANGLE INTEGER .)
+
+
+state 71
+
+    (41) line -> LANGLE modifier RANGLE FLOAT .
+
+    LANGLE          reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    LBRACE          reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    RBRACE          reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    STRING          reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    INTEGER         reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    FLOAT           reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    LEFTHAND        reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    HEX             reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    SCINOT          reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+    $end            reduce using rule 41 (line -> LANGLE modifier RANGLE FLOAT .)
+
+
+state 72
+
+    (43) line -> LANGLE modifier RANGLE LEFTHAND .
+
+    LANGLE          reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    LBRACE          reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    RBRACE          reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    STRING          reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    INTEGER         reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    FLOAT           reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    LEFTHAND        reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    HEX             reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    SCINOT          reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+    $end            reduce using rule 43 (line -> LANGLE modifier RANGLE LEFTHAND .)
+
+
+state 73
+
+    (46) tag -> LANGLE tagtype PERIOD STRING . RANGLE
+
+    RANGLE          shift and go to state 75
+
+
+state 74
+
+    (32) line -> LANGLE modifier RANGLE tag LBRACE .
+
+    LANGLE          reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    LBRACE          reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    RBRACE          reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    STRING          reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    INTEGER         reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    FLOAT           reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    LEFTHAND        reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    HEX             reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    SCINOT          reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+    $end            reduce using rule 32 (line -> LANGLE modifier RANGLE tag LBRACE .)
+
+
+state 75
+
+    (46) tag -> LANGLE tagtype PERIOD STRING RANGLE .
+
+    LBRACE          reduce using rule 46 (tag -> LANGLE tagtype PERIOD STRING RANGLE .)
+
