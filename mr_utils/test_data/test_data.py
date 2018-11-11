@@ -15,6 +15,24 @@ single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_vo
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
+## XPROT FILES
+# For xprot_parser
+class XProtParserTest(object):
+
+    @staticmethod
+    def sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+    @staticmethod
+    def full_sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/full_sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
 ## XML FILES
 # For gadgetron
 class GadgetronTestConfig(object):
