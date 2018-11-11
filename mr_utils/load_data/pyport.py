@@ -199,7 +199,9 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
         if buffers[b]['name'] == 'Meas':
 
             config_buffer = buffers[b]['buf'][:-2]
-            # print(config_buffer)
+            with open('sample.xprot','w') as f:
+                f.write(config_buffer)
+            return(False)
 
             if debug_xml:
                 ## TODO
@@ -571,7 +573,7 @@ def main(args):
         baseLineString = ''
         protocol_name = ''
 
-        # print(parammap_file_content)
+        # print(ET.tostring(parammap_file_content).decode())
         xml_config = readXmlConfig(args['debug'],parammap_file_content,num_buffers,buffers,wip_double,trajectory,dwell_time_0,max_channels,radial_views,baseLineString,protocol_name)
 
 
