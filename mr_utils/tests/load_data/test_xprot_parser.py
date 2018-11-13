@@ -8,7 +8,7 @@ class XProtParserTestCase(unittest.TestCase):
         pass
 
     def test_sample(self):
-        sample = XProtParserTest.full_sample_xprot()
+        sample = XProtParserTest.sample_xprot()
         # print(sample)
         parser = XProtParser()
         parser.parse(sample)

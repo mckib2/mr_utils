@@ -1,5 +1,5 @@
 import numpy as np
-from skimage.restoration import unwrap_phase
+from skimage.restoration import unwrap_phase,denoise_tv_bregman
 from mr_utils import view
 from mr_utils.recon.ssfp import gs_recon
 # from mrr.unwrapping.functions import unwrap_array
@@ -20,15 +20,19 @@ def gs_field_map(I0,I1,I2,I3,TR):
 
     # First find the geometric solution to the elliptical signal model
     gs_sol = gs_recon(I0,I1,I2,I3)
-    view(gs_sol)
+    # view(gs_sol)
 
     # The complex estimate of the GS has a phase that is half the angular free
     # precession per repetition time (TR)
-    gsfm = 2*np.angle(gs_sol)/np.pi
+    gsfm = np.angle(gs_sol)
+    gsfm[np.isnan(gsfm)] = False
+    # view(gsfm)
+
+    # # Try TV denoising
+    # gsfm = denoise_tv_bregman(gsfm,weight=20)
     # view(gsfm)
 
     # First phase unwrap
-    gsfm[np.isnan(gsfm)] = False
     assert (np.min(gsfm) > -np.pi) and (np.max(gsfm) < np.pi)
     gsfm = unwrap_phase(gsfm)
 
@@ -70,6 +74,9 @@ def gs_field_map(I0,I1,I2,I3,TR):
     #     #    tryagain = True
 
     # Map free precession per TR to off-resonance
-    gsfm /= -TR*2
-    view(gsfm)
+    # I'm uncomfortable with this negative sign
+    # Also, removed the scaling by 2 at the beginning and dividing it back out
+    # here, as unwrap_phase expects -pi -> pi input.
+    gsfm /= -TR*np.pi
+    # view(gsfm)
     return(gsfm)
