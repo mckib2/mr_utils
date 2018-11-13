@@ -5,6 +5,7 @@ import pathlib
 from mr_utils.load_data import load_raw,load_mat
 from skimage.util import montage as skimontage
 from ismrmrdtools.coils import calculate_csm_walsh,calculate_csm_inati_iter
+import logging
 
 def mat_keys(filename,ignore_dbl_underscored=True,no_print=False):
     '''Give the keys found in a .mat file.
@@ -44,7 +45,8 @@ def view(
         montage_opts={'padding_width':2},
         movie_axis=None,
         movie_repeat=True,
-        save_npy=False
+        save_npy=False,
+        debug_level='DEBUG'
     ):
     '''Image viewer to quickly inspect data.
 
@@ -75,16 +77,29 @@ def view(
     movie_repeat -- Whether or not to put movie on endless loop.
 
     save_npy -- Whether or not to save the output as npy file.
+
+    debug_level -- Level of verbosity: CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET.
     '''
+
+    # Set up logging...
+    debug_level = {
+        'CRITICAL': logging.CRITICAL,
+        'ERROR': logging.ERROR,
+        'WARNING': logging.WARNING,
+        'INFO': logging.INFO,
+        'DEBUG': logging.DEBUG,
+        'NOTSET': logging.NOTSET
+    }[debug_level]
+    logging.basicConfig(format='%(levelname)s: %(message)s',level=debug_level)
 
     # If the user wants to look at numpy matrix, recognize that filename is the
     # matrix:
     if isinstance(image,np.ndarray):
-        print('Image is a numpy array!')
+        logging.info('Image is a numpy array!')
         data = image
     elif type(image) is type([]):
         # If user sends a list, try casting to numpy array
-        print('Image is a list, trying to cast as numpy array...')
+        logging.info('Image is a list, trying to cast as numpy array...')
         data = np.array(image)
     else:
         # Find the file extension
@@ -102,7 +117,7 @@ def view(
             if not len(list(load_opts)):
                 keys = mat_keys(image,no_print=True)
                 if len(keys) == 1:
-                    print('No key supplied, but one key for mat dictionary found (%s), using it...' % keys[0])
+                    logging.info('No key supplied, but one key for mat dictionary found (%s), using it...' % keys[0])
                     data = load_mat(image,key=keys[0])
 
             # If we can't help the user out, just load it as normal
@@ -111,6 +126,12 @@ def view(
         else:
             raise Exception('File type %s not understood!' % ext)
 
+
+    # Right off the bat, remove singleton dimensions
+    if 1 in data.shape:
+        logging.info('Current shape %s: Removing singleton dimensions...' % str(data.shape))
+        data = data.squeeze()
+        logging.info('New shape: %s' % str(data.shape))
 
     # Average out over any axis specified
     if avg_axis is not None:
@@ -129,7 +150,7 @@ def view(
     # didn't tell us anything, it's going to crash anyway, so let's try
     # guessing what's going on...
     if (data.ndim > 2) and (movie_axis is None) and (montage_axis is None):
-        print('Data has %d dimensions!' % data.ndim,end=' ')
+        logging.info('Data has %d dimensions!' % data.ndim)
 
         # We will always assume that inplane resolution is larger than the
         # movie/montage dimensions
@@ -141,10 +162,10 @@ def view(
 
             # Assume 10 is the most we'll want to montage
             if data.shape[min_axis] < 10:
-                print('Guessing axis %d is montage...' % min_axis)
+                logging.info('Guessing axis %d is montage...' % min_axis)
                 montage_axis = min_axis
             else:
-                print('Guessing axis %d is movie...' % min_axis)
+                logging.info('Guessing axis %d is movie...' % min_axis)
                 movie_axis = min_axis
 
         # If 4 dims, guess smaller dim will be montage, larger guess movie
@@ -160,7 +181,7 @@ def view(
             tmp = np.delete(data.shape[:],montage_axis)
             movie_axis = np.argmin(tmp)
 
-            print('Guessing axis %d is montage, axis %d will be movie...' % (montage_axis,movie_axis))
+            logging.info('Guessing axis %d is montage, axis %d will be movie...' % (montage_axis,movie_axis))
 
 
     # fft and fftshift will require fft_axes.  If the user didn't give us
@@ -176,7 +197,7 @@ def view(
         else:
             fft_axes = all_axes
 
-        print('User did not supply fft_axes, guessing',fft_axes,'...')
+        logging.info('User did not supply fft_axes, guessing %s...' % str(fft_axes))
 
     # Perform n-dim FFT across fft_axes if desired
     if fft:
