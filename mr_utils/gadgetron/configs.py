@@ -54,7 +54,7 @@ class GadgetronConfig(object):
         classname_el = ET.SubElement(writer,'classname')
         classname_el.text = classname
 
-    def add_gadget(self,name,classname=None,dll='gadgetron_mricore',props=[]):
+    def add_gadget(self,name,classname=None,dll=None,props=[]):
         '''
         <gadget>
           <name>Acc</name>
@@ -69,8 +69,18 @@ class GadgetronConfig(object):
         gadget = ET.SubElement(self.gadgetronStreamConfiguration,'gadget')
         name_el = ET.SubElement(gadget,'name')
         name_el.text = name
+
+        # Let's try to be smart about the dlls...
         dll_el = ET.SubElement(gadget,'dll')
-        dll_el.text = dll
+        if dll is None:
+            if 'Grappa' in name:
+                dll_el.text = 'gadgetron_grappa'
+            else:
+                dll_el.text = 'gadgetron_mricore'
+        else:
+            dll_el.text = dll
+
+
         classname_el = ET.SubElement(gadget,'classname')
         classname_el.text = classname
 
@@ -116,6 +126,29 @@ def default_config():
     config.add_gadget('SimpleRecon')
     config.add_gadget('ImageArraySplit')
     config.add_gadget('Extract')
+    config.add_gadget('ImageFinish')
+    return(config)
+
+def grappa_cpu_config():
+    config = GadgetronConfig()
+    config.add_reader('1008','GadgetIsmrmrdAcquisitionMessageReader')
+    config.add_reader('1026','GadgetIsmrmrdWaveformMessageReader')
+    config.add_writer('1022','MRIImageWriter')
+    config.add_gadget('NoiseAdjust')
+    config.add_gadget('PCA','PCACoilGadget')
+    config.add_gadget('CoilReduction',props=[
+        ('coils_out','16')
+    ])
+    config.add_gadget('AsymmetricEcho','AsymmetricEchoAdjustROGadget') # RO asymmetric echo handling
+    config.add_gadget('RemoveROOversampling')
+    config.add_gadget('Grappa',props=[
+        ('target_coils','8'),
+        ('use_gpu','false')
+    ])
+    config.add_gadget('GrappaUnmixing')
+    config.add_gadget('Extract')
+    config.add_gadget('AutoScale')
+    config.add_gadget('FloatToShort','FloatToUShortGadget')
     config.add_gadget('ImageFinish')
     return(config)
 

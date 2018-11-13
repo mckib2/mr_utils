@@ -71,6 +71,17 @@ class GadgetronClient(object):
         path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.dat').resolve())
         return(path)
 
+    @staticmethod
+    def grappa_input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/grappa_test_data.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def true_output_data_grappa_cpu():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/true_output_data_grappa_cpu.npy').resolve())
+        data = np.load(path)
+        return(data)
+
 ## NPY FILES
 # For ssfp multiphase:
 class SSFPMultiphase(object):
