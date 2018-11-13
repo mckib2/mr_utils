@@ -47,7 +47,7 @@ class GadgetronConfigTestCase(unittest.TestCase):
         filename = GadgetronClient.grappa_input_filename()
         config = grappa_cpu_config()
         data,header = client(filename,config_local=config.tostring())
-        view(data)
+        # view(data)
         # data,header = client(filename,config='grappa_cpu.xml')
         # np.save('true_output_data_grappa_cpu.npy',data)
         true_output_data = GadgetronClient.true_output_data_grappa_cpu()
