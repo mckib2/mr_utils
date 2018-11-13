@@ -1,9 +1,10 @@
 import unittest
 import numpy as np
-from mr_utils.gadgetron.configs import GadgetronConfig,default_config
+from mr_utils.gadgetron.configs import GadgetronConfig,default_config,grappa_cpu_config
 from mr_utils.gadgetron import client
 from mr_utils.test_data import GadgetronClient
 from mr_utils.test_data import GadgetronTestConfig
+from mr_utils import view
 from xmldiff import main
 
 class GadgetronConfigTestCase(unittest.TestCase):
@@ -34,12 +35,21 @@ class GadgetronConfigTestCase(unittest.TestCase):
 
         # Send gadgetron the local default configuration file
         config = default_config()
-        print(config)
+        # print(config)
         # data,header = client(filename,config_local=config.get_filename())
         data,header = client(filename,config_local=config.tostring())
 
         # Make sure the output is the same as when h5 is given
         true_output_data = GadgetronClient.true_output_data()
+        assert(np.allclose(data,true_output_data))
+
+    def test_use_grappa_cpu_config(self):
+        filename = GadgetronClient.grappa_input_filename()
+        config = grappa_cpu_config()
+        data,header = client(filename,config_local=config.tostring())
+        # data,header = client(filename,config='grappa_cpu.xml')
+        # np.save('true_output_data_grappa_cpu.npy',data)
+        true_output_data = GadgetronClient.true_output_data_grappa_cpu()
         assert(np.allclose(data,true_output_data))
 
 if __name__ == '__main__':

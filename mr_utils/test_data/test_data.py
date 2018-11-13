@@ -15,6 +15,24 @@ single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_vo
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
+## XPROT FILES
+# For xprot_parser
+class XProtParserTest(object):
+
+    @staticmethod
+    def sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+    @staticmethod
+    def full_sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/full_sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
 ## XML FILES
 # For gadgetron
 class GadgetronTestConfig(object):
@@ -52,6 +70,17 @@ class GadgetronClient(object):
     def raw_input_filename():
         path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.dat').resolve())
         return(path)
+
+    @staticmethod
+    def grappa_input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/grappa_test_data.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def true_output_data_grappa_cpu():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/true_output_data_grappa_cpu.npy').resolve())
+        data = np.load(path)
+        return(data)
 
 ## NPY FILES
 # For ssfp multiphase:

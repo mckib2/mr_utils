@@ -2,10 +2,16 @@
 # Provide an interface to set things like gadgetron host, port, etc.
 
 from configparser import ConfigParser,ExtendedInterpolation
+from mr_utils.definitions import ROOT_DIR
 
 class ProfileConfig(object):
 
-    def __init__(self,filename='profiles.config'):
+    def __init__(self,filename=None):
+
+        if filename is None:
+            # Get the profiles.config file that lives in the top level dir
+            filename = '%s/profiles.config' % ROOT_DIR
+
         # config file stored at top level of project
         self.filename = filename
 
