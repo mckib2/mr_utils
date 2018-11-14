@@ -102,6 +102,51 @@ class SSFPMultiphase(object):
         data = np.load(path_180)
         return(data)
 
+# For BART reordering recon
+class BARTReordering(object):
+
+    @staticmethod
+    def ksp_sim():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/ksp_sim.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_img():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_img.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_ksp():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_ksp.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco1():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco1.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco2.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def sens():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/sens.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def traj_rad2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/traj_rad2.npy').resolve())
+        data = np.load(path)
+        return(data)
+
 ## MAT FILES
 # For SC-GROG:
 class SCGROG(object):
