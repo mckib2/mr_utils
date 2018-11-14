@@ -1,5 +1,6 @@
 import numpy as np
 from mr_utils.bart import bart
+from mr_utils.bart import Bartholomew as B
 from mr_utils.test_data import BARTReordering
 from mr_utils import view
 import logging
@@ -13,16 +14,17 @@ if __name__ == '__main__':
 
     # Generate k-space trajectory with num_spokes radial spokes
     num_spokes = 32
-    traj_rad = bart(1,'traj -r -x512 -y%d' % num_spokes)
+    traj_rad = B.traj(512,num_spokes,r=True)
     logging.info('Generated radial traj with %d spokes' % num_spokes)
 
     # 2x oversampling
-    traj_rad2 = bart(1,'scale 0.5',traj_rad)
+    traj_rad2 = B.scale(0.5,traj_rad)
     logging.info('Oversampled by 2')
 
     # simulate num_chan-channel k-space data
     num_chan = 8
-    ksp_sim = bart(1,'phantom -k -s%d -t' % num_chan,traj_rad2)
+    # ksp_sim = bart(1,'phantom -k -s%d -t' % num_chan,traj_rad2)
+    ksp_sim = B.phantom(k=True,s=num_chan,t=traj_rad2)
     logging.info('Simulated %d channel phantom' % num_chan)
     # np.save('ksp_sim.npy',ksp_sim)
     # ksp_sim = BARTReordering.ksp_sim()
