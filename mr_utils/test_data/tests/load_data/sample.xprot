@@ -262,6 +262,410 @@
       }
     }
 
+    <ParamMap."MEAS">
+    {
+        <ParamLong."ulVersion">
+        {
+          21710006
+        }
+
+        <ParamString."tSequenceFileName">
+        {
+          "%CustomerSeq%\TRUFI_STW"
+        }
+
+        <ParamString."tProtocolName">
+        {
+          "TRUFI_STW_TE3"
+        }
+
+        <ParamString."tReferenceImage0">
+        {
+          "1.3.12.2.1107.5.2.32.35002.2018100213130473396413648"
+        }
+
+        <ParamString."tReferenceImage1">
+        {
+          "1.3.12.2.1107.5.2.32.35002.2018100213182285308414701"
+        }
+
+        <ParamString."tReferenceImage2">
+        {
+          "1.3.12.2.1107.5.2.32.35002.2018100213130076077613645"
+        }
+
+        <ParamDouble."lScanRegionPosSag">
+        {
+          <Precision> 6
+        }
+
+        <ParamDouble."lScanRegionPosCor">
+        {
+          <Precision> 6
+        }
+
+        <ParamDouble."lScanRegionPosTra">
+        {
+          <Precision> 6
+        }
+
+        <ParamLong."ucScanRegionPosValid">
+        {
+          1
+        }
+
+        <ParamLong."ucTablePositioningMode">
+        {
+          2
+        }
+
+        <ParamLong."lScanRegionDelta">
+        {
+        }
+
+        <ParamMap."sProtConsistencyInfo">
+        {
+            <ParamString."tMeasuredBaselineString">
+            {
+            }
+
+            <ParamString."tBaselineString">
+            {
+              "N4_VB17A_LATEST_20090307"
+            }
+
+            <ParamDouble."flNominalB0">
+            {
+              <Precision> 6
+              2.893620
+            }
+
+            <ParamDouble."flGMax">
+            {
+              <Precision> 6
+              26.000000
+            }
+
+            <ParamDouble."flRiseTime">
+            {
+              <Precision> 6
+              5.880000
+            }
+
+            <ParamLong."ulPersistentConvFromVersion">
+            {
+            }
+
+            <ParamLong."lMaximumMatrixMode">
+            {
+            }
+
+            <ParamLong."lMaximumNofRxReceiverChannels">
+            {
+              32
+            }
+        }
+
+        <ParamMap."sGRADSPEC">
+        {
+            <ParamMap."sEddyCompensationX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.001572 0.004589 -0.002023 0.000124 0.001318
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                1.990990 0.400558 0.243486 0.025307 0.000499
+              }
+            }
+
+            <ParamMap."sEddyCompensationY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000582 0.000256 0.000719 -0.002523 0.002731
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                1.870390 0.240596 0.003000 0.001421 0.000884
+              }
+            }
+
+            <ParamMap."sEddyCompensationZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.003261 0.006800 0.000732 -0.000260 0.000420
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                3.712500 0.846789 0.065340 0.013632 0.001999
+              }
+            }
+
+            <ParamLong."bEddyCompensationValid">
+            {
+              1
+            }
+
+            <ParamMap."sB0CompensationX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.089927 -0.001653 -0.009940 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.739091 0.136684 0.001447 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sB0CompensationY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.075508 0.006471 -0.005454 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.860096 0.050795 0.002000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sB0CompensationZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.174514 0.034205 0.007075 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.811660 0.154981 0.002000 0.000000 0.000000
+              }
+            }
+
+            <ParamLong."bB0CompensationValid">
+            {
+              1
+            }
+
+            <ParamMap."sCrossTermCompensationXY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.000449 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.550805 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationXZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000000 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.000000 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationYX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.000663 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.548838 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationYZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000381 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                1.016940 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationZX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.000080 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.729970 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationZY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000218 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.440292 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamLong."bCrossTermCompensationValid">
+            {
+              1
+            }
+
+            <ParamLong."lOffsetX">
+            {
+              -2829
+            }
+
+            <ParamLong."lOffsetY">
+            {
+              -23714
+            }
+
+            <ParamLong."lOffsetZ">
+            {
+              1653
+            }
+
+            <ParamLong."bOffsetValid">
+            {
+              1
+            }
+
+            <ParamLong."lDelayX">
+            {
+              13
+            }
+
+            <ParamLong."lDelayY">
+            {
+              14
+            }
+
+            <ParamLong."lDelayZ">
+            {
+              9
+            }
+
+            <ParamLong."bDelayValid">
+            {
+              1
+            }
+
+            <ParamDouble."flSensitivityX">
+            {
+              <Precision> 6
+              0.000078
+            }
+
+            <ParamDouble."flSensitivityY">
+            {
+              <Precision> 6
+              0.000078
+            }
+
+            <ParamDouble."flSensitivityZ">
+            {
+              <Precision> 6
+              0.000091
+            }
+
+            <ParamLong."bSensitivityValid">
+            {
+              1
+            }
+
+            <ParamDouble."flGSWDMinRiseTime">
+            {
+              <Precision> 6
+            }
+
+            <ParamLong."alShimCurrent">
+            {
+              -134 1109 -3254 156 1103 0 0 0 0 0
+              0 0 0 0 0
+            }
+
+            <ParamLong."bShimCurrentValid">
+            {
+              1
+            }
+
+            <ParamLong."ucMode">
+            {
+              1
+            }
+        }
+
+        <ParamMap."sTXSPEC">
+        {
+        }
+
+    }
+
 
   }
 
