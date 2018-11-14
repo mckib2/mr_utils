@@ -1,7 +1,7 @@
-import sys
 import numpy as np
 from mr_utils.definitions import BART_PATH
 if BART_PATH is not None:
+    import sys
     sys.path.insert(0,BART_PATH)
     from bart import bart as real_bart
 
