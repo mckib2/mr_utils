@@ -57,7 +57,7 @@ class BartholomewTestCase(unittest.TestCase):
         lowres_ksp = B.fft(lowres_img,u=7)
 
         # zeropad to full size
-        ksp_zerop = B.resize(lowres_ksp,c='0 308 1 308')
+        ksp_zerop = B.resize(lowres_ksp,c=(0,308,1,308))
 
         # ESPIRiT calibration
         sens = B.ecalib(ksp_zerop,m=1)
@@ -66,6 +66,22 @@ class BartholomewTestCase(unittest.TestCase):
         reco2 = B.pics(ksp_sim,sens,S=True,r=0.001,t=traj_rad2)
         reco3 = B.pics(ksp_sim,sens,l1=True,S=True,r=0.005,m=True,t=traj_rad2)
         # view(np.squeeze(np.concatenate((reco1,reco2,reco3))))
+
+    def test_calibration_matrix(self):
+        num_spokes = 32
+        traj_rad = B.traj(x=512,y=num_spokes,r=True)
+        traj_rad2 = B.scale(0.5,traj_rad)
+        num_chan = 8
+        ksp_sim = B.phantom(k=True,s=num_chan,t=traj_rad2)
+        traj_rad2 = B.scale(0.6,traj_rad)
+
+        calmat = B.calmat(ksp_sim,r=20,k=6)
+        U,SV,VH = B.svd(calmat)
+        # view(SV)
+
+        calib,emaps = B.ecalib(ksp_sim,r=20)
+        sens = B.slice((4,0),calib)
+
 
 if __name__ == '__main__':
     unittest.main()

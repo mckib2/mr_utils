@@ -9,6 +9,25 @@ class BartholomewObject(object):
     I also want this to be able to run BART on remote computer through ssh, to
     remove BART as a strict dependency for the local machine, much like
     we treat Gadgetron.
+
+    Import:
+        import Bartholomew as B
+    Usage:
+        B.[bart-func](args)
+    Example:
+        traj_rad = B.traj(x=512,y=64,r=True)
+        ksp_sim = B.phantom(k=True,s=8,t=traj_rad)
+        igrid = B.nufft(ksp_sim,i=True,t=traj_rad)
+
+    Notice that input ndarrays are positional arguments (e.g., ksp_sim is the
+    first argument for nufft instead of the last).
+
+    To get comma separated lists (e.g., -d x:x:x), use the List type:
+        img = B.nufft(ksp_sim,i=True,d=[24,24,1],t=traj_rad)
+
+    To get space separated lists (e.g., resize [-c] dim1 size1 ... dimn), use
+    Tuple type:
+        ksp_zerop = B.resize(lowres_ksp,c=(0,308,1,308))
     '''
 
     def __init__(self):
@@ -35,7 +54,7 @@ class BartholomewObject(object):
             # Now we need to do some strange things to figure out how many
             # outputs the user expected...  This is kind of hacky, but it's
             # what the official python interface to BART wants, so I guess
-            # we'll play along...
+            # we'll play along... This should really be changed...
             num_outputs = self.get_num_outputs()
 
             # Now call the bart python interface
@@ -47,18 +66,14 @@ class BartholomewObject(object):
     def get_num_outputs(self):
         '''Return how many values the caller is expecting'''
 
-        f = inspect.currentframe()
-        f = f.f_back.f_back
-        c = f.f_code
-        i = f.f_lasti
-        bytecode = c.co_code
-        instruction = bytecode[i+3]
-        if instruction == dis.opmap['UNPACK_SEQUENCE']:
-            howmany = bytecode[i+4]
+        try:
+            idx = inspect.stack()[2].code_context[0].split().index('=')
+            howmany = len(inspect.stack()[2].code_context[0].split()[idx-1].split(','))
             return(howmany)
-        elif instruction == dis.opmap['POP_TOP']:
-            return(0)
-        return(1)
+        except ValueError:
+            # we didn't find an equal sign - guess 1
+            return(1)
+
 
     def format_args(self,args):
         '''Take in positional function arguments and format for command-line.'''
@@ -68,6 +83,8 @@ class BartholomewObject(object):
         for a in args:
             if type(a) in [ int,float ]:
                 formatted_pos_args.append(str(a))
+            elif type(a) is tuple:
+                formatted_pos_args.append(' '.join([ str(el) for el in a ]))
             elif type(a) is np.ndarray:
                 pos_files.append(a)
             else:
@@ -98,6 +115,10 @@ class BartholomewObject(object):
             elif type(kwargs[k]) is list:
                 # colon separated list of numbers after option
                 args.append('-%s %s' % (k,':'.join([ str(el) for el in kwargs[k] ])))
+
+            elif type(kwargs[k]) is tuple:
+                # space separated list of numbers after the option
+                args.append('-%s %s' % (k,' '.join([ str(el) for el in kwargs[k] ])))
 
             elif type(kwargs[k]) is np.ndarray:
                 # This needs to be packed onto the end as a file
