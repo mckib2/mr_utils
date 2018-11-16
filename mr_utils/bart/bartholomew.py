@@ -26,33 +26,21 @@ class BartholomewObject(object):
             if name not in self.commands:
                 raise AttributeError('"%s" is not a valid BART function!' % name)
 
-
             # Deal with positional arguments
-            formatted_pos_args = []
-            pos_files = []
-            for a in args:
-                if type(a) in [ int,float ]:
-                    formatted_pos_args.append(str(a))
-                elif type(a) is np.ndarray:
-                    pos_files.append(a)
-                else:
-                    raise NotImplementedError()
-
+            formatted_pos_args,pos_files = self.format_args(args)
 
             # Put the named arguments into what bart expects them to look like
-            formatted_named_args,file_opts,files = self.format_args(kwargs)
+            formatted_named_args,file_opts,files = self.format_kwargs(kwargs)
 
             # Now we need to do some strange things to figure out how many
             # outputs the user expected...  This is kind of hacky, but it's
             # what the official python interface to BART wants, so I guess
             # we'll play along...
             num_outputs = self.get_num_outputs()
-            # print(num_outputs)
 
             # Now call the bart python interface
             cmd = '%s %s %s' % (name,' '.join(formatted_pos_args + formatted_named_args),' '.join(file_opts))
-            retVal = real_bart(num_outputs,cmd,*(files + pos_files))
-            return(retVal)
+            return(real_bart(num_outputs,cmd,*(files + pos_files)))
 
         return(function)
 
@@ -72,9 +60,22 @@ class BartholomewObject(object):
             return(0)
         return(1)
 
+    def format_args(self,args):
+        '''Take in positional function arguments and format for command-line.'''
 
-    def format_args(self,kwargs):
-        '''Take in python function arguments and format for command-line.'''
+        formatted_pos_args = []
+        pos_files = []
+        for a in args:
+            if type(a) in [ int,float ]:
+                formatted_pos_args.append(str(a))
+            elif type(a) is np.ndarray:
+                pos_files.append(a)
+            else:
+                raise NotImplementedError()
+        return(formatted_pos_args,pos_files)
+
+    def format_kwargs(self,kwargs):
+        '''Take in named function arguments and format for command-line.'''
 
         args = []
         file_opts = []
@@ -84,7 +85,7 @@ class BartholomewObject(object):
                 if kwargs[k]:
                     args.append('-%s' % k)
 
-            elif type(kwargs[k]) is int:
+            elif type(kwargs[k]) in [ int,float,str ]:
                 # option then value
                 # Note that 3 must be changed to n3D, since variables can't
                 # start with numbers...

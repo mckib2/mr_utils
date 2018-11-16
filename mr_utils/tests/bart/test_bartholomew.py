@@ -2,6 +2,7 @@ import unittest
 from mr_utils.bart import Bartholomew as B
 from mr_utils.bart import BartholomewObject
 from mr_utils import view
+import numpy as np
 
 class BartholomewTestCase(unittest.TestCase):
 
@@ -24,7 +25,13 @@ class BartholomewTestCase(unittest.TestCase):
         val = B.traj(x=x,y=y,a=1,G=True,q=[0,0,0])
         self.assertEqual((3,x,y),val.shape)
 
-    def test_nufft(self):
+    def test_non_cart_example(self):
+        '''"non-Cartesian MRI using BART"
+
+        Adapted from:
+            https://mrirecon.github.io/bart/examples.html
+        '''
+
         # Generate k-space trajectory with num_spokes radial spokes
         num_spokes = 32
         traj_rad = B.traj(x=512,y=num_spokes,r=True)
@@ -42,8 +49,23 @@ class BartholomewTestCase(unittest.TestCase):
         # inverse gridding
         igrid = B.nufft(ksp_sim,i=True,t=traj_rad2)
 
-        view(igrid)
+        # channel combination
+        reco1 = B.rss(num_chan,igrid)
 
+        # reconstruct low-resolution image and transform back to k-space
+        lowres_img = B.nufft(ksp_sim,i=True,d=[24,24,1],t=traj_rad2)
+        lowres_ksp = B.fft(lowres_img,u=7)
+
+        # zeropad to full size
+        ksp_zerop = B.resize(lowres_ksp,c='0 308 1 308')
+
+        # ESPIRiT calibration
+        sens = B.ecalib(ksp_zerop,m=1)
+
+        # non-Cartesian parallel imging
+        reco2 = B.pics(ksp_sim,sens,S=True,r=0.001,t=traj_rad2)
+        reco3 = B.pics(ksp_sim,sens,l1=True,S=True,r=0.005,m=True,t=traj_rad2)
+        # view(np.squeeze(np.concatenate((reco1,reco2,reco3))))
 
 if __name__ == '__main__':
     unittest.main()
