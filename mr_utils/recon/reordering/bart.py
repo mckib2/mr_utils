@@ -20,17 +20,17 @@ if __name__ == '__main__':
     # 2x oversampling
     traj_rad2 = B.scale(0.5,traj_rad)
     logging.info('Oversampled by 2')
-
     # simulate num_chan-channel k-space data
     num_chan = 8
     # ksp_sim = bart(1,'phantom -k -s%d -t' % num_chan,traj_rad2)
     ksp_sim = B.phantom(k=True,s=num_chan,t=traj_rad2)
     logging.info('Simulated %d channel phantom' % num_chan)
+    # view(ksp_sim)
     # np.save('ksp_sim.npy',ksp_sim)
     # ksp_sim = BARTReordering.ksp_sim()
 
     # increase the reconstructed FOV a bit
-    traj_rad2 = bart(1,'scale 0.6',traj_rad)
+    traj_rad2 = B.scale(0.6,traj_rad)
     logging.info('Increased reconstructed FOV a bit')
     # np.save('traj_rad2.npy',traj_rad2)
     # traj_rad2 = BARTReordering.traj_rad2()
@@ -77,7 +77,14 @@ if __name__ == '__main__':
     # reco2 = BARTReordering.reco2()
 
     # now try reordering the im-space data according to reco1/reco2/reco3
-
+    ii = np.argsort(np.abs(reco2),axis=0)
+    jj = np.arange(reco2.shape[1])
+    # reco2_sort = reco2[ii,jj]
+    # The problem is that we want to apply the same traj to the fft of
+    # reordered image space.  We can do that, we just need to figure out how...
+    r = .001
+    reco4 = bart(1,'pics -S -r%f -t' % r,traj_rad2,ksp_sim,sens)
+    logging.info('PICS with l2 ref (%g) and reordered according to reco2 completed' % r)
 
     # Take a looksie
-    view(np.squeeze(np.concatenate((reco1,reco2,reco3))))
+    view(np.squeeze(np.concatenate((reco1,reco2,reco3,reco4))))
