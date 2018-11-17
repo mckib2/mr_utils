@@ -1,0 +1,1073 @@
+<XProtocol>
+{
+  <Name> "ONLINE Pipe Configuration"
+  <ID> 1000000
+  <Userversion> 1.0
+
+  <EVAStringTable>
+  {
+    17
+    114 "Motion Correction"
+    133 "Save Images"
+    134 "Subtract"
+    135 "Subtrahend"
+    136 "Auto Scaling"
+    137 "Scaling Factor"
+    138 "Offset"
+    139 "Std-Dev-Sag"
+    140 "Std-Dev-Cor"
+    141 "Std-Dev-Tra"
+    142 "Std-Dev-Time"
+    143 "MIP-Sag"
+    144 "MIP-Cor"
+    145 "MIP-Tra"
+    146 "MIP-Time"
+    147 "Save Original"
+    427 "Noise Threshold"
+  }
+
+  <ParamMap."">
+  {
+    <ParamMap."HEADER">
+    {
+      <ParamString."PatientQuadruple">
+      {
+      }
+
+      <ParamLong."RegisterID">
+      {
+        8
+      }
+
+      <ParamLong."FileID">
+      {
+      }
+
+      <ParamMap."DMWL">
+      {
+        <ParamMap."Pause">
+        {
+          <ParamString."CodeValue">
+          {
+          }
+
+          <ParamString."CodingSchemeVersion">
+          {
+          }
+
+          <ParamString."CodingSchemeDesignator">
+          {
+          }
+
+          <ParamString."CodeMeaning">
+          {
+          }
+        }
+
+        <ParamMap."Meas">
+        {
+
+          <ParamString."CodeValue">
+          {
+          }
+
+          <ParamString."CodingSchemeVersion">
+          {
+          }
+
+          <ParamString."CodingSchemeDesignator">
+          {
+          }
+
+          <ParamString."CodeMeaning">
+          {
+          }
+        }
+      }
+
+
+      <ParamLong."DisableAutoTransfer">
+      {
+      }
+
+      <ParamLong."DisableAutoFilming">
+      {
+      }
+
+      <ParamLong."DisableAutoViewing">
+      {
+      }
+
+      <ParamBool."InlinePositionDisplay">
+      {
+        <LimitRange> { "false" "true" }
+      }
+
+      <ParamLong."InlinePositionDisplayOrientation">
+      {
+      }
+
+      <ParamString."tPatientName">
+      {
+        "BANGERTER_SSFP_SPECTRA"
+      }
+
+      <ParamLong."MeasUID">
+      {
+        118
+      }
+
+      <ParamLong."MultiStepID">
+      {
+        <Default> -1
+        10966
+      }
+
+      <ParamLong."SubProtocolID">
+      {
+        <Default> -1
+        -259
+      }
+
+      <ParamLong."SubProtocolIndex">
+      {
+      }
+
+      <ParamLong."SubProtocolCount">
+      {
+        <Default> 1
+      }
+
+      <ParamString."PatientLOID">
+      {
+        "16.0.27154602"
+      }
+
+      <ParamString."StudyLOID">
+      {
+        <MinSize> 1
+        <MaxSize> 1
+        "16.0.27154607"
+      }
+
+      <ParamString."SeriesLOID">
+      {
+        <MinSize> 1
+        <MaxSize> 1
+        "16.0.27154611"
+      }
+
+      <ParamString."StudyLOIDS4Split">
+      {
+        <MinSize> 1
+        <MaxSize> 50
+        "16.0.27154607"
+      }
+
+      <ParamString."MppsLOIDS4Split">
+      {
+        <MinSize> 1
+        <MaxSize> 50
+        "14.0.10379414"
+      }
+
+      <ParamString."SeriesLOIDS4Split">
+      {
+        <MinSize> 1
+        <MaxSize> 50
+        "16.0.27154611"
+      }
+
+      <ParamString."StudyLOIDS4SplitAndPause">
+      {
+        <MinSize> 1
+        <MaxSize> 50
+        "16.0.27154607"
+      }
+
+      <ParamString."MppsLOIDS4SplitAndPause">
+      {
+        <MinSize> 1
+        <MaxSize> 50
+      }
+
+      <ParamString."SeriesLOIDS4SplitAndPause">
+      {
+        <MinSize> 1
+        <MaxSize> 50
+        "16.0.27154611"
+      }
+
+      <ParamBool."IsInlineCompose">
+      {
+        <LimitRange> { "false" "true" }
+      }
+
+      <ParamString."ComposingFunction">
+      {
+      }
+
+      <ParamLong."ComposingGroup">
+      {
+      }
+
+      <ParamBool."IsLastStep">
+      {
+        <LimitRange> { "false" "true" }
+      }
+
+      <ParamString."userToken">
+      {
+      }
+
+      <ParamLong."ProtocolChangeHistory">
+      {
+      }
+
+      <ParamString."tProtocolName">
+      {
+        "TRUFI_STW_TE3"
+      }
+
+      <ParamString."tStudyDescription">
+      {
+      }
+
+      <ParamChoice."YAPS_update">
+      {
+        <Default> "off"
+        <Limit> { "off" "ext_only" "full" }
+        "full"
+      }
+
+    }
+
+    <ParamMap."ADJUSTMENT">
+    {
+
+      <ParamLong."uiAdjFreWarningOverrideKey">
+      {
+      }
+
+      <ParamLong."uiAdjFreConfirmOverrideKey">
+      {
+      }
+
+      <ParamLong."uiAdjTraWarningOverrideKey">
+      {
+      }
+
+      <ParamLong."uiAdjProtID">
+      {
+      }
+    }
+
+    <ParamMap."MEAS">
+    {
+        <ParamLong."ulVersion">
+        {
+          21710006
+        }
+
+        <ParamString."tSequenceFileName">
+        {
+          "%CustomerSeq%\TRUFI_STW"
+        }
+
+        <ParamString."tProtocolName">
+        {
+          "TRUFI_STW_TE3"
+        }
+
+        <ParamString."tReferenceImage0">
+        {
+          "1.3.12.2.1107.5.2.32.35002.2018100213130473396413648"
+        }
+
+        <ParamString."tReferenceImage1">
+        {
+          "1.3.12.2.1107.5.2.32.35002.2018100213182285308414701"
+        }
+
+        <ParamString."tReferenceImage2">
+        {
+          "1.3.12.2.1107.5.2.32.35002.2018100213130076077613645"
+        }
+
+        <ParamDouble."lScanRegionPosSag">
+        {
+          <Precision> 6
+        }
+
+        <ParamDouble."lScanRegionPosCor">
+        {
+          <Precision> 6
+        }
+
+        <ParamDouble."lScanRegionPosTra">
+        {
+          <Precision> 6
+        }
+
+        <ParamLong."ucScanRegionPosValid">
+        {
+          1
+        }
+
+        <ParamLong."ucTablePositioningMode">
+        {
+          2
+        }
+
+        <ParamLong."lScanRegionDelta">
+        {
+        }
+
+        <ParamMap."sProtConsistencyInfo">
+        {
+            <ParamString."tMeasuredBaselineString">
+            {
+            }
+
+            <ParamString."tBaselineString">
+            {
+              "N4_VB17A_LATEST_20090307"
+            }
+
+            <ParamDouble."flNominalB0">
+            {
+              <Precision> 6
+              2.893620
+            }
+
+            <ParamDouble."flGMax">
+            {
+              <Precision> 6
+              26.000000
+            }
+
+            <ParamDouble."flRiseTime">
+            {
+              <Precision> 6
+              5.880000
+            }
+
+            <ParamLong."ulPersistentConvFromVersion">
+            {
+            }
+
+            <ParamLong."lMaximumMatrixMode">
+            {
+            }
+
+            <ParamLong."lMaximumNofRxReceiverChannels">
+            {
+              32
+            }
+        }
+
+        <ParamMap."sGRADSPEC">
+        {
+            <ParamMap."sEddyCompensationX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.001572 0.004589 -0.002023 0.000124 0.001318
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                1.990990 0.400558 0.243486 0.025307 0.000499
+              }
+            }
+
+            <ParamMap."sEddyCompensationY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000582 0.000256 0.000719 -0.002523 0.002731
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                1.870390 0.240596 0.003000 0.001421 0.000884
+              }
+            }
+
+            <ParamMap."sEddyCompensationZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.003261 0.006800 0.000732 -0.000260 0.000420
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                3.712500 0.846789 0.065340 0.013632 0.001999
+              }
+            }
+
+            <ParamLong."bEddyCompensationValid">
+            {
+              1
+            }
+
+            <ParamMap."sB0CompensationX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.089927 -0.001653 -0.009940 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.739091 0.136684 0.001447 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sB0CompensationY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.075508 0.006471 -0.005454 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.860096 0.050795 0.002000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sB0CompensationZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.174514 0.034205 0.007075 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.811660 0.154981 0.002000 0.000000 0.000000
+              }
+            }
+
+            <ParamLong."bB0CompensationValid">
+            {
+              1
+            }
+
+            <ParamMap."sCrossTermCompensationXY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.000449 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.550805 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationXZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000000 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.000000 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationYX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.000663 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.548838 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationYZ">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000381 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                1.016940 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationZX">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                -0.000080 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.729970 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamMap."sCrossTermCompensationZY">
+            {
+
+              <ParamDouble."aflAmplitude">
+              {
+                <Precision> 6
+                0.000218 0.000000 0.000000 0.000000 0.000000
+              }
+
+              <ParamDouble."aflTimeConstant">
+              {
+                <Precision> 6
+                0.440292 0.000000 0.000000 0.000000 0.000000
+              }
+            }
+
+            <ParamLong."bCrossTermCompensationValid">
+            {
+              1
+            }
+
+            <ParamLong."lOffsetX">
+            {
+              -2829
+            }
+
+            <ParamLong."lOffsetY">
+            {
+              -23714
+            }
+
+            <ParamLong."lOffsetZ">
+            {
+              1653
+            }
+
+            <ParamLong."bOffsetValid">
+            {
+              1
+            }
+
+            <ParamLong."lDelayX">
+            {
+              13
+            }
+
+            <ParamLong."lDelayY">
+            {
+              14
+            }
+
+            <ParamLong."lDelayZ">
+            {
+              9
+            }
+
+            <ParamLong."bDelayValid">
+            {
+              1
+            }
+
+            <ParamDouble."flSensitivityX">
+            {
+              <Precision> 6
+              0.000078
+            }
+
+            <ParamDouble."flSensitivityY">
+            {
+              <Precision> 6
+              0.000078
+            }
+
+            <ParamDouble."flSensitivityZ">
+            {
+              <Precision> 6
+              0.000091
+            }
+
+            <ParamLong."bSensitivityValid">
+            {
+              1
+            }
+
+            <ParamDouble."flGSWDMinRiseTime">
+            {
+              <Precision> 6
+            }
+
+            <ParamLong."alShimCurrent">
+            {
+              -134 1109 -3254 156 1103 0 0 0 0 0
+              0 0 0 0 0
+            }
+
+            <ParamLong."bShimCurrentValid">
+            {
+              1
+            }
+
+            <ParamLong."ucMode">
+            {
+              1
+            }
+        }
+
+        <ParamMap."sTXSPEC">
+        {
+        }
+
+    }
+
+
+  }
+
+  <ParamCardLayout."Inline Evaluation">
+  {
+    <Repr> "LAYOUT_10X2_WIDE_CONTROLS"
+    <Control>  { <Param> "IRIS.PIPE.PostProc.Subtraction.EXECUTE" <Pos> 124 3 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.Subtraction.save" <Pos> 124 18 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.Subtraction.auto" <Pos> 124 33 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.Subtraction.fact" <Pos> 124 48 }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.Subtraction.offs" <Pos> 124 63 }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.Subtraction.subtrahend" <Pos> 124 78 }
+    <Control>  { <Param> "msr.meas" <Pos> 124 123 }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.StdDevFactory.sag" <Pos> 274 3 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.StdDevFactory.cor" <Pos> 274 18 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.StdDevFactory.tra" <Pos> 274 33 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.StdDevFactory.time" <Pos> 274 48 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.MIPFactory.sag" <Pos> 274 63 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.MIPFactory.cor" <Pos> 274 78 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.MIPFactory.tra" <Pos> 274 93 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.MIPFactory.time" <Pos> 274 108 <Repr> "UI_CHECKBOX" }
+    <Control>  { <Param> "IRIS.PIPE.PostProc.save_orig" <Pos> 274 123 <Repr> "UI_CHECKBOX" }
+  }
+
+  <Dependency."1_Availability"> {"Recon.sImageFilter.ucImageFilter" "Recon.sImageFilter.ucIntensity" "Recon.sImageFilter.ulEdgeEnhancement" "Recon.sImageFilter.ulSmoothing" "Recon.sImageFilter.ucSaveUnfiltered" <Context> "NORMAL" }
+  <Dependency."MrDh_ImageFilter"> {"Recon.sImageFilter.ucImageFilter" "Recon.sImageFilter.ucIntensity" "Recon.sImageFilter.ulEdgeEnhancement" "Recon.sImageFilter.ulSmoothing" "Recon.sImageFilter.ucSaveUnfiltered" "MEAS.sImageFilter.lEdgeEnhance" "MEAS.sImageFilter.lSmoothing" "MEAS.sImageFilter.ucOn" "MEAS.sImageFilter.ucMode" "MEAS.sImageFilter.ucSaveUnfiltered" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sDistortionCorrFilter.ucDisCorr" "Recon.sDistortionCorrFilter.ucMode" "Recon.sDistortionCorrFilter.ucSaveUnfiltered" <Context> "NORMAL" }
+  <Dependency."MrDh_DisCorr"> {"Recon.sDistortionCorrFilter.ucDisCorr" "Recon.sDistortionCorrFilter.ucMode" "Recon.sDistortionCorrFilter.ucSaveUnfiltered" "MEAS.sDistortionCorrFilter.ucMode" "MEAS.sDistortionCorrFilter.ucSaveUnfiltered" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sPrescanNormalizeFilter.ucPrescanNormalize" "Recon.sPrescanNormalizeFilter.ucSaveUnfiltered" <Context> "NORMAL" }
+  <Dependency."MrDh_PrescanNormalizeFilter"> {"Recon.sPrescanNormalizeFilter.ucPrescanNormalize" "Recon.sPrescanNormalizeFilter.ucSaveUnfiltered" "MEAS.sPreScanNormalizeFilter.ucOn" "MEAS.sPreScanNormalizeFilter.ucSaveUnfiltered" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sNormalizeFilter.ucNormalize" "Recon.sNormalizeFilter.ucIntensity" "Recon.sNormalizeFilter.ulCutOff" "Recon.sNormalizeFilter.ulWidth" "Recon.sNormalizeFilter.ucSaveUnfiltered" <Context> "NORMAL" }
+  <Dependency."MrDh_NormalizeFilter"> {"Recon.sNormalizeFilter.ucNormalize" "Recon.sNormalizeFilter.ucIntensity" "Recon.sNormalizeFilter.ulCutOff" "Recon.sNormalizeFilter.ulWidth" "Recon.sNormalizeFilter.ucSaveUnfiltered" "MEAS.sNormalizeFilter.lWidth_256" "MEAS.sNormalizeFilter.lCutOff" "MEAS.sNormalizeFilter.ucOn" "MEAS.sNormalizeFilter.ucMode" "MEAS.sNormalizeFilter.ucSaveUnfiltered" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sBiFiCFilter.ucBiFiC" "Recon.sBiFiCFilter.ucIntensity" "Recon.sBiFiCFilter.ucSaveUnfiltered" <Context> "NORMAL" }
+  <Dependency."MrDh_BiFiCFilter"> {"Recon.sBiFiCFilter.ucBiFiC" "Recon.sBiFiCFilter.ucIntensity" "Recon.sBiFiCFilter.ucSaveUnfiltered" "MEAS.sBiFiCFilter.ucOn" "MEAS.sBiFiCFilter.ucMode" "MEAS.sBiFiCFilter.ucSaveUnfiltered" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sRawFilter.ucRaw" "Recon.sRawFilter.ucIntensity" "Recon.sRawFilter.ulSlope" <Context> "NORMAL" }
+  <Dependency."MrDh_RawFilter"> {"Recon.sRawFilter.ucRaw" "Recon.sRawFilter.ucIntensity" "Recon.sRawFilter.ulSlope" "MEAS.sRawFilter.ucOn" "MEAS.sRawFilter.ucMode" "MEAS.sRawFilter.lSlope_256" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sEllipticalFilter.ucElliptical" "Recon.sEllipticalFilter.ucMode" <Context> "NORMAL" }
+  <Dependency."MrDh_EllipticalFilter"> {"Recon.sEllipticalFilter.ucElliptical" "Recon.sEllipticalFilter.ucMode" "MEAS.sEllipticalFilter.ucOn" "MEAS.sEllipticalFilter.ucMode" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."IF1_NOT_Value"> {"Recon.sRawFilter.ucRaw" "Recon.sEllipticalFilter.ucElliptical" <Context> "NORMAL" }
+  <Dependency."IF1_NOT_Value"> {"Recon.sEllipticalFilter.ucElliptical" "Recon.sRawFilter.ucRaw" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"Recon.sPATMode.ucPAT" "Recon.sPATMode.ucPATMode" <Context> "NORMAL" }
+  <Dependency."MrDh_ReconMisc"> {"Recon.ucCoilCombineMode" "Recon.sPATMode.ucPAT" "Recon.sPATMode.ucPATMode" "Recon.ucInterpolation" "MEAS.ucCoilCombineMode" "MEAS.sPat.ucPATMode" "MEAS.sKSpace.uc2DInterpolation" "YAPS.iRoFTLength" "YAPS.iPEFTLength" <Dll> "MrReconDependencies" <Context> "NORMAL" }
+  <Dependency."AdjustmentOverride"> {"ADJUSTMENT.uiAdjFreWarningOverrideKey" "ADJUSTMENT.uiAdjFreConfirmOverrideKey" "ADJUSTMENT.uiAdjTraWarningOverrideKey" "ADJUSTMENT.uiAdjProtID" <Dll> "MrMSRDependencies" }
+  <Dependency."signature"> {"IRIS.PIPE" }
+  <Dependency."signature"> {"SPICE.PIPE" }
+  <Dependency."1_equal"> {"HEADER.StudyLOIDS4Split.0" "HEADER.StudyLOID" }
+  <Dependency."1_equal"> {"HEADER.SeriesLOIDS4Split.0" "HEADER.SeriesLOID" }
+  <Dependency."1_equal"> {"HEADER.MppsLOIDS4Split.0" "YAPS.tCurrentMppsLoid" }
+  <Dependency."1_equal"> {"HEADER.StudyLOIDS4Split" "SPICE.PIPE.Commiter.commit.Studyloids4Split" }
+  <Dependency."1_equal"> {"HEADER.MppsLOIDS4Split" "SPICE.PIPE.Commiter.commit.MppsLoids4Split" }
+  <Dependency."1_equal"> {"HEADER.SeriesLOIDS4Split" "SPICE.PIPE.Commiter.commit.DefaultSeriesLoids4Split" }
+  <Dependency."1_equal"> {"HEADER.MppsLOIDS4SplitAndPause" "SPICE.PIPE.Commiter.commit.MppsLOIDS4DMWLPause" }
+  <Dependency."FConnect"> {"SPICE.PIPE" "SPICE.PIPE.Receiver.source.EXECUTE" "SPICE.PIPE.Displayer.display.EXECUTE" "SPICE.PIPE.PDP.pdp.EXECUTE" "SPICE.PIPE.Eraser.erase.EXECUTE" "SPICE.PIPE.DicomWriter.dicomwriter.EXECUTE" "SPICE.PIPE.PixelWriter.pixelw.EXECUTE" "SPICE.PIPE.StampWriter.stamp.EXECUTE" "SPICE.PIPE.Recycle.sync.EXECUTE" "SPICE.PIPE.Recycle.recycle.EXECUTE" "SPICE.PIPE.Commiter.systemdata.EXECUTE" "SPICE.PIPE.Commiter.commit.EXECUTE" "SPICE.PIPE.Event.event.EXECUTE" }
+  <Dependency."SPICElight"> {"MEAS.sAdjData.uiAdjType" "HEADER.InlinePositionDisplay" "SPICE.PIPE.Receiver.source.EXECUTE" "SPICE.PIPE.Displayer.display.EXECUTE" "SPICE.PIPE.Eraser.erase.EXECUTE" "SPICE.PIPE.PixelWriter.pixelw.EXECUTE" "SPICE.PIPE.StampWriter.stamp.EXECUTE" "SPICE.PIPE.Recycle.sync.EXECUTE" "SPICE.PIPE.Recycle.recycle.EXECUTE" "SPICE.PIPE.Commiter.systemdata.EXECUTE" "SPICE.PIPE.Commiter.commit.EXECUTE" "SPICE.PIPE.Event.event.EXECUTE" }
+  <Dependency."SPICElight"> {"MEAS.sAdjData.uiAdjType" "SPICE.PIPE.DicomWriter.dicomwriter.EXECUTE" }
+  <Dependency."1_NOT_Value"> {"SPICE.PIPE.Receiver.source.EXECUTE" "SPICE.PIPE.Receiver.sourceLite.EXECUTE" }
+  <Dependency."1_equal"> {"HEADER.MeasUID" "SPICE.SERVICES.PDS.MeasUid" "SPICE.SERVICES.Receiver.MeasUID" "SPICE.PIPE.Receiver.source.MeasUID" "SPICE.PIPE.Receiver.sourceLite.MeasUID" "SPICE.PIPE.Displayer.display.MeasUID" "SPICE.PIPE.DicomWriter.dicomwriter.MeasUID" "SPICE.SERVICES.MeasContext.MeasUid" "SPICE.PIPE.Event.event.MeasUID" "SPICE.PIPE.Commiter.systemdata.MeasUID" "SPICE.PIPE.PixelWriter.pixelw.MeasUID" "SPICE.PIPE.StampWriter.stamp.MeasUID" "SPICE.PIPE.Commiter.commit.MeasUID" }
+  <Dependency."1_equal"> {"HEADER.StudyLOID" "SPICE.PIPE.Displayer.display.StudyLOID" "SPICE.PIPE.PDP.pdp.StudyLOID" "SPICE.SERVICES.MeasContext.Study" "SPICE.PIPE.Receiver.source.ParentLoid" "SPICE.PIPE.Event.event.StudyLoid" }
+  <Dependency."1_equal"> {"HEADER.RegisterID" "SPICE.SERVICES.MeasContext.RegisterID" }
+  <Dependency."1_equal"> {"HEADER.PatientLOID" "SPICE.SERVICES.MeasContext.Patient" }
+  <Dependency."1_equal"> {"HEADER.SeriesLOID" "SPICE.PIPE.Receiver.source.DefaultSeriesLoid" }
+  <Dependency."1_equal"> {"HEADER.MultiStepID" "SPICE.SERVICES.MeasContext.MultiStepProt" "SPICE.PIPE.Receiver.source.MultiStepId" }
+  <Dependency."1_equal"> {"HEADER.SubProtocolID" "SPICE.PIPE.Receiver.source.SubProtocolId" }
+  <Dependency."1_equal"> {"HEADER.SubProtocolIndex" "SPICE.PIPE.Receiver.source.SubProtocolIndex" }
+  <Dependency."1_equal"> {"HEADER.SubProtocolCount" "SPICE.PIPE.Receiver.source.SubProtocolCount" }
+  <Dependency."1_equal"> {"HEADER.InlinePositionDisplay" "SPICE.PIPE.PDP.pdp.EXECUTE" }
+  <Dependency."1_equal"> {"HEADER.InlinePositionDisplayOrientation" "SPICE.PIPE.PDP.pdp.RefOrientation" }
+  <Dependency."1_equal"> {"MEAS.ucReconstructionPrio" "SPICE.SERVICES.MeasContext.HighPrio" }
+  <Dependency."1_equal"> {"MEAS.sDiffusion.ulMode" "SPICE.PIPE.Receiver.source.DiffusionMode" }
+  <Dependency."1_equal"> {"MEAS.sKSpace.lBaseResolution" "SPICE.PIPE.Receiver.source.BaseResolution" }
+  <Dependency."1_equal"> {"MEAS.sKSpace.lPhaseEncodingLines" "SPICE.PIPE.Receiver.source.PhaseEncodingLines" }
+  <Dependency."1_equal"> {"MEAS.sKSpace.lPartitions" "SPICE.PIPE.Receiver.source.Partitions" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.lVectorSize" "SPICE.PIPE.Receiver.source.VectorSize" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.lFinalMatrixSizeRead" "SPICE.PIPE.Receiver.source.FinalMatrixSizeRead" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.lFinalMatrixSizePhase" "SPICE.PIPE.Receiver.source.FinalMatrixSizePhase" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.lFinalMatrixSizeSlice" "SPICE.PIPE.Receiver.source.FinalMatrixSizeSlice" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.dThickness" "SPICE.PIPE.Receiver.source.VoiThickness" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.sNormal.dSag" "SPICE.PIPE.Receiver.source.VoiNormalSag" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.sNormal.dCor" "SPICE.PIPE.Receiver.source.VoiNormalCor" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.sNormal.dTra" "SPICE.PIPE.Receiver.source.VoiNormalTra" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.dInPlaneRot" "SPICE.PIPE.Receiver.source.VoiInPlaneRot" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.sPosition.dSag" "SPICE.PIPE.Receiver.source.VoiPositionSag" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.sPosition.dCor" "SPICE.PIPE.Receiver.source.VoiPositionCor" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.sPosition.dTra" "SPICE.PIPE.Receiver.source.VoiPositionTra" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.dPhaseFOV" "SPICE.PIPE.Receiver.source.VoiPhaseFOV" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.sVoI.dReadoutFOV" "SPICE.PIPE.Receiver.source.VoiReadoutFOV" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.ucRemoveOversampling" "SPICE.PIPE.Receiver.source.RemoveOversampling" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Pause.CodeValue" "SPICE.PIPE.Receiver.source.DMWLPauseCodeValue" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Pause.CodingSchemeVersion" "SPICE.PIPE.Receiver.source.DMWLPauseCodeSchemeVersion" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Pause.CodingSchemeDesignator" "SPICE.PIPE.Receiver.source.DMWLPauseCodeSchemeDesignator" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Pause.CodeMeaning" "SPICE.PIPE.Receiver.source.DMWLPauseCodeMeaning" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Meas.CodeValue" "SPICE.PIPE.Receiver.source.DMWLMeasCodeValue" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Meas.CodingSchemeVersion" "SPICE.PIPE.Receiver.source.DMWLMeasCodeSchemeVersion" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Meas.CodingSchemeDesignator" "SPICE.PIPE.Receiver.source.DMWLMeasCodeSchemeDesignator" }
+  <Dependency."1_equal"> {"HEADER.DMWL.Meas.CodeMeaning" "SPICE.PIPE.Receiver.source.DMWLMeasCodeMeaning" }
+  <Dependency."1_equal"> {"MEAS.sKSpace.dSeqPhasePartialFourierForSNR" "SPICE.PIPE.Receiver.source.PartialFourierFactor" }
+  <Dependency."1_equal"> {"MEAS.sRSatArray.lSize" "SPICE.PIPE.Receiver.source.RSatArraySize" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.dThickness" "SPICE.PIPE.Receiver.source.RSatThickness" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.sNormal.dSag" "SPICE.PIPE.Receiver.source.RSatNormalSag" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.sNormal.dCor" "SPICE.PIPE.Receiver.source.RSatNormalCor" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.sNormal.dTra" "SPICE.PIPE.Receiver.source.RSatNormalTra" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.sPosition.dSag" "SPICE.PIPE.Receiver.source.RSatPositionSag" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.sPosition.dCor" "SPICE.PIPE.Receiver.source.RSatPositionCor" }
+  <Dependency."array_equal"> {"MEAS.sRSatArray.asElm.*.sPosition.dTra" "SPICE.PIPE.Receiver.source.RSatPositionTra" }
+  <Dependency."1_equal"> {"MEAS.alTD" "SPICE.PIPE.Receiver.source.MixingTime" }
+  <Dependency."1_equal"> {"MEAS.sHammingFilter.ucOn" "SPICE.PIPE.Receiver.source.HammingFilterOn" }
+  <Dependency."1_equal"> {"MEAS.sHammingFilter.lWidthPercent" "SPICE.PIPE.Receiver.source.HammingFilterWidth" }
+  <Dependency."1_equal"> {"MEAS.sTXSPEC.asNucleusInfo.0.flReferenceAmplitude" "SPICE.PIPE.Receiver.source.TransmitterReferenceAmplitude" }
+  <Dependency."1_equal"> {"MEAS.sTXSPEC.asNucleusInfo.0.tNucleus" "SPICE.PIPE.Receiver.source.ResonantNucleus" }
+  <Dependency."1_equal"> {"MEAS.sGRADSPEC.ucMode" "SPICE.PIPE.Receiver.source.GradientMode" }
+  <Dependency."1_equal"> {"MEAS.acFlowComp" "SPICE.PIPE.Receiver.source.FlowCompensation" }
+  <Dependency."1_equal"> {"MEAS.ucFlipAngleMode" "SPICE.PIPE.Receiver.source.FlipAngleMode" }
+  <Dependency."1_equal"> {"MEAS.sSpecPara.ucFreqCorrAcc" "SPICE.PIPE.Receiver.source.SpectroFreqCorrAcc" }
+  <Dependency."1_equal"> {"IRIS.DERIVED.phaseOversampling" "SPICE.PIPE.Receiver.source.PhaseOversampling" }
+  <Dependency."1_equal"> {"HEADER.userToken" "SPICE.PIPE.Commiter.commit.UserToken" }
+  <Dependency."1_equal"> {"HEADER.userToken" "SPICE.PIPE.Event.event.UserToken" "SPICE.PIPE.DicomWriter.dicomwriter.UserToken" }
+  <Dependency."1_equal"> {"HEADER.PatientLOID" "SPICE.PIPE.Event.event.PatientLoid" }
+  <Dependency."1_equal"> {"CONFIG.SPICE.MAIN_DB" "SPICE.PIPE.Event.event.MainDB" }
+  <Dependency."1_equal"> {"HEADER.tPatientName" "SPICE.PIPE.Displayer.display.PatientsName" }
+  <Dependency."1_equal"> {"MEAS.ucStoreImages" "SPICE.PIPE.Displayer.display.StoreImages" "SPICE.PIPE.Eraser.erase.StoreImages" }
+  <Dependency."1_equal"> {"MEAS.ucDisableChangeStoreImages" "SPICE.PIPE.Displayer.display.DisableChangeStoreImages" "SPICE.PIPE.DicomWriter.dicomwriter.DisableChangeStoreImages" "SPICE.PIPE.Commiter.commit.DisableChangeStoreImages" "SPICE.PIPE.Eraser.erase.DisableChangeStoreImages" }
+  <Dependency."1_equal"> {"HEADER.IsInlineCompose" "SPICE.PIPE.Commiter.commit.IsInlineCompose" "SPICE.PIPE.DicomWriter.dicomwriter.IsInlineCompose" "SPICE.PIPE.Receiver.source.IsInlineCompose" }
+  <Dependency."1_equal"> {"HEADER.IsLastStep" "SPICE.PIPE.Receiver.source.IsLastStep" }
+  <Dependency."1_equal"> {"HEADER.DisableAutoFilming" "SPICE.PIPE.Event.event.DisableAutoFilming" }
+  <Dependency."1_equal"> {"HEADER.DisableAutoViewing" "SPICE.PIPE.Event.event.DisableAutoViewing" }
+  <Dependency."1_equal"> {"HEADER.DisableAutoTransfer" "SPICE.PIPE.Event.event.DisableAutoTransfer" }
+  <Dependency."1_equal"> {"YAPS.tContrastBolusAgent" "SPICE.PIPE.Receiver.source.ContrastBolusAgent" }
+  <Dependency."1_equal"> {"YAPS.flContrastBolusVolume" "SPICE.PIPE.Receiver.source.ContrastBolusVolume" }
+  <Dependency."1_equal"> {"YAPS.flContrastBolusTotalDose" "SPICE.PIPE.Receiver.source.ContrastBolusTotalDose" }
+  <Dependency."1_equal"> {"YAPS.tContrastBolusIngredient" "SPICE.PIPE.Receiver.source.ContrastBolusIngredient" }
+  <Dependency."1_equal"> {"YAPS.flContrastBolusIngredientConcentration" "SPICE.PIPE.Receiver.source.ContrastBolusIngredientConcentration" }
+  <Dependency."1_equal"> {"YAPS.tContrastBolusAgentCodeValue" "SPICE.PIPE.Receiver.source.ContrastBolusAgentCodeValue" }
+  <Dependency."1_equal"> {"YAPS.tContrastBolusAgentCodingScheme" "SPICE.PIPE.Receiver.source.ContrastBolusAgentCodingScheme" }
+  <Dependency."1_equal"> {"YAPS.tAngioFlag" "SPICE.PIPE.Receiver.source.AngioFlag" }
+  <Dependency."1_equal"> {"YAPS.tSequenceString" "SPICE.PIPE.Receiver.source.SequenceString" }
+  <Dependency."1_equal"> {"CONFIG.COMMON.SIMULATION.PMUSERVERIF" "SPICE.PIPE.Commiter.systemdata.SimulatePMUServerIF" }
+  <Dependency."1_equal"> {"CONFIG.COMMON.SIMULATION.MESSERIF" "SPICE.PIPE.Commiter.systemdata.SimulateMesSerIF" }
+  <Dependency."1_equal"> {"CONFIG.COMMON.SIMULATION.PATSAFIF" "SPICE.PIPE.Commiter.systemdata.SimulatePatSafIF" }
+  <Dependency."1_equal"> {"MEAS.sPhysioImaging.lSignal1" "SPICE.PIPE.Commiter.systemdata.PhysioSignal1" }
+  <Dependency."1_equal"> {"MEAS.sPhysioImaging.lMethod1" "SPICE.PIPE.Commiter.systemdata.PhysioMethod1" }
+  <Dependency."1_equal"> {"MEAS.sPhysioImaging.lSignal2" "SPICE.PIPE.Commiter.systemdata.PhysioSignal2" }
+  <Dependency."1_equal"> {"MEAS.sPhysioImaging.lMethod2" "SPICE.PIPE.Commiter.systemdata.PhysioMethod2" }
+  <Dependency."1_equal"> {"MEAS.sPhysioImaging.lRetroGatedImages" "SPICE.PIPE.Commiter.systemdata.NRetroGatedImages" }
+  <Dependency."1_equal"> {"MEAS.sPhysioImaging.lPhases" "SPICE.PIPE.Commiter.systemdata.NPhases" }
+  <Dependency."1_equal"> {"YAPS.tSequenceString" "SPICE.PIPE.Commiter.systemdata.SequenceStringYaps" }
+  <Dependency."1_equal"> {"YAPS.ucSiemensSequence" "SPICE.PIPE.Commiter.systemdata.SiemensSequence" }
+  <Dependency."1_equal"> {"DICOM.adFlipAngleDegree" "SPICE.PIPE.Displayer.display.FlipAngle" }
+  <Dependency."1_equal"> {"MEAS.sSliceArray.lConc" "SPICE.PIPE.Commiter.commit.Concatenations" }
+  <Dependency."1_equal"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineSendIMA" "SPICE.PIPE.Commiter.commit.OnlineSendIMA" }
+  <Dependency."nm1_OR_Value"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineSendRAW" "ICE.CONFIG.OnlineSendConfiguration.OnlineSendRHP" "ICE.CONFIG.OnlineSendConfiguration.OnlineSendMeasData" "SPICE.PIPE.Commiter.commit.OnlineSendRAW" }
+  <Dependency."1_equal"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineTargetPort" "SPICE.PIPE.Commiter.commit.OnlineTargetPort" }
+  <Dependency."1_equal"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineTargetHostName" "SPICE.PIPE.Commiter.commit.OnlineTargetHostName" }
+  <Dependency."1_equal"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineTargetPath" "SPICE.PIPE.Commiter.commit.OnlineTargetPath" }
+  <Dependency."1_equal"> {"ICE.CONFIG.OnlineSendConfiguration.SendBuffered" "SPICE.PIPE.Commiter.commit.SendBuffered" }
+  <Dependency."1_equal"> {"HEADER.tPatientName" "IRIS.RECOMPOSE.tPatientName" }
+  <Dependency."1_equal"> {"HEADER.SubProtocolIndex" "IRIS.RECOMPOSE.SubProtocolIndex" }
+  <Dependency."1_equal"> {"HEADER.PatientLOID" "IRIS.RECOMPOSE.PatientLOID" }
+  <Dependency."1_equal"> {"HEADER.StudyLOID" "IRIS.RECOMPOSE.StudyLOID" }
+  <Dependency."1_equal"> {"HEADER.SeriesLOID" "IRIS.RECOMPOSE.SeriesLOID" }
+  <Dependency."1_equal"> {"HEADER.ProtocolChangeHistory" "IRIS.RECOMPOSE.ProtocolChangeHistory" }
+  <Dependency."1_equal"> {"HEADER.tStudyDescription" "IRIS.RECOMPOSE.tStudyDescription" }
+  <Dependency."Value_TRUE"> {"SPICE.SERVICES.MeasContext.IsInlineProcessing" }
+  <Dependency."relSliceNumber"> {"MEAS.sSliceArray.asSlice" "MEAS.sSliceArray.anAsc" "MEAS.sSliceArray.ucMode" "MEAS.sSliceArray.lSize" "MEAS.sSliceArray.ucImageNumbMSMA" "MEAS.sSliceArray.ucImageNumbSag" "MEAS.sSliceArray.ucImageNumbCor" "MEAS.sSliceArray.ucImageNumbTra" "MEAS.sGroupArray.asGroup" "MEAS.sGroupArray.anMember" "MEAS.sGroupArray.lSize" "IRIS.DERIVED.relSliceNumber" <Dll> "MrMSRDependencies" }
+  <Dependency."relPartitionNumber"> {"MEAS.sSliceArray.asSlice" "MEAS.sSliceArray.anAsc" "MEAS.sSliceArray.lSize" "MEAS.sSliceArray.ucMode" "MEAS.sSliceArray.ucImageNumbSag" "MEAS.sSliceArray.ucImageNumbCor" "MEAS.sSliceArray.ucImageNumbTra" "IRIS.DERIVED.relPartitionNumber" <Dll> "MrMSRDependencies" }
+  <Dependency."SliceGroups"> {"MEAS.sGroupArray.lSize" "MEAS.sGroupArray.asGroup" "MEAS.sGroupArray.anMember" "MEAS.sSliceArray.lSize" "MEAS.sSliceArray.asSlice" "MEAS.sSliceArray.ucMode" "MEAS.sSliceArray.anAsc" "IRIS.DERIVED.sGroupArray.asGroup" "IRIS.DERIVED.groupIndices" "IRIS.DERIVED.chronSliceIndices" }
+  <Dependency."ImageTypes"> {"MEAS.ucReconstructionMode" "IRIS.DERIVED.MagnitudeImages" "IRIS.DERIVED.PhaseImages" "IRIS.DERIVED.RealPartImages" <Dll> "MrMSRDependencies" }
+  <Dependency."ImageLines"> {"MEAS.sKSpace.lBaseResolution" "MEAS.sKSpace.uc2DInterpolation" "MEAS.sSliceArray.asSlice.0.dPhaseFOV" "MEAS.sSliceArray.asSlice.0.dReadoutFOV" "IRIS.DERIVED.ImageLines" }
+  <Dependency."ImageColumns"> {"MEAS.sKSpace.lBaseResolution" "MEAS.sKSpace.uc2DInterpolation" "IRIS.DERIVED.ImageColumns" }
+  <Dependency."Arrhythmia"> {"MEAS.sPhysioImaging.sPhysioECG.lArrhythmiaDetection" "MEAS.sPhysioImaging.sPhysioPulse.lArrhythmiaDetection" "MEAS.sPhysioImaging.sPhysioExt.lArrhythmiaDetection" "IRIS.DERIVED.Arrhythmia" }
+  <Dependency."triggerWindow"> {"MEAS.sPhysioImaging.sPhysioECG.lTriggerWindow" "MEAS.sPhysioImaging.sPhysioPulse.lTriggerWindow" "MEAS.sPhysioImaging.sPhysioExt.lTriggerWindow" "IRIS.DERIVED.triggerWindow" }
+  <Dependency."phaseOversampling"> {"MEAS.sKSpace.lBaseResolution" "MEAS.sKSpace.dPhaseResolution" "MEAS.sKSpace.lPhaseEncodingLines" "MEAS.sSliceArray.asSlice.0.dReadoutFOV" "MEAS.sSliceArray.asSlice.0.dPhaseFOV" "IRIS.DERIVED.phaseOversampling" }
+  <Dependency."Navigator"> {"IRIS.DERIVED.navigators" "MEAS.sNavigatorArray.lSize" "MEAS.sNavigatorArray.asElm.*.sCuboid.dInPlaneRot" "MEAS.sNavigatorArray.asElm.*.sCuboid.sNormal.dSag" "MEAS.sNavigatorArray.asElm.*.sCuboid.sNormal.dCor" "MEAS.sNavigatorArray.asElm.*.sCuboid.sNormal.dTra" <Dll> "MrMSRDependencies" }
+  <Dependency."DICOM"> {"YAPS.lVersion" "MEAS.ulVersion" "HEADER.tProtocolName" "HEADER.tPatientName" "HEADER.ProtocolChangeHistory" "HEADER.PatientQuadruple" "CONFIG.SPICE.SoftwareVersions" "CONFIG.SPICE" "MEAS" "YAPS" "HEADER" "DICOM" }
+  <Dependency."1_equal"> {"HEADER.userToken" "YAPS.SecUserToken" }
+  <Dependency."YAPS"> {"HEADER.YAPS_update" "YAPS" "HEADER.MeasUID" <Dll> "MrMSRDependencies" }
+  <Dependency."NORMAL"> {"IRIS.PIPE.PostProc.MotionCorr" "IRIS.PIPE.PostProc.MotionCorr.*" <Visible> "false" }
+  <Dependency."NMeas_Phases_Availability"> {"IRIS.PIPE.PostProc.MotionCorr.EXECUTE" <Dll> "MrMSRDependencies" <Context> "NORMAL" }
+  <Dependency."NMeas_Limits_Silent"> {"IRIS.PIPE.PostProc.Subtraction.subtrahend" <Dll> "MrMSRDependencies" <Context> "NORMAL" }
+  <Dependency."InvalidateMSRProt"> {"IRIS.PIPE.PostProc.Subtraction.subtrahend" "IRIS.PIPE.PostProc.Subtraction.EXECUTE" <Dll> "MrMSRDependencies" <Context> "NORMAL" }
+  <Dependency."1_Availability"> {"IRIS.PIPE.PostProc.MotionCorr.EXECUTE" "IRIS.PIPE.PostProc.MotionCorr.save" }
+  <Dependency."1_Visibility"> {"IRIS.PIPE.PostProc.Subtraction.EXECUTE" "IRIS.PIPE.PostProc.Subtraction.save" "IRIS.PIPE.PostProc.Subtraction.subtrahend" "IRIS.PIPE.PostProc.Subtraction.auto" "IRIS.PIPE.PostProc.Subtraction.fact" "IRIS.PIPE.PostProc.Subtraction.offs" }
+  <Dependency."1_NOT_Availability"> {"IRIS.PIPE.PostProc.Subtraction.auto" "IRIS.PIPE.PostProc.Subtraction.fact" "IRIS.PIPE.PostProc.Subtraction.offs" }
+  <Dependency."OnlineEvalProjection"> {"IRIS.PIPE.PostProc.Subtraction.EXECUTE" "IRIS.PIPE.PostProc.Subtraction.subtrahend" "IRIS.PIPE.PostProc.StdDevFactory.sag" "IRIS.PIPE.PostProc.StdDevFactory.cor" "IRIS.PIPE.PostProc.StdDevFactory.tra" "IRIS.PIPE.PostProc.StdDevFactory.time" "IRIS.PIPE.PostProc.MIPFactory.sag" "IRIS.PIPE.PostProc.MIPFactory.cor" "IRIS.PIPE.PostProc.MIPFactory.tra" "IRIS.PIPE.PostProc.MIPFactory.time" <Dll> "MrMSRDependencies" <Context> "NORMAL" }
+  <Dependency."OnlineEvalSaveOrig"> {"IRIS.PIPE.PostProc.Subtraction.EXECUTE" "IRIS.PIPE.PostProc.StdDevFactory.sag" "IRIS.PIPE.PostProc.StdDevFactory.cor" "IRIS.PIPE.PostProc.StdDevFactory.tra" "IRIS.PIPE.PostProc.StdDevFactory.time" "IRIS.PIPE.PostProc.MIPFactory.sag" "IRIS.PIPE.PostProc.MIPFactory.cor" "IRIS.PIPE.PostProc.MIPFactory.tra" "IRIS.PIPE.PostProc.MIPFactory.time" "IRIS.PIPE.PostProc.Subtraction.save" "IRIS.PIPE.PostProc.save_orig" }
+  <Dependency."OnlineEvalImageTypes"> {"IRIS.PIPE.PostProc.MotionCorr.EXECUTE" "IRIS.PIPE.PostProc.Subtraction.EXECUTE" "IRIS.PIPE.PostProc.Subtraction.image_type" "IRIS.PIPE.PostProc.MIPFactory.image_type" "IRIS.PIPE.PostProc.StdDevFactory.image_type" <Dll> "MrMSRDependencies" <Context> "NORMAL" }
+  <Dependency."OnlineEvalSubtraction"> {"IRIS.PIPE.PostProc.Subtraction.EXECUTE" <Dll> "MrMSRDependencies" <Context> "NORMAL" }
+  <Dependency."nm1_OR_Value"> {"IRIS.PIPE.PostProc.StdDevFactory.sag" "IRIS.PIPE.PostProc.StdDevFactory.cor" "IRIS.PIPE.PostProc.StdDevFactory.tra" "IRIS.PIPE.PostProc.StdDevFactory.time" "IRIS.PIPE.PostProc.StdDevFactory.EXECUTE" }
+  <Dependency."nm1_OR_Value"> {"IRIS.PIPE.PostProc.MIPFactory.sag" "IRIS.PIPE.PostProc.MIPFactory.cor" "IRIS.PIPE.PostProc.MIPFactory.tra" "IRIS.PIPE.PostProc.MIPFactory.time" "IRIS.PIPE.PostProc.MIPFactory.EXECUTE" }
+  <Dependency."1_equal"> {"YAPS.tContrastBolusAgent" "IRIS.PIPE.PostProc.Subtraction.BolusAgent" }
+  <Dependency."1_equal"> {"IRIS.PIPE.PostProc.save_orig" "IRIS.PIPE.PostProc.Subtraction.save_orig" "IRIS.PIPE.PostProc.StdDevFactory.save_orig" "IRIS.PIPE.PostProc.MIPFactory.save_orig" }
+  <Dependency."FConnect"> {"IRIS.PIPE" "IRIS.PIPE.PostProc.MotionCorr.EXECUTE" "IRIS.PIPE.PostProc.Subtraction.EXECUTE" "IRIS.PIPE.PostProc.StdDevFactory.EXECUTE" "IRIS.PIPE.PostProc.MIPFactory.EXECUTE" }
+  <Dependency."OnlineEval_AllOff_for_SWI_etc"> {"IRIS.PIPE.PostProc.StdDevFactory.sag" "IRIS.PIPE.PostProc.StdDevFactory.cor" "IRIS.PIPE.PostProc.StdDevFactory.tra" "IRIS.PIPE.PostProc.StdDevFactory.time" "IRIS.PIPE.PostProc.MIPFactory.sag" "IRIS.PIPE.PostProc.MIPFactory.cor" "IRIS.PIPE.PostProc.MIPFactory.tra" "IRIS.PIPE.PostProc.MIPFactory.time" "IRIS.PIPE.PostProc.Subtraction.EXECUTE" <Dll> "MrMSRDependencies" <Context> "NORMAL" <Context> "NORMAL_READONLY" }
+
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.SERVICES.MeasContext.MeasUid" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MultiStepID" "IRIS.SERVICES.MeasContext.MultiStepProt" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.StudyLOID" "IRIS.SERVICES.MeasContext.Study" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.PatientLOID" "IRIS.SERVICES.MeasContext.Patient" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.ucReconstructionPrio" "IRIS.SERVICES.MeasContext.HighPrio" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.RegisterID" "IRIS.SERVICES.MeasContext.RegisterID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.SERVICES.FillMiniHeaderData.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONTROL_MASK" "IRIS.SERVICES.FillMiniHeaderData.IceControlMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.BitsStored" "IRIS.SERVICES.FillMiniHeaderData.BitsStored" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tICEProgramName" "IRIS.SERVICES.FillMiniHeaderData.IceProgramName" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.tProtocolName" "IRIS.SERVICES.FillMiniHeaderData.SequenceDescription" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.tSequenceFileName" "IRIS.SERVICES.FillMiniHeaderData.SequenceFileName" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tSequenceString" "IRIS.SERVICES.FillMiniHeaderData.SequenceString" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.lBaseResolution" "IRIS.SERVICES.FillMiniHeaderData.BaseResolution" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.lPhaseEncodingLines" "IRIS.SERVICES.FillMiniHeaderData.PhaseEncodingLines" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierLines" "IRIS.SERVICES.FillMiniHeaderData.NoOfFourierLines" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierPartitions" "IRIS.SERVICES.FillMiniHeaderData.NoOfFourierPartitions" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.lImagesPerSlab" "IRIS.SERVICES.FillMiniHeaderData.NoImagesPerSlab" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sPhysioImaging.lPhases" "IRIS.SERVICES.FillMiniHeaderData.NPhs" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.lSize" "IRIS.SERVICES.FillMiniHeaderData.NSlc" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lContrasts" "IRIS.SERVICES.FillMiniHeaderData.NEco" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lRepetitions" "IRIS.SERVICES.FillMiniHeaderData.NRep" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sFastImaging.lSegments" "IRIS.SERVICES.FillMiniHeaderData.NSeg" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierPartitions" "IRIS.SERVICES.FillMiniHeaderData.NPar" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lAverages" "IRIS.SERVICES.FillMiniHeaderData.NAve" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.dAveragesDouble" "IRIS.SERVICES.FillMiniHeaderData.DAve" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sFastImaging.lTurboFactor" "IRIS.SERVICES.FillMiniHeaderData.TurboFactor" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.flContrastBolusVolume" "IRIS.SERVICES.FillMiniHeaderData.ContrastBolusVolume" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tContrastBolusAgent" "IRIS.SERVICES.FillMiniHeaderData.BolusAgent" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.ucNoImageNormalization" "IRIS.SERVICES.FillMiniHeaderData.IsRealtime" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.uc2DInterpolation" "IRIS.SERVICES.FillMiniHeaderData.2DInterpolation" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sRawFilter.ucOn" "IRIS.SERVICES.FillMiniHeaderData.RawFilterOn" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sEllipticalFilter.ucOn" "IRIS.SERVICES.FillMiniHeaderData.EllipticalFilterOn" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.ucAveragingMode" "IRIS.SERVICES.FillMiniHeaderData.AverageMode" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.ucMultiSliceMode" "IRIS.SERVICES.FillMiniHeaderData.MultiSliceMode" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.ucDimension" "IRIS.SERVICES.FillMiniHeaderData.SeqDimension" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.asSlice.0.dReadoutFOV" "IRIS.SERVICES.FillMiniHeaderData.ReadFoV" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.asSlice.0.dPhaseFOV" "IRIS.SERVICES.FillMiniHeaderData.PhaseFoV" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.dPhaseResolution" "IRIS.SERVICES.FillMiniHeaderData.PhaseResolution" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.alTR" "IRIS.SERVICES.FillMiniHeaderData.TR" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.alTE" "IRIS.SERVICES.FillMiniHeaderData.TE" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.alTI" "IRIS.SERVICES.FillMiniHeaderData.TI" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sRXSPEC.alDwellTime" "IRIS.SERVICES.FillMiniHeaderData.RealDwellTime" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.flBandwidthPerPixelPhaseEncode" "IRIS.SERVICES.FillMiniHeaderData.BandwidthPerPixelPhaseEncode" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.atCoilSelectInfoText" "IRIS.SERVICES.FillMiniHeaderData.CoilInfoText" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.groupIndices" "IRIS.SERVICES.FillMiniHeaderData.SliceGroupIndices" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"IRIS.DERIVED.sGroupArray.asGroup.*.distance" "IRIS.SERVICES.FillMiniHeaderData.SpacingBetweenSlices" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.relSliceNumber" "IRIS.SERVICES.FillMiniHeaderData.AnatomicalSliceNo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.relPartitionNumber" "IRIS.SERVICES.FillMiniHeaderData.PartitionNoDirection" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.chronSliceIndices" "IRIS.SERVICES.FillMiniHeaderData.ProtocolSliceNumber" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineSendIMA" "IRIS.SERVICES.FillMiniHeaderData.OnlineSendIma" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineSendRAW" "IRIS.SERVICES.FillMiniHeaderData.OnlineSendRAW" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineSendRHP" "IRIS.SERVICES.FillMiniHeaderData.OnlineSendRHP" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.OnlineSendConfiguration.OnlineSendMeasData" "IRIS.SERVICES.FillMiniHeaderData.OnlineSendMeasData" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.CoilSelects" "IRIS.SERVICES.FillMiniHeaderData.CoilSelectInfo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.SERVICES.PDS.MeasUid" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.SERVICES.Sender.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.SIMULATION.SUPPRESS_SEND" "IRIS.SERVICES.Sender.SuppressSend" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.IPCONFIG.MPCU.IP" "IRIS.SERVICES.FeedbackSvc.IPAddress" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.SIMULATION.RAID_WRITER" "IRIS.SERVICES.RAIDLocal.RaidSimu" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.SIMULATION.DATA_FROM_SOURCE" "IRIS.SERVICES.RAIDLocal.DataSrc" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.SERVICES.RAIDLocal.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.tProtocolName" "IRIS.SERVICES.RAIDLocal.ProtocolName" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.RECOMPOSE.tPatientName" "IRIS.SERVICES.RAIDLocal.PatientName" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.RECOMPOSE.PatientBirthDay" "IRIS.SERVICES.RAIDLocal.PatientBirthDay" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.SERVICES.Receiver.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.HARDWARE.CPUCount" "IRIS.SERVICES.WorkerThreadDispenser.NumberOfProcessors" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.SIMULATION.SAVE_DATA_SYNC" "IRIS.PIPE.acquisition.source.SendReadouts" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.PIPE.acquisition.source.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.SIMULATION.SIMULATE_NOISE" "IRIS.PIPE.acquisition.FeedbackRoot.DoNoisePreset" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageLines" "IRIS.PIPE.acquisition.FeedbackRoot.NImageLins" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageColumns" "IRIS.PIPE.acquisition.FeedbackRoot.NImageCols" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.PATCH_VALUES.sEvalInfoMask1" "IRIS.PIPE.acquisition.FeedbackRoot.EvalInfoMask1" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.PATCH_VALUES.sEvalInfoMask2" "IRIS.PIPE.acquisition.FeedbackRoot.EvalInfoMask2" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.MaxNoOfRepTraces" "IRIS.PIPE.acquisition.FeedbackRoot.MaxNoOfRepTraces" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierLines" "IRIS.PIPE.acquisition.FeedbackRoot.NLinMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lContrasts" "IRIS.PIPE.acquisition.FeedbackRoot.NEcoMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNSet" "IRIS.PIPE.acquisition.FeedbackRoot.NSetMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sPhysioImaging.lPhases" "IRIS.PIPE.acquisition.FeedbackRoot.NPhsMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lNoOfPhaseCorrScans" "IRIS.PIPE.acquisition.FeedbackRoot.NSegMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierPartitions" "IRIS.PIPE.acquisition.FeedbackRoot.NParMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.lSize" "IRIS.PIPE.acquisition.FeedbackRoot.NSlcMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lAverages" "IRIS.PIPE.acquisition.FeedbackRoot.NAveMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tFrameOfReference" "IRIS.PIPE.acquisition.FeedbackRoot.FrameOfReference" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"MEAS.sSliceArray.asSlice.*.dReadoutFOV" "IRIS.PIPE.acquisition.FeedbackRoot.RoFOV" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"MEAS.sSliceArray.asSlice.*.dPhaseFOV" "IRIS.PIPE.acquisition.FeedbackRoot.PeFOV" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"MEAS.sSliceArray.asSlice.*.dThickness" "IRIS.PIPE.acquisition.FeedbackRoot.SliceThickness" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tPatientPosition" "IRIS.PIPE.acquisition.FeedbackRoot.PatientPosition" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lSBCSOriginPositionX" "IRIS.PIPE.acquisition.FeedbackRoot.SBCSOriginPositionX" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lSBCSOriginPositionY" "IRIS.PIPE.acquisition.FeedbackRoot.SBCSOriginPositionY" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lSBCSOriginPositionZ" "IRIS.PIPE.acquisition.FeedbackRoot.SBCSOriginPositionZ" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONTROL_MASK" "IRIS.PIPE.acquisition.FeedbackRoot.IceControlMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONFIG_MASK" "IRIS.PIPE.acquisition.FeedbackRoot.IceConfigMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.UseFloatTablePos" "IRIS.PIPE.acquisition.FeedbackRoot.UseFloatTablePos" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.ucReconstructionPrio" "IRIS.PIPE.Online1.Unpacker.HighPrio" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.PIPE.Online1.Unpacker.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.COMMON.SIMULATION.SIMULATE_NOISE" "IRIS.PIPE.Online1.root.DoNoisePreset" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageLines" "IRIS.PIPE.Online1.root.NImageLins" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageColumns" "IRIS.PIPE.Online1.root.NImageCols" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.PATCH_VALUES.sEvalInfoMask1" "IRIS.PIPE.Online1.root.EvalInfoMask1" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.PATCH_VALUES.sEvalInfoMask2" "IRIS.PIPE.Online1.root.EvalInfoMask2" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.MaxNoOfRepTraces" "IRIS.PIPE.Online1.root.MaxNoOfRepTraces" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierLines" "IRIS.PIPE.Online1.root.NLinMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lContrasts" "IRIS.PIPE.Online1.root.NEcoMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNSet" "IRIS.PIPE.Online1.root.NSetMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sPhysioImaging.lPhases" "IRIS.PIPE.Online1.root.NPhsMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lNoOfPhaseCorrScans" "IRIS.PIPE.Online1.root.NSegMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierPartitions" "IRIS.PIPE.Online1.root.NParMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.lSize" "IRIS.PIPE.Online1.root.NSlcMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lAverages" "IRIS.PIPE.Online1.root.NAveMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tFrameOfReference" "IRIS.PIPE.Online1.root.FrameOfReference" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"MEAS.sSliceArray.asSlice.*.dReadoutFOV" "IRIS.PIPE.Online1.root.RoFOV" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"MEAS.sSliceArray.asSlice.*.dPhaseFOV" "IRIS.PIPE.Online1.root.PeFOV" <Context> "NORMAL" }
+  <Dependency."array_adopt"> {"MEAS.sSliceArray.asSlice.*.dThickness" "IRIS.PIPE.Online1.root.SliceThickness" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.tPatientPosition" "IRIS.PIPE.Online1.root.PatientPosition" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lSBCSOriginPositionX" "IRIS.PIPE.Online1.root.SBCSOriginPositionX" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lSBCSOriginPositionY" "IRIS.PIPE.Online1.root.SBCSOriginPositionY" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.lSBCSOriginPositionZ" "IRIS.PIPE.Online1.root.SBCSOriginPositionZ" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONTROL_MASK" "IRIS.PIPE.Online1.root.IceControlMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONFIG_MASK" "IRIS.PIPE.Online1.root.IceConfigMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.UseFloatTablePos" "IRIS.PIPE.Online1.root.UseFloatTablePos" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.CoilSelects" "IRIS.PIPE.Online1.Scaling4DynamicGainSwitch.CoilSelectInfo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierLines" "IRIS.PIPE.Online1.Flags.NLinMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iRoFTLength" "IRIS.PIPE.adjroft_ps.adjroft.NRoFtlen" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sRawFilter.ucOn" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.IsRawFiltEnabled" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.uc2DInterpolation" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.IsSincEnabled" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierColumns" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.NColMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iMaxNoOfRxChannels" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.NChaMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.lSize" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.NSlcMeas" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iPEFTLength" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.NPeFTLen" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sRawFilter.lSlope_256" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.NRawFilterSlope_256" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.FilterAlgo" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.FilterAlgo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.NColDivisor" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.NColDivisor" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.IsSlopeReplaceOn" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.IsSlopeReplaceOn" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.ConfigColSlopeBehind" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.ConfigColSlopeBehind" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.ConfigColSlopeAhead" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.ConfigColSlopeAhead" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.ImageDumpFormat" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.ImageDumpFormat" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.PATCH_VALUES.MaxNoOfOutputs" "IRIS.PIPE.adjroft_ps.ROFilterFunctor.MaxNoOfOutputs" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageColumns" "IRIS.PIPE.adjroft_ps.roft.NImageCols" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.PERFORMANCE_COUNTER" "IRIS.PIPE.adjroft_ps.roft.PerformanceCounter" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.CoilSelects" "IRIS.PIPE.adjroft_ps.ScalingFunctor.CoilSelectInfo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierColumns" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawCol" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierLines" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawLin" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iMaxNoOfRxChannels" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawCha" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNSet" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawSet" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lContrasts" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawEco" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sPhysioImaging.lPhases" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawPhs" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierPartitions" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawPar" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sSliceArray.lSize" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.RawSlc" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.bReportDestructionOfLargeIceObjects" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.ReportDestruction" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.DEBUG.Timeout4QuotaFallback" "IRIS.PIPE.rawobjprovider_ps.rawobjprovider.Timeout4QuotaFallback" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iNoOfFourierLines" "IRIS.PIPE.rawobjprovider_ps.ImageLooper.NLin" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iPEFTLength" "IRIS.PIPE.rawobjprovider_ps.ImageLooper.NPeftLen" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONTROL_MASK" "IRIS.PIPE.rawobjprovider_ps.ImageLooper.IceControlMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.DebugDumpPathName" "IRIS.PIPE.rawobjprovider_ps.ImageLooper.DebugDumpPathName" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.ucOneSeriesForAllMeas" "IRIS.PIPE.MiniHeadFillDecorator_ps.MiniHeadFillDecorator.MultipleSeriesMode" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.MiniHeadFill.SetSeriesEndFlag" "IRIS.PIPE.MiniHeadFillDecorator_ps.MiniHeadFillDecorator.SetSeriesEndFlag" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.THRESHOLD.Series4AutoLoad2Viewer" "IRIS.PIPE.MiniHeadFillDecorator_ps.MiniHeadFillDecorator.SeriesNoThreshold" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.THRESHOLD.Images4AutoLoad2Viewer" "IRIS.PIPE.MiniHeadFillDecorator_ps.MiniHeadFillDecorator.ImaNoThreshold" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageColumns" "IRIS.PIPE.MiniHeadFillDecorator_ps.extractrefsac.nCol" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iMaxNoOfRxChannels" "IRIS.PIPE.MiniHeadFillDecorator_ps.extractrefsac.nCha" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iPEFTLength" "IRIS.PIPE.MiniHeadFillDecorator_ps.extractrefsac.peftLen" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.ucSWI" "IRIS.PIPE.MiniHeadFillDecorator_ps.extractrefsac.bisSWI" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sProtConsistencyInfo.flNominalB0" "IRIS.PIPE.MiniHeadFillDecorator_ps.extractrefsac.nominalB0" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.alTE" "IRIS.PIPE.MiniHeadFillDecorator_ps.extractrefsac.TE" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sRawFilter.ucOn" "IRIS.PIPE.localpefilter_ps.localpefilter.IsRawFiltEnabled" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sKSpace.uc2DInterpolation" "IRIS.PIPE.localpefilter_ps.localpefilter.IsSincEnabled" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.sRawFilter.lSlope_256" "IRIS.PIPE.localpefilter_ps.localpefilter.NRawFilterSlope_256" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.FilterAlgo" "IRIS.PIPE.localpefilter_ps.localpefilter.FilterAlgo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.NLinDivisor" "IRIS.PIPE.localpefilter_ps.localpefilter.NLinDivisor" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.IsSlopeReplaceOn" "IRIS.PIPE.localpefilter_ps.localpefilter.IsSlopeReplaceOn" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.ConfigLinSlopeBehind" "IRIS.PIPE.localpefilter_ps.localpefilter.NConfigLinSlopeBehind" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.RawDataFilter.ConfigLinSlopeAhead" "IRIS.PIPE.localpefilter_ps.localpefilter.NConfigLinSlopeAhead" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"CONFIG.ICE.CONTROL_MASK" "IRIS.PIPE.localpefilter_ps.localpefilter.IceControlMask" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageLines" "IRIS.PIPE.localpefilter_ps.peft.NImageLins" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.PERFORMANCE_COUNTER" "IRIS.PIPE.localpefilter_ps.peft.PerformanceCounter" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.CoilSelects" "IRIS.PIPE.localpefilter_ps.ACDecorator.CoilSelectInfo" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iMaxNoOfRxChannels" "IRIS.PIPE.localpefilter_ps.ACDecorator.nCha" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageColumns" "IRIS.PIPE.localpefilter_ps.ACDecorator.nCol" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.ImageLines" "IRIS.PIPE.localpefilter_ps.ACDecorator.nImageLin" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.iPEFTLength" "IRIS.PIPE.localpefilter_ps.ACDecorator.peftLen" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.ucSWI" "IRIS.PIPE.localpefilter_ps.ACDecorator.bisSWI" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.PERFORMANCE_COUNTER" "IRIS.PIPE.localpefilter_ps.ACDecorator.PerformanceCounter" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.TEST.ImageScaleFactor" "IRIS.PIPE.localpefilter_ps.extractMAG.ImageScaleFactor" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.flAdditionalScaleFactor" "IRIS.PIPE.localpefilter_ps.extractMAG.SeqScale" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"MEAS.lAverages" "IRIS.PIPE.localpefilter_ps.extractMAG.NAve" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"HEADER.MeasUID" "IRIS.PIPE.localpefilter_ps.imafinish.MeasUID" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.bFloatExtract" "IRIS.PIPE.localpefilter_ps.imafinish.FloatExtract" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"ICE.CONFIG.bNormOrientation" "IRIS.PIPE.localpefilter_ps.imafinish.DoNormOri" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"YAPS.ucNoImageNormalization" "IRIS.PIPE.localpefilter_ps.imafinish.Hold1stOrientation" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.groupIndices" "IRIS.PIPE.localpefilter_ps.imafinish.SliceGroupIndices" <Context> "NORMAL" }
+  <Dependency."1_adopt"> {"IRIS.DERIVED.chronSliceIndices" "IRIS.PIPE.localpefilter_ps.imafinish.ProtocolSliceNumber" <Context> "NORMAL" }
+
+  <ProtocolComposer."root">
+  {
+    <InFile> "%PARC_CONFIG%/ParcConfig.evp"
+    <InFile> "%ICE_CONFIG%/IceConfig.evp"
+  }
+  <ProtocolComposer."MultiThreadEVA">
+  {
+    <InFile> "%SIEMENSEVADEFPROT%/PostProc.evp"
+  }
+  <ProtocolComposer."IrisDefaultConfigurator">
+  {
+    <Dll> "IrisConfigurators"
+  }
+  <ProtocolComposer."IceDefaultConfigurator">
+  {
+    <Dll> "IceConfigurators"
+  }
+
+}

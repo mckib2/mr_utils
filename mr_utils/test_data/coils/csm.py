@@ -11,6 +11,9 @@ def simple_csm(N,dims=(64,64)):
     simple because all we're doing is generating linear gradients at evenly
     spaced angles so the resulting maps are square.
 
+    TODO: sensitivity maps also need phases, as in:
+    ismrmrdtools.simulation.generate_birdcage_sensitivities
+
     Returns (N x dims[0] x dims[1]) array.
     '''
 

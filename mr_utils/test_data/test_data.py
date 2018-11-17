@@ -1,6 +1,11 @@
 from pathlib import Path
 from mr_utils.load_data import load_mat
 import numpy as np
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=FutureWarning)
+    import h5py
+    import ismrmrd
 
 ## DAT FILES
 bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
@@ -9,6 +14,138 @@ bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
 single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_512.dat').resolve())
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
+
+## XPROT FILES
+# For xprot_parser
+class XProtParserTest(object):
+
+    @staticmethod
+    def sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+    @staticmethod
+    def full_sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/full_sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+## XML FILES
+# For gadgetron
+class GadgetronTestConfig(object):
+
+    @staticmethod
+    def default_config():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/config/default.xml').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+## HDF5 FILES
+# For gadgetron
+class GadgetronClient(object):
+
+    @staticmethod
+    def true_output_data():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/true_output').resolve())
+        with h5py.File(path,'r') as f:
+            data = f['2018-11-02 20:35:19.785688']['image_0']['data'][:]
+        return(data)
+
+    @staticmethod
+    def input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def input_h5():
+        path = GadgetronClient.input_filename()
+        data = ismrmrd.Dataset(path,'dataset',False)
+        return(data)
+
+    @staticmethod
+    def raw_input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.dat').resolve())
+        return(path)
+
+    @staticmethod
+    def grappa_input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/grappa_test_data.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def true_output_data_grappa_cpu():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/true_output_data_grappa_cpu.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+## NPY FILES
+# For ssfp multiphase:
+class SSFPMultiphase(object):
+
+    @staticmethod
+    def ssfp_ankle_te_6_pc_0():
+        path_0 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_0.npy').resolve())
+        data = np.load(path_0)
+        return(data)
+
+    def ssfp_ankle_te_6_pc_90():
+        path_90 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_90.npy').resolve())
+        data = np.load(path_90)
+        return(data)
+
+    def ssfp_ankle_te_6_pc_180():
+        path_180 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_180.npy').resolve())
+        data = np.load(path_180)
+        return(data)
+
+# For BART reordering recon
+class BARTReordering(object):
+
+    @staticmethod
+    def ksp_sim():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/ksp_sim.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_img():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_img.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_ksp():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_ksp.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco1():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco1.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco2.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def sens():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/sens.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def traj_rad2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/traj_rad2.npy').resolve())
+        data = np.load(path)
+        return(data)
 
 ## MAT FILES
 # For SC-GROG:
