@@ -1,3 +1,4 @@
+from mr_utils.definitions import BART_PATH,SIEMENS_TO_ISMRMRD_INSTALLED
 import numpy as np
 
 def load_raw(
@@ -8,6 +9,10 @@ def load_raw(
     as_ismrmrd=False):
 
     if use == 'bart':
+
+        if BART_PATH is None:
+            raise SystemError('BART is not installed!')
+
         from bart import bart,cfl
         from tempfile import NamedTemporaryFile
         from subprocess import Popen,PIPE
@@ -17,7 +22,7 @@ def load_raw(
         # twixread to work, so I'll just do this...
         tmp_name = NamedTemporaryFile().name
         cmd = 'bart twixread %s %s %s' % (bart_args,filename,tmp_name)
-        print(cmd)
+        # print(cmd)
         # data = bart(1,'twixread %s %s' % (bart_args,filename))
         process = Popen(cmd.split(),stdout=PIPE)
         output,error = process.communicate()
@@ -41,9 +46,14 @@ def load_raw(
 
         tmp_name = NamedTemporaryFile().name
 
-        cmd = 'siemens_to_ismrmrd -f %s -o %s' % (filename,tmp_name)
-        process = Popen(cmd.split(),stdout=PIPE)
-        output,error = process.communicate()
+        # Check to make sure siemens_to_ismrmrd is installed
+        if SIEMENS_TO_ISMRMRD_INSTALLED:
+            cmd = 'siemens_to_ismrmrd -f %s -o %s' % (filename,tmp_name)
+            process = Popen(cmd.split(),stdout=PIPE)
+            output,error = process.communicate()
+        else:
+            raise SystemError('siemens_to_ismrmrd is not installed!')
+
         if output is not None:
             print(output.decode('utf-8'))
 

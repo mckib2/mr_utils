@@ -10,20 +10,13 @@ class XProtLexer(object):
         'XPROT','NAME','ID','USERVERSION','EVASTRTAB','PARAMCARDLAYOUT','REPR',
         'CONTROL','PARAM','POS','DEPENDENCY','DLL','CONTEXT','VISIBLE',
         'PROTOCOLCOMPOSER','INFILE','PARAMMAP','PARAMSTRING','PARAMLONG',
-        'PARAMBOOL','PARAMCHOICE','PARAMDOUBLE','PARAMARRAY',
+        'PARAMBOOL','PARAMCHOICE','PARAMDOUBLE','PARAMARRAY','PIPE',
+        'PIPESERVICE','PARAMFUNCTOR','EVENT','METHOD','CONNECTION',
 
-        'LIMITRANGE','DEFAULT','MINSIZE','MAXSIZE','LIMIT','PRECISION',
+        'LIMITRANGE','DEFAULT','MINSIZE','MAXSIZE','LIMIT','PRECISION','UNIT',
+        'CLASS','LABEL','COMMENTTAG','TOOLTIP',
 
         'QUOTED_STRING','INTEGER','FLOAT',
-
-        # 'ID',
-        # '',
-        # '',
-        #
-        # 'OPEN_PARAM_MAP',
-        #
-        # 'INTEGER',
-        # 'REST_OF_LINE',
 
     )
 
@@ -57,6 +50,12 @@ class XProtLexer(object):
     t_PARAMCHOICE = r'ParamChoice'
     t_PARAMDOUBLE = r'ParamDouble'
     t_PARAMARRAY = r'ParamArray'
+    t_PIPE = r'Pipe'
+    t_PIPESERVICE = r'PipeService'
+    t_PARAMFUNCTOR  = r'ParamFunctor'
+    t_EVENT = r'Event'
+    t_METHOD = r'Method'
+    t_CONNECTION = r'Connection'
 
     t_LIMITRANGE = r'LimitRange'
     t_DEFAULT = r'Default'
@@ -64,6 +63,11 @@ class XProtLexer(object):
     t_MAXSIZE = r'MaxSize'
     t_LIMIT = r'Limit'
     t_PRECISION = r'Precision'
+    t_UNIT = r'Unit'
+    t_CLASS = r'Class'
+    t_LABEL = r'Label'
+    t_COMMENTTAG = r'Comment'
+    t_TOOLTIP = r'Tooltip'
 
     t_QUOTED_STRING = r'\"(.|\n)*?\"'
     t_INTEGER = r'-?\d+'
@@ -102,6 +106,7 @@ class XProtParser(object):
         self.structure['XProtocol']['ParamCardLayout'] = []
         self.structure['XProtocol']['Dependency'] = {}
         self.structure['XProtocol']['ProtocolComposer'] = {}
+        self.structure['XProtocol']['Params'] = {}
 
         # Helpers
         self.control = None
@@ -109,6 +114,17 @@ class XProtParser(object):
         self.dependency_key = None
         self.stringlist = []
         self.protcomposers = []
+        self.values = []
+        self.tag_value = None
+        self.param_data = {}
+        self.overwrites = 0
+        self.level = 0
+        self.is_val = None
+        self.is_inner = None
+        self.is_param = None
+        self.prev_key = None
+        self.prev_prev_key = None
+        self.prev_prev_prev_key = None
 
     def parse(self,xprot):
 
@@ -116,7 +132,8 @@ class XProtParser(object):
             '''document : LANGLE XPROT RANGLE LBRACE xprotocol RBRACE'''
 
         def p_xprotocol(p):
-            '''xprotocol : name id userversion evastringtable parammap paramcardlayout dependencies protocolcomposers'''
+            '''xprotocol : name id userversion evastringtable param paramcardlayout dependencies protocolcomposers'''
+            self.structure['XProtocol']['Params'] = self.param_data
 
         def p_name(p):
             '''name : LANGLE NAME RANGLE QUOTED_STRING'''
@@ -223,28 +240,6 @@ class XProtParser(object):
             if len(p) == 6:
                 self.protcomposers.append({ p[3]: p[5] })
 
-        def p_parammap(p):
-            '''parammap : LANGLE PARAMMAP PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-            self.stringlist = []
-
-        def p_paramstring(p):
-            '''paramstring : LANGLE PARAMSTRING PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramlong(p):
-            '''paramlong : LANGLE PARAMLONG PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_parambool(p):
-            '''parambool : LANGLE PARAMBOOL PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramchoice(p):
-            '''paramchoice : LANGLE PARAMCHOICE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramdouble(p):
-            '''paramdouble : LANGLE PARAMDOUBLE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramarray(p):
-            '''paramarray : LANGLE PARAMARRAY PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
         def p_paramsorvalues(p):
             '''paramsorvalues : tag param paramsorvalues
             | param paramsorvalues
@@ -252,13 +247,35 @@ class XProtParser(object):
             | empty'''
 
         def p_param(p):
-            '''param : parammap
-            | paramstring
-            | paramlong
-            | parambool
-            | paramchoice
-            | paramdouble
-            | paramarray'''
+            '''param : LANGLE PARAMMAP PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMSTRING PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMLONG PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMBOOL PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMCHOICE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMDOUBLE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMARRAY PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PIPE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PIPESERVICE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE PARAMFUNCTOR PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE EVENT PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE METHOD PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LANGLE CONNECTION PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            | LBRACE paramsorvalues RBRACE'''
+
+            # if len(p) > 4:
+            #     key = p[2] + '.' + p[4]
+            #     print(self.level,key,self.values)
+            #     self.values = []
+            #     # self.level -= 1
+
+            if len(p) > 4:
+                if p[2] not in self.param_data:
+                    self.param_data[p[2]] = []
+                self.param_data[p[2]].append({ p[4]: self.values, 'parent': self.prev_key, 'grandparent': self.prev_prev_key, 'greatgrandparent': self.prev_prev_prev_key })
+                self.values = []
+                self.prev_prev_prev_key = self.prev_prev_key
+                self.prev_prev_key = self.prev_key
+                self.prev_key = p[2] + '.' + p[4]
 
         def p_value(p):
             '''value : tag_empty INTEGER
@@ -266,29 +283,35 @@ class XProtParser(object):
             | tag_empty LBRACE listofquotedstrings RBRACE
             | tag_empty FLOAT'''
 
+            self.is_param = False
+
+            if len(p) == 3 and self.tag_value is not None:
+                self.values.append({ self.tag_value: p[2] })
+                self.tag_value = None
+            elif len(p) == 3:
+                self.values.append(p[2])
+            else:
+                self.values.append(self.stringlist)
+                self.stringlist = []
+
         def p_tag(p):
             '''tag : LANGLE DEFAULT RANGLE
             | LANGLE LIMITRANGE RANGLE
             | LANGLE MINSIZE RANGLE
             | LANGLE MAXSIZE RANGLE
             | LANGLE LIMIT RANGLE
-            | LANGLE PRECISION RANGLE'''
+            | LANGLE PRECISION RANGLE
+            | LANGLE UNIT RANGLE
+            | LANGLE CLASS RANGLE
+            | LANGLE LABEL RANGLE
+            | LANGLE VISIBLE RANGLE
+            | LANGLE COMMENTTAG RANGLE
+            | LANGLE TOOLTIP RANGLE'''
+            self.tag_value = p[2]
 
         def p_tag_empty(p):
             '''tag_empty : tag
             | empty'''
-
-
-    	# param_array
-    	# node
-    	# param_generic
-    	# quoted_string
-    	# array_value
-    	# burn_properties
-    	# burn_param_card_layout
-    	# burn_dependency
-    	# burn_protocol_composer
-    	# strict_double
 
 
         def p_empty(p):
@@ -311,3 +334,6 @@ class XProtParser(object):
         # load in the data
         result = parser.parse(xprot)
         # print(json.dumps(self.structure,indent=2))
+        # print(json.dumps(self.structure['XProtocol']['ParamRoot'],indent=2))
+        # print(json.dumps(self.param_data,indent=2))
+        # print('Num overwrites:',self.overwrites)

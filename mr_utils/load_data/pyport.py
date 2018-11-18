@@ -4,7 +4,7 @@ import logging
 import xml.etree.ElementTree as ET
 import urllib.request
 import numpy as np
-from mr_utils.load_data.xprot import XProtParser
+from mr_utils.load_data.xprot_parser import XProtParser
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -201,7 +201,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             config_buffer = buffers[b]['buf'][:-2]
             with open('sample.xprot','w') as f:
                 f.write(config_buffer)
-            return(False)
+            # return(False)
 
             if debug_xml:
                 ## TODO
@@ -210,17 +210,16 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
                 pass
 
             parser = XProtParser()
-            n = parser.raw2xml(config_buffer)
-            if (type(n) is not ET.Element):
-                logging.error('Failed to parse XProtocol for buffer %s' % buffers[0]['name'])
-                raise RuntimeError()
+            parser.parse(config_buffer)
 
             # Get some parameters - wip long
-            n2 = n.find('ParamMap[@name="sWiPMemBlock"]/ParamLong[@name="alFree"]')
-            if n2 is not None:
-                for child in n2:
-                    wip_long.append(child.text)
-            else:
+            plongs = parser.structure['XProtocol']['Params']['ParamLong']
+            for p in plongs:
+                if '\"alFree\"' in p:
+                    if p['parent'] == 'ParamMap."sEFISPEC"':
+                        wip_long = [ int(x) for x in p['\"alFree\"'] ]
+                        break
+            if not wip_long:
                 logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
 
             if len(wip_long) == 0:
@@ -228,11 +227,13 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
                 raise RuntimeError()
 
             #Get some parameters - wip double
-            n2 = n.find('ParamMap[@name="sWiPMemBlock"]/ParamDouble[@name="adFree"]')
-            if n2 is not None:
-                for child in n2:
-                    wip_double.append(child.text)
-            else:
+            pdoubles = parser.structure['XProtocol']['Params']['ParamDouble']
+            for p in pdoubles:
+                if '\"adFree\"' in p:
+                    if p['grandparent'] == 'ParamMap."sEFISPEC"':
+                        wip_double = [ float(x) for x in p['\"adFree\"'][1:] ]
+                        break
+            if not wip_double:
                 logging.warning('Search path: MEAS.sWipMemBlock.adFree not found')
 
             if len(wip_double) == 0:
@@ -240,22 +241,12 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
                 raise RuntimeError()
 
             # Get some parameters - dwell times
-            n2 = None
-            for el in n:
-                if len(el) and el[0].text == '"MEAS.sRXSPEC.alDwellTime"':
-                    n2 = el
-                    break
-            if (n2):
-                temp = [ el.text for el in n2 ]
-                temp = temp[1:]
-            else:
+            plongs = parser.structure['XProtocol']['Params']['ParamArray']
+            for p in plongs:
+                if '\"RealDwellTime\"' in p:
+                    dwell_time_0 = int(p['\"RealDwellTime\"'][0]['Default'])
+            if not dwell_time_0:
                 logging.warning('Search path: MEAS.sRXSPEC.alDwellTime not found.')
-
-            if len(temp) == 0:
-                logging.error('Failed to find dwell times')
-                raise RuntimeError()
-            # else:
-            #     dwell_time_0 = atoi(temp[0].c_str())
 
             # # Get some parameters - trajectory
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.ucTrajectory"), n);
