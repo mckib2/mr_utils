@@ -19,7 +19,11 @@ setup(
         "rawdatarinator>=0.1.9",
         "matplotlib>=2.1.1",
         "ortools>=6.9.5824",
-        "scikit-image>=0.14.1"
+        "scikit-image>=0.14.1",
+        "xmldiff>=2.2",
+        "tqdm>=4.19.6",
+        "paramiko>=2.4.2",
+        "ismrmrd>=1.4.0"
     ],
     python_requires='>=3.5',
 )

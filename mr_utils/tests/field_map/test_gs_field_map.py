@@ -14,17 +14,19 @@ class GSFMTestCase(unittest.TestCase):
 
         # Create the target field map
         dim = 64
-        min_df,max_df = 0,500
+        min_df,max_df = -500,500
         fx = np.linspace(min_df,max_df,dim)
         fy = np.zeros(dim)
         field_map,_ = np.meshgrid(fx,fy)
-        # field_map = np.random.normal(0,1,(dim,dim))
+        # field_map = 100*np.random.normal(0,1,(dim,dim))
         # view(field_map)
 
         # Simulate phase-cycled bSSFP acquisitons
+        # Seems to be better with higher flip angle!
+        # For some reason worse with higher TR
         args = {
             'TR': 5e-3,
-            'alpha': np.pi/4,
+            'alpha': np.pi/6,
             'dims': (dim,dim),
             'FOV': ((-1,1),(-1,1)),
             'radius': .75,
@@ -39,9 +41,12 @@ class GSFMTestCase(unittest.TestCase):
         # Estimate field map
         recon = gs_field_map(*[ x.squeeze() for x in np.split(pcs,len(pc_vals)) ],TR=args['TR'])
         field_map[recon == 0] = 0
-        # view(np.sqrt(np.abs(field_map**2) - np.abs(recon**2)))
+        # view(np.abs(field_map**2) - np.abs(recon**2))
 
-        view(np.abs(field_map - recon))
+        # view(np.abs(field_map - recon))
+        view(field_map)
+        view(recon)
+        view(field_map - recon)
         self.assertTrue(np.allclose(field_map,recon))
 
 if __name__ == '__main__':

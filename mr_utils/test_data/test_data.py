@@ -15,6 +15,35 @@ single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_vo
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
+## XPROT FILES
+# For xprot_parser
+class XProtParserTest(object):
+
+    @staticmethod
+    def sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+    @staticmethod
+    def full_sample_xprot():
+        path = str(Path('mr_utils/test_data/tests/load_data/full_sample.xprot').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
+## XML FILES
+# For gadgetron
+class GadgetronTestConfig(object):
+
+    @staticmethod
+    def default_config():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/config/default.xml').resolve())
+        with open(path,'r') as f:
+            data = f.read()
+        return(data)
+
 ## HDF5 FILES
 # For gadgetron
 class GadgetronClient(object):
@@ -42,6 +71,17 @@ class GadgetronClient(object):
         path = str(Path('mr_utils/test_data/tests/gadgetron/client/input.dat').resolve())
         return(path)
 
+    @staticmethod
+    def grappa_input_filename():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/grappa_test_data.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def true_output_data_grappa_cpu():
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/true_output_data_grappa_cpu.npy').resolve())
+        data = np.load(path)
+        return(data)
+
 ## NPY FILES
 # For ssfp multiphase:
 class SSFPMultiphase(object):
@@ -60,6 +100,51 @@ class SSFPMultiphase(object):
     def ssfp_ankle_te_6_pc_180():
         path_180 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_180.npy').resolve())
         data = np.load(path_180)
+        return(data)
+
+# For BART reordering recon
+class BARTReordering(object):
+
+    @staticmethod
+    def ksp_sim():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/ksp_sim.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_img():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_img.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_ksp():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_ksp.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco1():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco1.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco2.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def sens():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/sens.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def traj_rad2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/traj_rad2.npy').resolve())
+        data = np.load(path)
         return(data)
 
 ## MAT FILES
