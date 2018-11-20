@@ -5,10 +5,13 @@ from distutils.spawn import find_executable
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Check for BART
-if not os.path.isdir(os.environ['TOOLBOX_PATH'] + '/python'):
+try:
+    if not os.path.isdir(os.environ['TOOLBOX_PATH'] + '/python'):
+        BART_PATH = None
+    else:
+        BART_PATH = os.environ['TOOLBOX_PATH'] + '/python'
+except:
     BART_PATH = None
-else:
-    BART_PATH = os.environ['TOOLBOX_PATH'] + '/python'
 
 # Check for siemens_to_ismrmrd
 if find_executable('siemens_to_ismrmrd') is not None:
