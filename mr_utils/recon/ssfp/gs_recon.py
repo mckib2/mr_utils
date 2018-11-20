@@ -68,17 +68,25 @@ def complex_sum(I1,I2,I3,I4):
     CS = (I1 + I2 + I3 + I4)/4
     return(CS)
 
-def gs_recon3d(I1,I2,I3,I4,isophase=np.pi):
+def gs_recon3d(I1,I2,I3,I4,slice_axis=-1,isophase=np.pi):
     '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
-    I1--I4 -- Phase-cycled images with dimensions: (x,y,slice).
+    I1--I4 -- Phase-cycled images.
+    slice_axis -- Slice dimension, default is the last dimension.
     For more info, see mr_utils.recon.ssfp.gs_recon.
     '''
 
-    num_slices = np.array([ I1.shape[-1],I2.shape[-1],I3.shape[-1],I4.shape[-1] ])
-    assert num_slices == np.ones(num_slices.shape)*num_slices[0],'All images must have the same number of slices!'
+    num_slices = np.array([ I1.shape[slice_axis],I2.shape[slice_axis],I3.shape[slice_axis],I4.shape[slice_axis] ])
+    assert np.allclose(num_slices,np.ones(num_slices.shape)*num_slices[0]),'All images must have the same number of slices!'
     num_slices = num_slices[0]
 
+    # Move the slice dimension to the end
+    I1 = np.moveaxis(I1,slice_axis,-1)
+    I2 = np.moveaxis(I2,slice_axis,-1)
+    I3 = np.moveaxis(I3,slice_axis,-1)
+    I4 = np.moveaxis(I4,slice_axis,-1)
+
+    # Run gs_recon for each slice
     recon = np.zeros(I1.shape,dtype='complex')
     for slice in range(num_slices):
         recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice],isophase=isophase)
