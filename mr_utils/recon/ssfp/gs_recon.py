@@ -106,7 +106,16 @@ def gs_recon(I1,I2,I3,I4):
     I = (Iw13 + Iw24)/2
     return(I)
 
-def mask_isophase(num_patches,patch_size,isophase):
+def mask_isophase(numerator_patches,patch_size,isophase):
+    '''Generate mask that chooses patch pixels that satisfy isophase.
+
+    numerator_patches -- Numerator patches from second pass solution.
+    patch_size -- size of patches in pixels (x,y).
+    isophase -- Only neighbours with isophase max phase difference contribute.
+
+    Output mask, same size as numerator_patches, to be applied to
+    numerator_patches and den_patches before summation.
+    '''
 
     # # Loop through each patch and zero out all the values not
     # mask = np.ones(num_patches.shape).astype(bool)
@@ -118,8 +127,8 @@ def mask_isophase(num_patches,patch_size,isophase):
 
     # Now try it without loops - it'll be faster...
     center_x,center_y = [ int(p/2) for p in patch_size ]
-    ref_patches = np.repeat(np.repeat(num_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
-    mask_mat = np.abs(np.angle(num_patches)*np.conj(ref_patches)) < isophase
+    ref_patches = np.repeat(np.repeat(numerator_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
+    mask_mat = np.abs(np.angle(numerator_patches)*np.conj(ref_patches)) < isophase
     # assert np.allclose(mask_mat,mask)
 
     return(mask_mat)
@@ -146,7 +155,7 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
     The isophase does not appear in the paper, but appears in Hoff's MATLAB
     code.  It appears that we only want to consider pixels in the patch that
     have similar tissue properties - in other words, have similar phase.  The
-    default isophase is \pi as in Hoff's implementation.
+    default isophase is pi as in Hoff's implementation.
 
     This function implements Equations [14,18], or steps 4--5 from Fig. 2 in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -167,7 +176,7 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
     numerator_patches = view_as_windows(numerator,patch_size)
     den_patches = view_as_windows(den,patch_size)
 
-    # Make sure the phase difference is below a certian bound to include point
+    # Make sure the phase difference is below a certan bound to include point
     # in weights
     mask = mask_isophase(numerator_patches,patch_size,isophase)
     numerator_patches *= mask
