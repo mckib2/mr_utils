@@ -84,7 +84,7 @@ def gs_recon3d(I1,I2,I3,I4):
         recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice])
     return(recon)
 
-def gs_recon(I1,I2,I3,I4):
+def gs_recon(I1,I2,I3,I4,isophase=np.pi):
     '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1,I3 -- 1st diagonal pair of images (offset 180 deg).
@@ -113,8 +113,8 @@ def gs_recon(I1,I2,I3,I4):
     Id[mask] = CS[mask]
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
-    Iw13 = compute_Iw(I1,I3,Id)
-    Iw24 = compute_Iw(I2,I4,Id)
+    Iw13 = compute_Iw(I1,I3,Id,isophase=isophase)
+    Iw24 = compute_Iw(I2,I4,Id,isophase=isophase)
 
     # Final result is found by averaging the two linear solutions for reduced
     # noise
