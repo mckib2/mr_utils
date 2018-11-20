@@ -1,8 +1,9 @@
 import numpy as np
+from mr_utils import view
 from mr_utils.sim.ssfp import get_complex_cross_point
 import warnings # We know skimage will complain about itself importing imp...
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    warnings.filterwarnings('ignore',category=DeprecationWarning)
     from skimage.util.shape import view_as_windows
 
 def get_max_magnitudes(I1,I2,I3,I4):
@@ -105,7 +106,26 @@ def gs_recon(I1,I2,I3,I4):
     I = (Iw13 + Iw24)/2
     return(I)
 
-def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
+def mask_isophase(num_patches,patch_size,isophase):
+
+    # # Loop through each patch and zero out all the values not
+    # mask = np.ones(num_patches.shape).astype(bool)
+    # center_x,center_y = int(patch_size[0]/2),int(patch_size[1]/2)
+    # for ii in range(mask.shape[0]):
+    #     for jj in range(mask.shape[1]):
+    #         mask[ii,jj,...] = np.abs(np.angle(num_patches[ii,jj,...])*np.conj(num_patches[ii,jj,center_x,center_y])) < isophase
+    # # print(np.sum(mask == False))
+
+    # Now try it without loops - it'll be faster...
+    center_x,center_y = [ int(p/2) for p in patch_size ]
+    ref_patches = np.repeat(np.repeat(num_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
+    mask_mat = np.abs(np.angle(num_patches)*np.conj(ref_patches)) < isophase
+    # assert np.allclose(mask_mat,mask)
+
+    return(mask_mat)
+
+
+def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
     '''Computes weighted sum of image pair (I0,I1).
 
     I0 -- 1st of pair of diagonal images (relative phase cycle of 0).
@@ -113,6 +133,7 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     Id -- result of regularized direct solution.
     patch_size -- size of patches in pixels (x,y).
     mode -- mode of numpy.pad. Probably choose 'constant' or 'edge'.
+    isophase -- Only neighbours with max phase difference isophase contribute.
 
     Image pair (I0,I1) are phase cycled bSSFP images that are different by
     180 degrees.  Id is the image given by the direct method (Equation [13])
@@ -121,6 +142,11 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     part means that the image is split into patches of size patch_size with
     edge boundary conditions (pads with the edge values given by mode option).
     The weighted sum of the image pair is returned.
+
+    The isophase does not appear in the paper, but appears in Hoff's MATLAB
+    code.  It appears that we only want to consider pixels in the patch that
+    have similar tissue properties - in other words, have similar phase.  The
+    default isophase is \pi as in Hoff's implementation.
 
     This function implements Equations [14,18], or steps 4--5 from Fig. 2 in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -140,6 +166,13 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     # Separate out into patches of size patch_size
     numerator_patches = view_as_windows(numerator,patch_size)
     den_patches = view_as_windows(den,patch_size)
+
+    # Make sure the phase difference is below a certian bound to include point
+    # in weights
+    mask = mask_isophase(numerator_patches,patch_size,isophase)
+    numerator_patches *= mask
+    den_patches *= mask
+
     numerator_weights = np.sum(numerator_patches,axis=(-2,-1))
     den_weights = np.sum(den_patches,axis=(-2,-1))
 
