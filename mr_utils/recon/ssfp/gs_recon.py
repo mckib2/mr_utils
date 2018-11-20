@@ -65,12 +65,27 @@ def gs_recon_for_loop(I1,I2,I3,I4):
     return(I)
 
 def complex_sum(I1,I2,I3,I4):
-    #  Should we divide by 4? That's not in Neal's paper
     CS = (I1 + I2 + I3 + I4)/4
     return(CS)
 
+def gs_recon3d(I1,I2,I3,I4):
+    '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
+
+    I1--I4 -- Phase-cycled images with dimensions: (x,y,slice).
+    For more info, see mr_utils.recon.ssfp.gs_recon.
+    '''
+
+    num_slices = np.array([ I1.shape[-1],I2.shape[-1],I3.shape[-1],I4.shape[-1] ])
+    assert num_slices == np.ones(num_slices.shape)*num_slices[0],'All images must have the same number of slices!'
+    num_slices = num_slices[0]
+
+    recon = np.zeros(I1.shape,dtype='complex')
+    for slice in range(num_slices):
+        recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice])
+    return(recon)
+
 def gs_recon(I1,I2,I3,I4):
-    '''Full Geometric Solution method following Xiang and Hoff's 2014 paper.
+    '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1,I3 -- 1st diagonal pair of images (offset 180 deg).
     I2,I4 -- 2nd diagonal pair of images (offset 180 deg).
@@ -127,8 +142,8 @@ def mask_isophase(numerator_patches,patch_size,isophase):
 
     # Now try it without loops - it'll be faster...
     center_x,center_y = [ int(p/2) for p in patch_size ]
-    ref_patches = np.repeat(np.repeat(numerator_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
-    mask_mat = np.abs(np.angle(numerator_patches)*np.conj(ref_patches)) < isophase
+    ref_pixels = np.repeat(np.repeat(numerator_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
+    mask_mat = np.abs(np.angle(numerator_patches)*np.conj(ref_pixels)) < isophase
     # assert np.allclose(mask_mat,mask)
 
     return(mask_mat)
