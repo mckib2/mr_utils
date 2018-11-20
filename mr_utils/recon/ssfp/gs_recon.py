@@ -68,7 +68,7 @@ def complex_sum(I1,I2,I3,I4):
     CS = (I1 + I2 + I3 + I4)/4
     return(CS)
 
-def gs_recon3d(I1,I2,I3,I4):
+def gs_recon3d(I1,I2,I3,I4,isophase=np.pi):
     '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1--I4 -- Phase-cycled images with dimensions: (x,y,slice).
@@ -81,7 +81,7 @@ def gs_recon3d(I1,I2,I3,I4):
 
     recon = np.zeros(I1.shape,dtype='complex')
     for slice in range(num_slices):
-        recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice])
+        recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice],isophase=isophase)
     return(recon)
 
 def gs_recon(I1,I2,I3,I4,isophase=np.pi):
@@ -89,6 +89,7 @@ def gs_recon(I1,I2,I3,I4,isophase=np.pi):
 
     I1,I3 -- 1st diagonal pair of images (offset 180 deg).
     I2,I4 -- 2nd diagonal pair of images (offset 180 deg).
+    isophase -- Only neighbours with isophase max phase difference contribute.
 
     Implements algorithm shown in Fig 2 of
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
