@@ -1,8 +1,9 @@
 import numpy as np
+from mr_utils import view
 from mr_utils.sim.ssfp import get_complex_cross_point
 import warnings # We know skimage will complain about itself importing imp...
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    warnings.filterwarnings('ignore',category=DeprecationWarning)
     from skimage.util.shape import view_as_windows
 
 def get_max_magnitudes(I1,I2,I3,I4):
@@ -64,12 +65,27 @@ def gs_recon_for_loop(I1,I2,I3,I4):
     return(I)
 
 def complex_sum(I1,I2,I3,I4):
-    #  Should we divide by 4? That's not in Neal's paper
     CS = (I1 + I2 + I3 + I4)/4
     return(CS)
 
+def gs_recon3d(I1,I2,I3,I4):
+    '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
+
+    I1--I4 -- Phase-cycled images with dimensions: (x,y,slice).
+    For more info, see mr_utils.recon.ssfp.gs_recon.
+    '''
+
+    num_slices = np.array([ I1.shape[-1],I2.shape[-1],I3.shape[-1],I4.shape[-1] ])
+    assert num_slices == np.ones(num_slices.shape)*num_slices[0],'All images must have the same number of slices!'
+    num_slices = num_slices[0]
+
+    recon = np.zeros(I1.shape,dtype='complex')
+    for slice in range(num_slices):
+        recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice])
+    return(recon)
+
 def gs_recon(I1,I2,I3,I4):
-    '''Full Geometric Solution method following Xiang and Hoff's 2014 paper.
+    '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1,I3 -- 1st diagonal pair of images (offset 180 deg).
     I2,I4 -- 2nd diagonal pair of images (offset 180 deg).
@@ -105,7 +121,35 @@ def gs_recon(I1,I2,I3,I4):
     I = (Iw13 + Iw24)/2
     return(I)
 
-def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
+def mask_isophase(numerator_patches,patch_size,isophase):
+    '''Generate mask that chooses patch pixels that satisfy isophase.
+
+    numerator_patches -- Numerator patches from second pass solution.
+    patch_size -- size of patches in pixels (x,y).
+    isophase -- Only neighbours with isophase max phase difference contribute.
+
+    Output mask, same size as numerator_patches, to be applied to
+    numerator_patches and den_patches before summation.
+    '''
+
+    # # Loop through each patch and zero out all the values not
+    # mask = np.ones(num_patches.shape).astype(bool)
+    # center_x,center_y = int(patch_size[0]/2),int(patch_size[1]/2)
+    # for ii in range(mask.shape[0]):
+    #     for jj in range(mask.shape[1]):
+    #         mask[ii,jj,...] = np.abs(np.angle(num_patches[ii,jj,...])*np.conj(num_patches[ii,jj,center_x,center_y])) < isophase
+    # # print(np.sum(mask == False))
+
+    # Now try it without loops - it'll be faster...
+    center_x,center_y = [ int(p/2) for p in patch_size ]
+    ref_pixels = np.repeat(np.repeat(numerator_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
+    mask_mat = np.abs(np.angle(numerator_patches)*np.conj(ref_pixels)) < isophase
+    # assert np.allclose(mask_mat,mask)
+
+    return(mask_mat)
+
+
+def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
     '''Computes weighted sum of image pair (I0,I1).
 
     I0 -- 1st of pair of diagonal images (relative phase cycle of 0).
@@ -113,6 +157,7 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     Id -- result of regularized direct solution.
     patch_size -- size of patches in pixels (x,y).
     mode -- mode of numpy.pad. Probably choose 'constant' or 'edge'.
+    isophase -- Only neighbours with max phase difference isophase contribute.
 
     Image pair (I0,I1) are phase cycled bSSFP images that are different by
     180 degrees.  Id is the image given by the direct method (Equation [13])
@@ -121,6 +166,11 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     part means that the image is split into patches of size patch_size with
     edge boundary conditions (pads with the edge values given by mode option).
     The weighted sum of the image pair is returned.
+
+    The isophase does not appear in the paper, but appears in Hoff's MATLAB
+    code.  It appears that we only want to consider pixels in the patch that
+    have similar tissue properties - in other words, have similar phase.  The
+    default isophase is pi as in Hoff's implementation.
 
     This function implements Equations [14,18], or steps 4--5 from Fig. 2 in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -140,6 +190,13 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant'):
     # Separate out into patches of size patch_size
     numerator_patches = view_as_windows(numerator,patch_size)
     den_patches = view_as_windows(den,patch_size)
+
+    # Make sure the phase difference is below a certan bound to include point
+    # in weights
+    mask = mask_isophase(numerator_patches,patch_size,isophase)
+    numerator_patches *= mask
+    den_patches *= mask
+
     numerator_weights = np.sum(numerator_patches,axis=(-2,-1))
     den_weights = np.sum(den_patches,axis=(-2,-1))
 
