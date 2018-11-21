@@ -7,6 +7,7 @@ import numpy as np
 from mr_utils.load_data.xprot_parser import XProtParser
 from mr_utils.load_data.parser.infoparser import InfoParser
 import xmltodict
+import re
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -337,109 +338,174 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Note: iNoOfFourierPartitions is sometimes absent for 2D sequences
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierPartitions"), n);
             try:
-                temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-                if (temp.size() != 1):
+                temp = doc_root['ParamMap_YAPS']['ParamLong_iNoOfFourierPartitions']
+                try:
+                    iNoOfFourierPartitions = int(temp['value'])
+                except:
                     iNoOfFourierPartitions = 1
-                else:
-                    iNoOfFourierPartitions = atoi(temp[0].c_str());
             except:
                 iNoOfFourierPartitions = 1
 
             has_FirstFourierPartition = False
-            n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierPartition"), n);
-            if (n2):
-                temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            else:
+            # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierPartition"), n);
+            try:
+                temp = doc_root['ParamMap_YAPS']['ParamLong_lFirstFourierPartition']
+            except:
                 logging.warning('YAPS.lFirstFourierPartition not found')
+            try:
+                lFirstFourierPartition = int(temp['value'])
+                has_FirstFourierPartition = True
+            except:
+                logging.warning('Failed to find encYAPS.lFirstFourierPartition array')
+                has_FirstFourierPartition = False
 
-            # if (temp.size() != 1):
-            #     logging.warning('Failed to find encYAPS.lFirstFourierPartition array')
-            #     has_FirstFourierPartition = False
-            # else:
-            #     lFirstFourierPartition = atoi(temp[0].c_str());
-            #     has_FirstFourierPartition = True
-            #
-            # # set the values
-            # if has_FirstFourierLine: # bottom half for partial fourier
-            #     center_line = lPhaseEncodingLines/2 - ( lPhaseEncodingLines - iNoOfFourierLines )
-            # else:
-            #     center_line = lPhaseEncodingLines/2
-            #
-            # if iNoOfFourierPartitions > 1:
-            #     # 3D
-            #     if has_FirstFourierPartition: # bottom half for partial fourier
-            #         center_partition = lPartitions/2 - ( lPartitions - iNoOfFourierPartitions )
-            #     else:
-            #         center_partition = lPartitions/2
-            # else :
-            #     # 2D
-            #     center_partition = 0
-            #
-            # # for spiral sequences the center_line and center_partition are zero
-            # if trajectory == Trajectory::TRAJECTORY_SPIRAL:
-            #     center_line = 0
-            #     center_partition = 0
-            #
-            # logging.info('center_line = %d' % center_line)
-            # loggin.info('center_partition = %d' % center_partition)
-            #
-            #
-            # #Get some parameters - radial views
+
+            # set the values
+            if has_FirstFourierLine: # bottom half for partial fourier
+                center_line = lPhaseEncodingLines/2 - ( lPhaseEncodingLines - iNoOfFourierLines )
+            else:
+                center_line = lPhaseEncodingLines/2
+
+            if iNoOfFourierPartitions > 1:
+                # 3D
+                if has_FirstFourierPartition: # bottom half for partial fourier
+                    center_partition = lPartitions/2 - ( lPartitions - iNoOfFourierPartitions )
+                else:
+                    center_partition = lPartitions/2
+            else :
+                # 2D
+                center_partition = 0
+
+            # for spiral sequences the center_line and center_partition are zero
+            if trajectory == 'TRAJECTORY_SPIRAL':
+                center_line = 0
+                center_partition = 0
+
+            logging.info('center_line = %d' % center_line)
+            logging.info('center_partition = %d' % center_partition)
+
+
+            # Get some parameters - radial views
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.lRadialViews"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-            # else:
-            #     logging.warning('MEAS.sKSpace.lRadialViews not found')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find YAPS.MEAS.sKSpace.lRadialViews array')
-            #     raise RuntimeError()
-            # else:
-            #     radial_views = atoi(temp[0].c_str())
-            #
-            #
-            # # Get some parameters - protocol name
+            try:
+                temp = doc_root['ParamMap_sKSpace']['ParamLong_lRadialViews']
+            except:
+                logging.warning('MEAS.sKSpace.lRadialViews not found')
+            try:
+                radial_views = int(temp['value'])
+            except:
+                logging.error('Failed to find YAPS.MEAS.sKSpace.lRadialViews array')
+                raise RuntimeError()
+
+
+
+            # Get some parameters - protocol name
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("HEADER.tProtocolName"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else:
-            #     logging.warning('HEADER.tProtocolName not found')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find HEADER.tProtocolName')
-            #     raise RuntimeError()
-            #
-            # else:
-            #     protocol_name = temp[0]
-            #
-            #
-            # # Get some parameters - base line
+            try:
+                temp = doc_root['ParamString_tProtocolName']
+            except:
+                logging.warning('HEADER.tProtocolName not found')
+            try:
+                protocol_name = temp['value']
+            except:
+                logging.error('Failed to find HEADER.tProtocolName')
+                raise RuntimeError()
+
+
+            # Get some parameters - base line
             # const XProtocol::XNode* n2 = apply_visitor(
             #         XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tBaselineString"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # if (temp.size() > 0):
-            #     baseLineString = temp[0]
-            #
-            # if baseLineString.empty():
-            #     const XProtocol::XNode* n2 = apply_visitor(
-            #             XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tMeasuredBaselineString"), n);
-            #     std::vector<std::string> temp;
-            #     if (n2):
-            #         temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-            #     if (temp.size() > 0):
-            #         baseLineString = temp[0]
-            #
-            #
-            # if baseLineString.empty():
-            #     logging.warning('Failed to find MEAS.sProtConsistencyInfo.tBaselineString/tMeasuredBaselineString')
-            #
-            # # xml_config = ProcessParameterMap(n, parammap_file);
-            # return(ProcessParameterMap(n, parammap_file_content.c_str()))
+            try:
+                baseLineString = doc_root['ParamMap_MEAS']['ParamMap_sProtConsistencyInfo']['ParamString_tBaselineString']['value']
+            except:
+                # const XProtocol::XNode* n2 = apply_visitor(
+                #         XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tMeasuredBaselineString"), n);
+                try:
+                    baseLineString = doc_root['ParamMap_MEAS']['ParamMap_sProtConsistencyInfo']['ParamString_tMeasuredBaselineString']['value']
+                except:
+                    logging.warning('Failed to find MEAS.sProtConsistencyInfo.tBaselineString/tMeasuredBaselineString')
 
+            return(ProcessParameterMap(doc_root,parammap_file_content))
+
+def ProcessParameterMap(doc_root,parammap_file_content):
+
+    # print(parammap_file_content)
+
+    # TiXmlDocument out_doc;
+    #
+    # TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
+    # out_doc.LinkEndChild( decl );
+    #
+    # ConverterXMLNode out_n(&out_doc);
+
+    # Input document
+    doc = xmltodict.parse(ET.tostring(parammap_file_content,encoding='utf8',method='xml'))
+    if not ('siemens' in doc and 'parameters' in doc['siemens']):
+        logging.error('Malformed parameter map (parameters section not found)')
+        raise ValueError()
+
+    for p in doc['siemens']['parameters']['p']:
+
+        if ('s' not in p) or ('d' not in p):
+            logging.error('Malformed parameter map')
+            continue
+
+        source = p['s']
+        destination = p['d']
+        # split_path = source.split('.')
+        if source.split('.')[0].isnumeric():
+            logging.warning('First element of path %s cannot be numeric' % source)
+            continue
+
+        # This split_path thing is useless...
+        # if len([ sp for sp in split_path[1:-1] if sp.isnumeric() ]):
+        #     logging.warning('Numeric index not supported inside path for source = %s' % source)
+        # search_path = [ sp for sp in split_path[:-1] if ~sp.isnumeric() ]
+        # search_path.append(split_path[-1])
+        # search_path = '.'.join(search_path)
+        search_path = source
+
+        if source.split('.')[-1].isnumeric():
+            index = int(source.splot('.')[-1])
+        else:
+            search_path = search_path + '.' + source.split('.')[-1]
+        print(search_path)
+
+        # const XProtocol::XNode* n = boost::apply_visitor(XProtocol::getChildNodeByName(search_path), node);
+        map = 'ParamMap_%s' % (search_path.split('.')[0])
+        
+
+        # res = doc_root[needle][]
+        # print(res)
+        # res = (doc_root[key] for key in doc_root.keys() if re.match(key,needle))
+        # print(list(res))
+
+#         std::vector<std::string> parameters;
+#         if (n)
+#         {
+#             parameters = boost::apply_visitor(XProtocol::getStringValueArray(), *n);
+#         }
+#         else
+#         {
+#             std::cout << "Search path: " << search_path << " not found." << std::endl;
+#         }
+#         if (index >= 0)
+#         {
+#             if (parameters.size() > index)
+#             {
+#                 out_n.add(destination, parameters[index]);
+#             }
+#             else
+#             {
+#                 std::cout << "Parameter index (" << index << ") not valid for search path " << search_path << std::endl;
+#                 continue;
+#             }
+#         }
+#         else
+#         {
+#             out_n.add(destination, parameters);
+#         }
+#        # return XmlToString(out_doc);
 
 def main(args):
 
