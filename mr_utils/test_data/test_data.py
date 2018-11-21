@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=FutureWarning)
+    warnings.filterwarnings("ignore",category=ImportWarning)
     import h5py
     import ismrmrd
 

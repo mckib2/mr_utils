@@ -60,7 +60,6 @@ def tv_l1_denoise(im,lam,disp=False,niter=100):
     for kk in range(niter):
         # projection
         # compute gradient in ux, uy
-        #[ux, uy]=imgradientxy(u, 'IntermediateDifference');
         ux = np.append(u[:,1:],u[:,-1:],axis=1) - u
         uy = np.append(u[1:,:],u[-1:,:],axis=0) - u
         p += sigma*np.stack((ux,uy),axis=2)
@@ -75,13 +74,9 @@ def tv_l1_denoise(im,lam,disp=False,niter=100):
         div = np.vstack((p[:height-1,:,1], np.zeros((1,width)))) - np.vstack((np.zeros((1,width)), p[:height-1,:,1]))
         div += np.hstack((p[:,:width-1,0], np.zeros((height,1)))) - np.hstack((np.zeros((height,1)), p[:,:width-1,0]))
 
-        # TV-L2 model
-        #unew=(u + tau*div + lt*nim)/(1+tau);
-
         # TV-L1 model
         v = u + tau*div
         unew = (v - lt)*(v - nim > lt) + (v + lt)*(v - nim < -lt) + nim*(np.abs(v - nim) <= lt)
-        #if(v-nim>lt); unew=v-lt; elseif(v-nim<-lt) unew=v+lt; else unew=nim; end
 
         # extragradient step
         u = unew + theta*(unew - u)
@@ -95,7 +90,7 @@ def tv_l1_denoise(im,lam,disp=False,niter=100):
     return(newim)
 
 if __name__ == '__main__':
-    from skimage.data import camera
+
 
     sigma = 10
 
