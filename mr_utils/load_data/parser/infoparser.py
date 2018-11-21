@@ -94,7 +94,14 @@ class InfoParser(object):
 
             if len(p) is 3:
                 # This means we have an open brace
-                self.node_label = self.node_label + '_' + self.name.replace('\"','').replace(' ','')
+                tmp = self.node_label
+                # self.node_label = self.node_label + '_' + self.name.replace('\"','').replace(' ','')
+                self.node_label = self.name.replace('\"','').replace(' ','')
+                if self.node_label == '':
+                    self.node_label = tmp
+                elif self.node_label[0].isnumeric():
+                    self.node_label = '_' + self.node_label
+
                 self.brace_state.append((p[2],self.node_label))
 
                 n = Node()

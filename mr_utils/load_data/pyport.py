@@ -21,6 +21,76 @@ ISMRMRD_VERSION_PATCH = 0
 
 ERR_STATE = -1
 
+class mdhLC(object):
+    def __init__(self):
+        self.ushLine = 0
+        self.ushAcquisition = 0
+        self.ushSlice = 0
+        self.ushPartition = 0
+        self.ushEcho = 0
+        self.ushPhase = 0
+        self.ushRepetition = 0
+        self.ushSet = 0
+        self.ushSeg = 0
+        self.ushIda = 0
+        self.ushIdb = 0
+        self.ushIdc = 0
+        self.ushIdd = 0
+        self.ushIde = 0
+
+class mdhCutOff(object):
+    def __init__(self):
+        self.ushPre = 0
+        self.ushPost = 0
+
+class mdhSlicePosVec(object):
+    def __init__(self):
+        self.flCor = 0
+        self.flSag = 0
+        self.flTra = 0
+
+class mdhSliceData(object):
+    def __init__(self):
+        self.sSlicePosVec = mdhSlicePosVec()
+        self.aflQuaternion = np.zeros(4)
+
+# /* This is the VD line header */
+class sScanHeader(object):
+
+    @staticmethod
+    def sizeof():
+        return(192)
+
+    def __init__(self):
+        self.ulFlagsAndDMALength = 0
+        self.lMeasUID = 0
+        self.ulScanCounter = 0
+        self.ulTimeStamp = 0
+        self.ulPMUTimeStamp = 0
+        self.ushSystemType = 0
+        self.ulPTABPosDelay = 0
+        self.lPTABPosX = 0
+        self.lPTABPosY = 0
+        self.lPTABPosZ = 0
+        self.ulReserved1 = 0
+        self.aulEvalInfoMask = np.zeros(2,dtype=int)
+        self.ushSamplesInScan = 0
+        self.ushUsedChannels = 0
+        self.sLC = mdhLC()
+        self.sCutOff = mdhCutOff()
+        self.ushKSpaceCentreColumn = 0
+        self.ushCoilSelect = 0
+        self.fReadOutOffcentre = 0
+        self.ulTimeSinceLastRF = 0
+        self.ushKSpaceCentreLineNo = 0
+        self.ushKSpaceCentrePartitionNo = 0
+        self.sSliceData = mdhSliceData()
+        self.aushIceProgramPara = np.zeros(24)
+        self.aushReservedPara = np.zeros(4)
+        self.ushApplicationCounter = 0
+        self.ushApplicationMask = 0
+        self.ulCRC = 0
+
 def get_ismrmrd_schema():
     '''Download XSD file from ISMRMD git repo.'''
     # We do it this way so we always have the latest version of the schema
@@ -218,7 +288,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - wip long
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.alFree"), n);
             try:
-                wip_long = [ int(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamLong_alFree']['value'] ]
+                wip_long = [ int(x) for x in doc_root['sWiPMemBlock']['alFree']['value'] ]
             except:
                 logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
             if len(wip_long) == 0:
@@ -228,7 +298,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - wip double
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.adFree"), n);
             try:
-                wip_double = [ float(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamDouble_adFree']['value'][1:] ]
+                wip_double = [ float(x) for x in doc_root['sWiPMemBlock']['adFree']['value'][1:] ]
             except:
                 logging.warning('Search path: MEAS.sWipMemBlock.adFree not found.')
             if len(wip_double) == 0:
@@ -238,9 +308,9 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - dwell times
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sRXSPEC.alDwellTime"), n);
             try:
-                temp = [ int(x) for x in doc_root['ParamMap_sRXSPEC']['ParamLong_alDwellTime']['value'] ]
+                temp = [ int(x) for x in doc_root['sRXSPEC']['alDwellTime']['value'] ]
             except:
-                logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
+                logging.warning('Search path: MEAS.sWipMemBlock.alDwellTime not found.')
             if len(temp) == 0:
                 logging.error('Failed to find dwell times')
                 raise RuntimeError()
@@ -250,7 +320,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - trajectory
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.ucTrajectory"), n);
             try:
-                temp = [ int(doc_root['ParamMap_sKSpace']['ParamLong_ucTrajectory']['value']) ]
+                temp = [ int(doc_root['sKSpace']['ucTrajectory']['value']) ]
             except:
                 logging.warning('Search path: MEAS.sKSpace.ucTrajectory not found.')
             if len(temp) != 1:
@@ -274,8 +344,9 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
 
             # Get some parameters - max channels
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iMaxNoOfRxChannels"), n);
+            # print(len(doc_root['YAPS'][0]))
             try:
-                temp = [ int(doc_root['ParamMap_YAPS']['ParamLong_iMaxNoOfRxChannels']['value']) ]
+                temp = [ int(doc_root['YAPS'][0]['iMaxNoOfRxChannels']['value']) ]
             except:
                 logging.info('YAPS.iMaxNoOfRxChannels')
             if len(temp) != 1:
@@ -289,7 +360,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # const XProtocol::XNode* n2 = apply_visitor(
             #         XProtocol::getChildNodeByName("MEAS.sKSpace.lPhaseEncodingLines"), n);
             try:
-                temp = [ int(doc_root['ParamMap_sKSpace']['ParamLong_lPhaseEncodingLines']['value']) ]
+                temp = [ int(doc_root['sKSpace']['lPhaseEncodingLines']['value']) ]
             except:
                 logging.warning('MEAS.sKSpace.lPhaseEncodingLines not found')
             if len(temp) != 1:
@@ -300,7 +371,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
 
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierLines"), n);
             try:
-                temp = [ int(doc_root['ParamMap_YAPS']['ParamLong_iNoOfFourierLines']['value']) ]
+                temp = [ int(doc_root['YAPS'][0]['iNoOfFourierLines']['value']) ]
             except:
                 logging.warning('YAPS.iNoOfFourierLines not found')
 
@@ -313,7 +384,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             has_FirstFourierLine = False
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierLine"), n);
             try:
-                temp = doc_root['ParamMap_YAPS']['ParamLong_lFirstFourierLine']
+                temp = doc_root['YAPS'][0]['lFirstFourierLine']
             except:
                 logging.warning('YAPS.lFirstFourierLine not found')
             try:
@@ -326,7 +397,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # get the center partition parameters
             # n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.lPartitions"), n);
             try:
-                temp = [ int(doc_root['ParamMap_sKSpace']['ParamLong_lPartitions']['value']) ]
+                temp = [ int(doc_root['sKSpace']['lPartitions']['value']) ]
             except:
                 logging.warning('MEAS.sKSpace.lPartitions not found')
             if len(temp) != 1:
@@ -338,7 +409,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Note: iNoOfFourierPartitions is sometimes absent for 2D sequences
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierPartitions"), n);
             try:
-                temp = doc_root['ParamMap_YAPS']['ParamLong_iNoOfFourierPartitions']
+                temp = doc_root['YAPS'][0]['iNoOfFourierPartitions']
                 try:
                     iNoOfFourierPartitions = int(temp['value'])
                 except:
@@ -349,7 +420,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             has_FirstFourierPartition = False
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierPartition"), n);
             try:
-                temp = doc_root['ParamMap_YAPS']['ParamLong_lFirstFourierPartition']
+                temp = doc_root['YAPS'][0]['lFirstFourierPartition']
             except:
                 logging.warning('YAPS.lFirstFourierPartition not found')
             try:
@@ -388,7 +459,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - radial views
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.lRadialViews"), n);
             try:
-                temp = doc_root['ParamMap_sKSpace']['ParamLong_lRadialViews']
+                temp = doc_root['sKSpace']['lRadialViews']
             except:
                 logging.warning('MEAS.sKSpace.lRadialViews not found')
             try:
@@ -402,7 +473,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - protocol name
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("HEADER.tProtocolName"), n);
             try:
-                temp = doc_root['ParamString_tProtocolName']
+                temp = doc_root['tProtocolName']
             except:
                 logging.warning('HEADER.tProtocolName not found')
             try:
@@ -416,16 +487,16 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # const XProtocol::XNode* n2 = apply_visitor(
             #         XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tBaselineString"), n);
             try:
-                baseLineString = doc_root['ParamMap_MEAS']['ParamMap_sProtConsistencyInfo']['ParamString_tBaselineString']['value']
+                baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tBaselineString']['value']
             except:
                 # const XProtocol::XNode* n2 = apply_visitor(
                 #         XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tMeasuredBaselineString"), n);
                 try:
-                    baseLineString = doc_root['ParamMap_MEAS']['ParamMap_sProtConsistencyInfo']['ParamString_tMeasuredBaselineString']['value']
+                    baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tMeasuredBaselineString']['value']
                 except:
                     logging.warning('Failed to find MEAS.sProtConsistencyInfo.tBaselineString/tMeasuredBaselineString')
 
-            return(ProcessParameterMap(doc_root,parammap_file_content))
+            return(ProcessParameterMap(doc_root,parammap_file_content),protocol_name,baseLineString)
 
 def ProcessParameterMap(doc_root,parammap_file_content):
 
@@ -469,16 +540,14 @@ def ProcessParameterMap(doc_root,parammap_file_content):
             index = int(source.splot('.')[-1])
         else:
             search_path = search_path + '.' + source.split('.')[-1]
-        print(search_path)
+        # print(search_path)
 
         # const XProtocol::XNode* n = boost::apply_visitor(XProtocol::getChildNodeByName(search_path), node);
-        map = 'ParamMap_%s' % (search_path.split('.')[0])
-        
-
-        # res = doc_root[needle][]
+        # TODO
+        res = None
+        for sp in source.split('.'):
+            pass
         # print(res)
-        # res = (doc_root[key] for key in doc_root.keys() if re.match(key,needle))
-        # print(list(res))
 
 #         std::vector<std::string> parameters;
 #         if (n)
@@ -506,6 +575,9 @@ def ProcessParameterMap(doc_root,parammap_file_content):
 #             out_n.add(destination, parameters);
 #         }
 #        # return XmlToString(out_doc);
+
+    logging.warning('Skipping header generation for now...')
+    return(None)
 
 def main(args):
 
@@ -632,8 +704,121 @@ def main(args):
         protocol_name = ''
 
         # print(ET.tostring(parammap_file_content).decode())
-        xml_config = readXmlConfig(args['debug'],parammap_file_content,num_buffers,buffers,wip_double,trajectory,dwell_time_0,max_channels,radial_views,baseLineString,protocol_name)
+        xml_config,protocol_name,baseLineString = readXmlConfig(args['debug'],parammap_file_content,num_buffers,buffers,wip_double,trajectory,dwell_time_0,max_channels,radial_views,baseLineString,protocol_name)
 
+        # whether this scan is a adjustment scan
+        isAdjustCoilSens = False
+        if protocol_name == 'AdjCoilSens':
+            isAdjustCoilSens = True
+
+        isAdjQuietCoilSens = False
+        if protocol_name == 'AdjQuietCoilSens':
+            isAdjQuietCoilSens = True
+
+        # whether this scan is from VB line
+        isVB = False
+        if any(ext in baseLineString for ext in [ 'VB17','VB15','VB13','VB11' ]):
+            isVB = True
+
+        logging.info('Baseline: %s' % baseLineString)
+
+        if args['debug']:
+            with open('xml_raw.xml','w') as f:
+                f.write(xml_config)
+
+        # TODO
+        # ISMRMRD::IsmrmrdHeader header;
+        # {
+        #     std::string config = parseXML(debug_xml, parammap_xsl_content, schema_file_name_content, xml_config);
+        #     ISMRMRD::deserialize(config.c_str(), header);
+        # }
+        # //Append buffers to xml_config if requested
+        # if (append_buffers) {
+        #     append_buffers_to_xml_header(buffers, num_buffers, header);
+        # }
+        #
+        # // Free memory used for MeasurementHeaderBuffers
+        #
+        # auto ismrmrd_dataset = boost::make_shared<ISMRMRD::Dataset>(ismrmrd_file.c_str(), ismrmrd_group.c_str(), true);
+        # //If this is a spiral acquisition, we will calculate the trajectory and add it to the individual profilesISMRMRD::NDArray<float> traj;
+        # auto traj = getTrajectory(wip_double, trajectory, dwell_time_0, radial_views);
+
+        last_mask = 0
+        acquisitions = 1
+        sync_data_packets = 0
+        # mdh # For VB lin
+        first_call = True
+
+        # Last scan not encountered AND not reached end of measurement without acqend
+        while (~(last_mask & 1) and (((ParcFileEntries[args['measNum'] - 1]['off_'] + ParcFileEntries[args['measNum'] - 1]['len_']) - siemens_dat.tell()) > sScanHeader.sizeof())):
+
+            position_in_meas = siemens_dat.tell()
+            scanhead = sScanHeader()
+
+            # TODO
+            # readScanHeader(siemens_dat, VBFILE, mdh, scanhead);
+            #
+            if not siemens_dat:
+                logging.error('Error reading header at acquisition %d.' % acquisitions)
+                break
+
+            # TODO
+            # dma_length = scanhead.ulFlagsAndDMALength & MDH_DMA_LENGTH_MASK
+            # mdh_enable_flags = scanhead.ulFlagsAndDMALength & MDH_ENABLE_FLAGS_MASK
+
+
+            # Check if this is sync data, if so, it must be handled differently.
+            if (scanhead.aulEvalInfoMask[0] & ( 1 << 5)):
+                last_scan_counter = acquisitions - 1
+
+                # TODO
+            #     auto waveforms = readSyncdata(siemens_dat, VBFILE,acquisitions, dma_length,scanhead,header,last_scan_counter);
+            #     for (auto& w : waveforms)
+            #         ismrmrd_dataset->appendWaveform(w);
+                sync_data_packets += 1
+                continue
+
+            if first_call:
+                time_stamp = scanhead.ulTimeStamp
+
+                # convert to acqusition date and time
+                timeInSeconds = time_stamp*2.5/1e3
+
+                # TODO
+                # hours = (size_t)(timeInSeconds/3600)
+                # mins =  (size_t)((timeInSeconds - hours*3600) / 60);
+                # secs =  (size_t)(timeInSeconds- hours*3600 - mins*60);
+                # std::string study_time = get_time_string(hours, mins, secs);
+
+                # if some of the ismrmrd header fields are not filled, here is a place to take some further actions
+                if (not fill_ismrmrd_header(header, study_date_user_supplied, study_time) ):
+                    logging.error('Failed to further fill XML header')
+
+            #
+            #     std::stringstream sstream;
+            #     ISMRMRD::serialize(header,sstream);
+            #     xml_config = sstream.str();
+            #
+            #     if (xml_file_is_valid(xml_config, schema_file_name_content) <= 0)
+            #     {
+            #         std::cerr << "Generated XML is not valid according to the ISMRMRD schema" << std::endl;
+            #         return -1;
+            #     }
+            #
+            #     if (debug_xml)
+            #     {
+            #         std::ofstream o("processed.xml");
+            #         o.write(xml_config.c_str(), xml_config.size());
+            #     }
+            #
+            #     //This means we should only create XML header and exit
+            #     if (header_only) {
+            #         std::ofstream header_out_file(ismrmrd_file.c_str());
+            #         header_out_file << xml_config;
+            #         return -1;
+            #     }
+
+            # // Create an ISMRMRD dataset
 
 
 if __name__ == '__main__':

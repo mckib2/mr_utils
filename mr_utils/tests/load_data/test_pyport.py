@@ -19,7 +19,7 @@ class PyPortTestCase(unittest.TestCase):
             'measNum': 1,
             'pMap': None,
             'user_map': None,
-            'debug': True
+            'debug': False
         }
 
         pyport.main(args)
