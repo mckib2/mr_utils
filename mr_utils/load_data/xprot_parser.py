@@ -1,6 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
-import json
+import json,operator
+from functools import reduce
 
 class XProtLexer(object):
 
@@ -126,6 +127,10 @@ class XProtParser(object):
         self.prev_prev_key = None
         self.prev_prev_prev_key = None
 
+
+        self.stack = [ 'Params' ]
+        self.xml = ''
+
     def parse(self,xprot):
 
         def p_document(p):
@@ -133,7 +138,7 @@ class XProtParser(object):
 
         def p_xprotocol(p):
             '''xprotocol : name id userversion evastringtable param paramcardlayout dependencies protocolcomposers'''
-            self.structure['XProtocol']['Params'] = self.param_data
+            # self.structure['XProtocol']['Params'] = self.param_data
 
         def p_name(p):
             '''name : LANGLE NAME RANGLE QUOTED_STRING'''
@@ -247,35 +252,42 @@ class XProtParser(object):
             | empty'''
 
         def p_param(p):
-            '''param : LANGLE PARAMMAP PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMSTRING PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMLONG PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMBOOL PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMCHOICE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMDOUBLE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMARRAY PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PIPE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PIPESERVICE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE PARAMFUNCTOR PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE EVENT PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE METHOD PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
-            | LANGLE CONNECTION PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE
+            '''param : open close
             | LBRACE paramsorvalues RBRACE'''
 
-            # if len(p) > 4:
-            #     key = p[2] + '.' + p[4]
-            #     print(self.level,key,self.values)
-            #     self.values = []
-            #     # self.level -= 1
+        def p_open(p):
+            '''open : LANGLE PARAMMAP PERIOD QUOTED_STRING
+            | LANGLE PARAMSTRING  PERIOD QUOTED_STRING
+            | LANGLE PARAMLONG PERIOD QUOTED_STRING
+            | LANGLE PARAMBOOL PERIOD QUOTED_STRING
+            | LANGLE PARAMCHOICE PERIOD QUOTED_STRING
+            | LANGLE PARAMDOUBLE PERIOD QUOTED_STRING
+            | LANGLE PARAMARRAY PERIOD QUOTED_STRING
+            | LANGLE PIPE PERIOD QUOTED_STRING
+            | LANGLE PIPESERVICE PERIOD QUOTED_STRING
+            | LANGLE PARAMFUNCTOR PERIOD QUOTED_STRING
+            | LANGLE EVENT PERIOD QUOTED_STRING
+            | LANGLE METHOD PERIOD QUOTED_STRING
+            | LANGLE CONNECTION PERIOD QUOTED_STRING'''
+            # print('open',p[4])
+            key = p[4].replace('\"','')
 
-            # if len(p) > 4:
-            #     if p[2] not in self.param_data:
-            #         self.param_data[p[2]] = []
-            #     self.param_data[p[2]].append({ p[4]: self.values, 'parent': self.prev_key, 'grandparent': self.prev_prev_key, 'greatgrandparent': self.prev_prev_prev_key })
-            #     self.values = []
-            #     self.prev_prev_prev_key = self.prev_prev_key
-            #     self.prev_prev_key = self.prev_key
-            #     self.prev_key = p[2] + '.' + p[4]
+            # Use the stack to generate multilevel key to the param dictionary
+            d = reduce(operator.getitem,self.stack,self.structure['XProtocol'])
+            if key in d:
+                raise ValueError('Key already exists!')
+            d[key] = {}
+            self.stack.append(key)
+
+        def p_close(p):
+            '''close :  RANGLE LBRACE paramsorvalues RBRACE'''
+            # print('I have opened and closed')
+            if len(self.values):
+                reduce(operator.getitem,self.stack[:-1],self.structure['XProtocol'])[self.stack[-1]] = self.values
+            # print('values',self.values)
+            popped = self.stack.pop()
+            # print('close',popped)
+            self.values = []
 
         def p_value(p):
             '''value : tag_empty INTEGER

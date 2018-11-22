@@ -13,10 +13,12 @@ class XProtParserTestCase(unittest.TestCase):
     def test_sample(self):
         sample = XProtParserTest.full_sample_xprot()
         # # print(sample)
-        # parser = XProtParser()
-        # parser.parse(sample)
-        # res = parser.structure['XProtocol']['Dependency']
-        # print(json.dumps(res,indent=2))
+        parser = XProtParser()
+        parser.parse(sample)
+        res = parser.structure['XProtocol']['Params']['']['MEAS']['sSliceArray']
+        # res = int(res[0])
+        # print(len(res))
+        print(json.dumps(res,indent=2))
 
         # plongs = parser.structure['XProtocol']['Params']['ParamArray']
         # for p in plongs:
@@ -30,18 +32,18 @@ class XProtParserTestCase(unittest.TestCase):
         # res = parser.structure['XProtocol']['Dependency']
         # print(json.dumps(parser.structure,indent=2))
 
-        rdiParser = InfoParser()
-        doc_root = xmltodict.parse(rdiParser.raw2xml(sample))['doc_root']
-        res = [ int(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamLong_alFree']['value'] ]
-        res = [ float(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamDouble_adFree']['value'][1:] ]
-        res = [ int(x) for x in doc_root['ParamMap_sRXSPEC']['ParamLong_alDwellTime']['value'] ]
-        res = [ int(doc_root['ParamMap_sKSpace']['ParamLong_ucTrajectory']['value']) ]
-        res = [ int(doc_root['ParamMap_YAPS']['ParamLong_iMaxNoOfRxChannels']['value']) ]
-        res = [ int(doc_root['ParamMap_sKSpace']['ParamLong_lPhaseEncodingLines']['value']) ]
-        res = [ int(doc_root['ParamMap_YAPS']['ParamLong_iNoOfFourierLines']['value']) ]
-        res = doc_root['ParamMap_YAPS']['ParamLong_lFirstFourierLine']
-
-        print(json.dumps(res,indent=2))
+        # rdiParser = InfoParser()
+        # doc_root = xmltodict.parse(rdiParser.raw2xml(sample))['doc_root']
+        # res = [ int(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamLong_alFree']['value'] ]
+        # res = [ float(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamDouble_adFree']['value'][1:] ]
+        # res = [ int(x) for x in doc_root['ParamMap_sRXSPEC']['ParamLong_alDwellTime']['value'] ]
+        # res = [ int(doc_root['ParamMap_sKSpace']['ParamLong_ucTrajectory']['value']) ]
+        # res = [ int(doc_root['ParamMap_YAPS']['ParamLong_iMaxNoOfRxChannels']['value']) ]
+        # res = [ int(doc_root['ParamMap_sKSpace']['ParamLong_lPhaseEncodingLines']['value']) ]
+        # res = [ int(doc_root['ParamMap_YAPS']['ParamLong_iNoOfFourierLines']['value']) ]
+        # res = doc_root['ParamMap_YAPS']['ParamLong_lFirstFourierLine']
+        #
+        # print(json.dumps(res,indent=2))
 
 if __name__ == '__main__':
     unittest.main()

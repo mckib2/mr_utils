@@ -5,9 +5,10 @@ import xml.etree.ElementTree as ET
 import urllib.request
 import numpy as np
 from mr_utils.load_data.xprot_parser import XProtParser
-from mr_utils.load_data.parser.infoparser import InfoParser
+# from mr_utils.load_data.parser.infoparser import InfoParser
 import xmltodict
-import re
+import operator
+from functools import reduce
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -54,8 +55,8 @@ class mdhSliceData(object):
         self.sSlicePosVec = mdhSlicePosVec()
         self.aflQuaternion = np.zeros(4)
 
-# /* This is the VD line header */
 class sScanHeader(object):
+    '''This is the VD line header'''
 
     @staticmethod
     def sizeof():
@@ -280,15 +281,16 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
                     f.write(config_buffer)
 
             # Let's parse this sucker
-            # parser = XProtParser()
-            # parser.parse(config_buffer)
-            parser = InfoParser()
-            doc_root = xmltodict.parse(parser.raw2xml(config_buffer))['doc_root']
+            parser = XProtParser()
+            parser.parse(config_buffer)
+            doc_root = parser.structure['XProtocol']['Params']['']
+            # parser = InfoParser()
+            # doc_root = xmltodict.parse(parser.raw2xml(config_buffer))['doc_root']
 
             # Get some parameters - wip long
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.alFree"), n);
             try:
-                wip_long = [ int(x) for x in doc_root['sWiPMemBlock']['alFree']['value'] ]
+                wip_long = [ int(x) for x in doc_root['MEAS']['sWiPMemBlock']['alFree'] ]
             except:
                 logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
             if len(wip_long) == 0:
@@ -298,7 +300,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - wip double
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.adFree"), n);
             try:
-                wip_double = [ float(x) for x in doc_root['sWiPMemBlock']['adFree']['value'][1:] ]
+                wip_double = [ float(x) for x in doc_root['MEAS']['sWiPMemBlock']['adFree'][1:] ]
             except:
                 logging.warning('Search path: MEAS.sWipMemBlock.adFree not found.')
             if len(wip_double) == 0:
@@ -308,7 +310,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - dwell times
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sRXSPEC.alDwellTime"), n);
             try:
-                temp = [ int(x) for x in doc_root['sRXSPEC']['alDwellTime']['value'] ]
+                temp = [ int(x) for x in doc_root['MEAS']['sRXSPEC']['alDwellTime'] ]
             except:
                 logging.warning('Search path: MEAS.sWipMemBlock.alDwellTime not found.')
             if len(temp) == 0:
@@ -320,7 +322,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - trajectory
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.ucTrajectory"), n);
             try:
-                temp = [ int(doc_root['sKSpace']['ucTrajectory']['value']) ]
+                temp = [ int(doc_root['MEAS']['sKSpace']['ucTrajectory'][0]) ]
             except:
                 logging.warning('Search path: MEAS.sKSpace.ucTrajectory not found.')
             if len(temp) != 1:
@@ -340,15 +342,14 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
                     4: 'TRAJECTORY_SPIRAL',
                     8: 'TRAJECTORY_BLADE'
                 }[traj]
-                logging.info('Trajectory is: %d - %s' % (traj,trajectory))
+                logging.info('Trajectory is: %d (%s)' % (traj,trajectory))
 
             # Get some parameters - max channels
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iMaxNoOfRxChannels"), n);
-            # print(len(doc_root['YAPS'][0]))
             try:
-                temp = [ int(doc_root['YAPS'][0]['iMaxNoOfRxChannels']['value']) ]
+                temp = [ int(doc_root['YAPS']['iMaxNoOfRxChannels'][0]) ]
             except:
-                logging.info('YAPS.iMaxNoOfRxChannels')
+                logging.warning('Search path: YAPS.iMaxNoOfRxChannels not found')
             if len(temp) != 1:
                 logging.error('Failed to find YAPS.iMaxNoOfRxChannels array')
                 raise RuntimeError()
@@ -360,7 +361,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # const XProtocol::XNode* n2 = apply_visitor(
             #         XProtocol::getChildNodeByName("MEAS.sKSpace.lPhaseEncodingLines"), n);
             try:
-                temp = [ int(doc_root['sKSpace']['lPhaseEncodingLines']['value']) ]
+                temp = [ int(doc_root['MEAS']['sKSpace']['lPhaseEncodingLines'][0]) ]
             except:
                 logging.warning('MEAS.sKSpace.lPhaseEncodingLines not found')
             if len(temp) != 1:
@@ -371,7 +372,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
 
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierLines"), n);
             try:
-                temp = [ int(doc_root['YAPS'][0]['iNoOfFourierLines']['value']) ]
+                temp = [ int(doc_root['YAPS']['iNoOfFourierLines'][0]) ]
             except:
                 logging.warning('YAPS.iNoOfFourierLines not found')
 
@@ -384,11 +385,11 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             has_FirstFourierLine = False
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierLine"), n);
             try:
-                temp = doc_root['YAPS'][0]['lFirstFourierLine']
+                temp = doc_root['YAPS']['lFirstFourierLine']
             except:
                 logging.warning('YAPS.lFirstFourierLine not found')
             try:
-                lFirstFourierLine = int(temp['value'])
+                lFirstFourierLine = int(temp[0])
                 has_FirstFourierLine = True
             except:
                 logging.warning('Failed to find YAPS.lFirstFourierLine array')
@@ -397,7 +398,7 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # get the center partition parameters
             # n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.lPartitions"), n);
             try:
-                temp = [ int(doc_root['sKSpace']['lPartitions']['value']) ]
+                temp = [ int(doc_root['MEAS']['sKSpace']['lPartitions'][0]) ]
             except:
                 logging.warning('MEAS.sKSpace.lPartitions not found')
             if len(temp) != 1:
@@ -409,9 +410,9 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Note: iNoOfFourierPartitions is sometimes absent for 2D sequences
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierPartitions"), n);
             try:
-                temp = doc_root['YAPS'][0]['iNoOfFourierPartitions']
+                temp = doc_root['YAPS']['iNoOfFourierPartitions']
                 try:
-                    iNoOfFourierPartitions = int(temp['value'])
+                    iNoOfFourierPartitions = int(temp[0])
                 except:
                     iNoOfFourierPartitions = 1
             except:
@@ -420,11 +421,11 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             has_FirstFourierPartition = False
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierPartition"), n);
             try:
-                temp = doc_root['YAPS'][0]['lFirstFourierPartition']
+                temp = doc_root['YAPS']['lFirstFourierPartition']
             except:
                 logging.warning('YAPS.lFirstFourierPartition not found')
             try:
-                lFirstFourierPartition = int(temp['value'])
+                lFirstFourierPartition = int(temp[0])
                 has_FirstFourierPartition = True
             except:
                 logging.warning('Failed to find encYAPS.lFirstFourierPartition array')
@@ -459,11 +460,11 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - radial views
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.lRadialViews"), n);
             try:
-                temp = doc_root['sKSpace']['lRadialViews']
+                temp = doc_root['MEAS']['sKSpace']['lRadialViews']
             except:
                 logging.warning('MEAS.sKSpace.lRadialViews not found')
             try:
-                radial_views = int(temp['value'])
+                radial_views = int(temp[0])
             except:
                 logging.error('Failed to find YAPS.MEAS.sKSpace.lRadialViews array')
                 raise RuntimeError()
@@ -473,11 +474,11 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # Get some parameters - protocol name
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("HEADER.tProtocolName"), n);
             try:
-                temp = doc_root['tProtocolName']
+                temp = doc_root['HEADER']['tProtocolName']
             except:
                 logging.warning('HEADER.tProtocolName not found')
             try:
-                protocol_name = temp['value']
+                protocol_name = temp
             except:
                 logging.error('Failed to find HEADER.tProtocolName')
                 raise RuntimeError()
@@ -487,12 +488,12 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
             # const XProtocol::XNode* n2 = apply_visitor(
             #         XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tBaselineString"), n);
             try:
-                baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tBaselineString']['value']
+                baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tBaselineString'][0]
             except:
                 # const XProtocol::XNode* n2 = apply_visitor(
                 #         XProtocol::getChildNodeByName("MEAS.sProtConsistencyInfo.tMeasuredBaselineString"), n);
                 try:
-                    baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tMeasuredBaselineString']['value']
+                    baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tMeasuredBaselineString'][0]
                 except:
                     logging.warning('Failed to find MEAS.sProtConsistencyInfo.tBaselineString/tMeasuredBaselineString')
 
@@ -500,14 +501,8 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
 
 def ProcessParameterMap(doc_root,parammap_file_content):
 
-    # print(parammap_file_content)
-
-    # TiXmlDocument out_doc;
-    #
-    # TiXmlDeclaration* decl = new TiXmlDeclaration( "1.0", "", "" );
-    # out_doc.LinkEndChild( decl );
-    #
-    # ConverterXMLNode out_n(&out_doc);
+    # Output document
+    out_doc = { 'siemens': {} }
 
     # Input document
     doc = xmltodict.parse(ET.tostring(parammap_file_content,encoding='utf8',method='xml'))
@@ -537,47 +532,31 @@ def ProcessParameterMap(doc_root,parammap_file_content):
         search_path = source
 
         if source.split('.')[-1].isnumeric():
-            index = int(source.splot('.')[-1])
+            index = int(source.split('.')[-1])
         else:
-            search_path = search_path + '.' + source.split('.')[-1]
+            # search_path = search_path + '.' + source.split('.')[-1]
+            index = None
         # print(search_path)
 
-        # const XProtocol::XNode* n = boost::apply_visitor(XProtocol::getChildNodeByName(search_path), node);
-        # TODO
-        res = None
-        for sp in source.split('.'):
-            pass
-        # print(res)
+        search_path = search_path.split('.')
+        try:
+            parameters = reduce(operator.getitem,search_path,doc_root)
+        except:
+            logging.warning('Search path: %s not found.' % source)
 
-#         std::vector<std::string> parameters;
-#         if (n)
-#         {
-#             parameters = boost::apply_visitor(XProtocol::getStringValueArray(), *n);
-#         }
-#         else
-#         {
-#             std::cout << "Search path: " << search_path << " not found." << std::endl;
-#         }
-#         if (index >= 0)
-#         {
-#             if (parameters.size() > index)
-#             {
-#                 out_n.add(destination, parameters[index]);
-#             }
-#             else
-#             {
-#                 std::cout << "Parameter index (" << index << ") not valid for search path " << search_path << std::endl;
-#                 continue;
-#             }
-#         }
-#         else
-#         {
-#             out_n.add(destination, parameters);
-#         }
-#        # return XmlToString(out_doc);
 
-    logging.warning('Skipping header generation for now...')
-    return(None)
+        if index is not None:
+            logging.error('index >=0 not implemented!')
+        else:
+            print(destination)
+            dest = destination.split('.')
+
+            # If the key does not exist, then create it
+            for ii,key in enumerate(dest):
+                d = reduce(operator.getitem,dest[:-1],out_doc)
+            reduce(operator.getitem,dest[:-1],out_doc)[dest[-1]] = parameters
+
+    return(out_doc)
 
 def main(args):
 
