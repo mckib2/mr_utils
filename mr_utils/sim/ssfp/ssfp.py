@@ -236,7 +236,7 @@ def get_complex_cross_point(I1,I2,I3,I4):
     x4,y4 = I4.real,I4.imag
 
     den = (x1 - x3)*(y2 - y4) + (x2 - x4)*(y3 - y1)
-    M = ((x1*y3 - x3*y1)*(I2 - I4) - (x2*y4 - x4*y2)*(I1 - I3))/den
+    M = ((x1*y3 - x3*y1)*(I2 - I4) - (x2*y4 - x4*y2)*(I1 - I3))/(den + np.finfo(float).eps)
     return(M)
 
 if __name__ == '__main__':
