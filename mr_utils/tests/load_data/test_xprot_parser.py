@@ -4,6 +4,27 @@ from mr_utils.test_data import XProtParserTest
 import json
 from mr_utils.load_data.parser.infoparser import InfoParser
 import xmltodict
+import collections
+
+def isDict(d):
+    return isinstance(d, collections.Mapping)
+
+def isAtomOrFlat(d):
+    return not isDict(d) or not any(isDict(v) for v in d.values())
+
+def leafPaths(nestedDicts, noDeeper=isAtomOrFlat):
+    """
+        For each leaf in NESTEDDICTS, this yields a
+        dictionary consisting of only the entries between the root
+        and the leaf.
+    """
+    for key,value in nestedDicts.items():
+        if noDeeper(value):
+            yield {key: value}
+        else:
+            for subpath in leafPaths(value):
+                yield {key: subpath}
+
 
 class XProtParserTestCase(unittest.TestCase):
 
@@ -15,9 +36,10 @@ class XProtParserTestCase(unittest.TestCase):
         # # print(sample)
         parser = XProtParser()
         parser.parse(sample)
-        res = parser.structure['XProtocol']['Params']['']['MEAS']['sSliceArray']
+        res = parser.structure['XProtocol']['Params']['']['MEAS']['sSliceArray']['asSlice']['']
+        res = list(leafPaths(res))
         # res = int(res[0])
-        # print(len(res))
+        print(len(res))
         print(json.dumps(res,indent=2))
 
         # plongs = parser.structure['XProtocol']['Params']['ParamArray']

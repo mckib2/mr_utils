@@ -257,7 +257,7 @@ class XProtParser(object):
 
         def p_open(p):
             '''open : LANGLE PARAMMAP PERIOD QUOTED_STRING
-            | LANGLE PARAMSTRING  PERIOD QUOTED_STRING
+            | LANGLE PARAMSTRING PERIOD QUOTED_STRING
             | LANGLE PARAMLONG PERIOD QUOTED_STRING
             | LANGLE PARAMBOOL PERIOD QUOTED_STRING
             | LANGLE PARAMCHOICE PERIOD QUOTED_STRING
@@ -280,10 +280,23 @@ class XProtParser(object):
             self.stack.append(key)
 
         def p_close(p):
-            '''close :  RANGLE LBRACE paramsorvalues RBRACE'''
+            '''close : RANGLE LBRACE paramsorvalues RBRACE'''
             # print('I have opened and closed')
             if len(self.values):
-                reduce(operator.getitem,self.stack[:-1],self.structure['XProtocol'])[self.stack[-1]] = self.values
+                d = reduce(operator.getitem,self.stack[:-1],self.structure['XProtocol'])[self.stack[-1]]
+
+                # If we have a definition of defaults and then followed by
+                # braces giving the values:
+                if d:
+                    new_key = '%s_vals' % self.stack[-1]
+                    d[new_key] = self.values
+                    self.stack[-1] = new_key
+                    # print('*'*80)
+                    # print(d)
+                    # print('*'*80)
+                else:
+                    d = self.values
+                # print(self.stack,self.values)
             # print('values',self.values)
             popped = self.stack.pop()
             # print('close',popped)

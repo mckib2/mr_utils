@@ -9,6 +9,7 @@ from mr_utils.load_data.xprot_parser import XProtParser
 import xmltodict
 import operator
 from functools import reduce
+import json
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -548,14 +549,17 @@ def ProcessParameterMap(doc_root,parammap_file_content):
         if index is not None:
             logging.error('index >=0 not implemented!')
         else:
-            print(destination)
             dest = destination.split('.')
 
             # If the key does not exist, then create it
-            for ii,key in enumerate(dest):
-                d = reduce(operator.getitem,dest[:-1],out_doc)
+            for ii,val in enumerate(dest):
+                keys = dest[:ii+1]
+                # print(dest[:ii+1])
+                if keys[-1] not in reduce(operator.getitem,keys[:-1],out_doc):
+                    reduce(operator.getitem,keys[:-1],out_doc)[keys[-1]] = {}
             reduce(operator.getitem,dest[:-1],out_doc)[dest[-1]] = parameters
 
+    print(json.dumps(out_doc,indent=2))
     return(out_doc)
 
 def main(args):
