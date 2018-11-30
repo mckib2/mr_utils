@@ -5,6 +5,8 @@ import xml.etree.ElementTree as ET
 import urllib.request
 import numpy as np
 from mr_utils.load_data.xprot_parser import XProtParser
+from mr_utils.load_data.parser.infoparser import InfoParser
+import xmltodict
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -198,159 +200,158 @@ def readXmlConfig(debug_xml,parammap_file_content,num_buffers,buffers,wip_double
     for b in range(num_buffers):
         if buffers[b]['name'] == 'Meas':
 
+            # Grab the header from the .dat file
             config_buffer = buffers[b]['buf'][:-2]
-            with open('sample.xprot','w') as f:
-                f.write(config_buffer)
-            # return(False)
 
+            # Write out the raw header if we asked for it
             if debug_xml:
-                ## TODO
-                # std::ofstream o("config_buffer.xprot");
-                # o.write(config_buffer.c_str(), config_buffer.size());
-                pass
+                with open('config_buffer.xprot','w') as f:
+                    f.write(config_buffer)
 
-            parser = XProtParser()
-            parser.parse(config_buffer)
+            # Let's parse this sucker
+            # parser = XProtParser()
+            # parser.parse(config_buffer)
+            parser = InfoParser()
+            doc_root = xmltodict.parse(parser.raw2xml(config_buffer))['doc_root']
 
             # Get some parameters - wip long
-            plongs = parser.structure['XProtocol']['Params']['ParamLong']
-            for p in plongs:
-                if '\"alFree\"' in p:
-                    if p['parent'] == 'ParamMap."sEFISPEC"':
-                        wip_long = [ int(x) for x in p['\"alFree\"'] ]
-                        break
-            if not wip_long:
+            # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.alFree"), n);
+            try:
+                wip_long = [ int(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamLong_alFree']['value'] ]
+            except:
                 logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
-
             if len(wip_long) == 0:
                 logging.error('Failed to find WIP long parameters')
                 raise RuntimeError()
 
-            #Get some parameters - wip double
-            pdoubles = parser.structure['XProtocol']['Params']['ParamDouble']
-            for p in pdoubles:
-                if '\"adFree\"' in p:
-                    if p['grandparent'] == 'ParamMap."sEFISPEC"':
-                        wip_double = [ float(x) for x in p['\"adFree\"'][1:] ]
-                        break
-            if not wip_double:
-                logging.warning('Search path: MEAS.sWipMemBlock.adFree not found')
-
+            # Get some parameters - wip double
+            # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sWipMemBlock.adFree"), n);
+            try:
+                wip_double = [ float(x) for x in doc_root['ParamMap_sWiPMemBlock']['ParamDouble_adFree']['value'][1:] ]
+            except:
+                logging.warning('Search path: MEAS.sWipMemBlock.adFree not found.')
             if len(wip_double) == 0:
                 logging.error('Failed to find WIP double parameters')
                 raise RuntimeError()
 
             # Get some parameters - dwell times
-            plongs = parser.structure['XProtocol']['Params']['ParamArray']
-            for p in plongs:
-                if '\"RealDwellTime\"' in p:
-                    dwell_time_0 = int(p['\"RealDwellTime\"'][0]['Default'])
-            if not dwell_time_0:
-                logging.warning('Search path: MEAS.sRXSPEC.alDwellTime not found.')
+            # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sRXSPEC.alDwellTime"), n);
+            try:
+                temp = [ int(x) for x in doc_root['ParamMap_sRXSPEC']['ParamLong_alDwellTime']['value'] ]
+            except:
+                logging.warning('Search path: MEAS.sWipMemBlock.alFree not found.')
+            if len(temp) == 0:
+                logging.error('Failed to find dwell times')
+                raise RuntimeError()
+            else:
+                dwell_time_0 = temp[0]
 
-            # # Get some parameters - trajectory
+            # Get some parameters - trajectory
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.ucTrajectory"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-            # else:
-            #     logging.warning('Search path: MEAS.sKSpace.ucTrajectory not found.')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find appropriate trajectory array')
-            #     raise RuntimeError()
-            # else:
-            #     traj = atoi(temp[0].c_str());
-            #     trajectory = Trajectory(traj);
-            #     logging.info('Trajectory is: %d' << traj)
-            #
-            # #Get some parameters - max channels
+            try:
+                temp = [ int(doc_root['ParamMap_sKSpace']['ParamLong_ucTrajectory']['value']) ]
+            except:
+                logging.warning('Search path: MEAS.sKSpace.ucTrajectory not found.')
+            if len(temp) != 1:
+                logging.error('Failed to find appropriate trajectory array')
+                raise RuntimeError()
+            else:
+                # enum class Trajectory {
+                #   TRAJECTORY_CARTESIAN = 0x01,
+                #   TRAJECTORY_RADIAL    = 0x02,
+                #   TRAJECTORY_SPIRAL    = 0x04,
+                #   TRAJECTORY_BLADE     = 0x08
+                # };
+                traj = temp[0]
+                trajectory = {
+                    1: 'TRAJECTORY_CARTESIAN',
+                    2: 'TRAJECTORY_RADIAL',
+                    4: 'TRAJECTORY_SPIRAL',
+                    8: 'TRAJECTORY_BLADE'
+                }[traj]
+                logging.info('Trajectory is: %d - %s' % (traj,trajectory))
+
+            # Get some parameters - max channels
             # const XProtocol::XNode* n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iMaxNoOfRxChannels"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-            # else:
-            #     logging.info('YAPS.iMaxNoOfRxChannels')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find YAPS.iMaxNoOfRxChannels array')
-            #     raise RuntimeError()
-            # else:
-            #     max_channels = atoi(temp[0].c_str());
-            #
-            # # Get some parameters - cartesian encoding bits
-            # # get the center line parameters
+            try:
+                temp = [ int(doc_root['ParamMap_YAPS']['ParamLong_iMaxNoOfRxChannels']['value']) ]
+            except:
+                logging.info('YAPS.iMaxNoOfRxChannels')
+            if len(temp) != 1:
+                logging.error('Failed to find YAPS.iMaxNoOfRxChannels array')
+                raise RuntimeError()
+            else:
+                max_channels = temp[0]
+
+            # Get some parameters - cartesian encoding bits
+            # get the center line parameters
             # const XProtocol::XNode* n2 = apply_visitor(
             #         XProtocol::getChildNodeByName("MEAS.sKSpace.lPhaseEncodingLines"), n);
-            # std::vector<std::string> temp;
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else:
-            #     logging.warning('MEAS.sKSpace.lPhaseEncodingLines not found')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find MEAS.sKSpace.lPhaseEncodingLines array')
-            #     raise RuntimeError()
-            # else:
-            #     lPhaseEncodingLines = atoi(temp[0].c_str())
-            #
+            try:
+                temp = [ int(doc_root['ParamMap_sKSpace']['ParamLong_lPhaseEncodingLines']['value']) ]
+            except:
+                logging.warning('MEAS.sKSpace.lPhaseEncodingLines not found')
+            if len(temp) != 1:
+                logging.error('Failed to find MEAS.sKSpace.lPhaseEncodingLines array')
+                raise RuntimeError()
+            else:
+                lPhaseEncodingLines = temp[0]
+
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierLines"), n);
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else:
-            #     logging.warning('YAPS.iNoOfFourierLines not found')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find YAPS.iNoOfFourierLines array')
-            #     raise RuntimeError()
-            # else:
-            #     iNoOfFourierLines = atoi(temp[0].c_str())
-            #
-            # has_FirstFourierLine = False
+            try:
+                temp = [ int(doc_root['ParamMap_YAPS']['ParamLong_iNoOfFourierLines']['value']) ]
+            except:
+                logging.warning('YAPS.iNoOfFourierLines not found')
+
+            if len(temp) != 1:
+                logging.error('Failed to find YAPS.iNoOfFourierLines array')
+                raise RuntimeError()
+            else:
+                iNoOfFourierLines = temp[0]
+
+            has_FirstFourierLine = False
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierLine"), n);
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else:
-            #     logging.warning('YAPS.lFirstFourierLine not found')
-            #
-            # if (temp.size() != 1):
-            #     logging.warning('Failed to find YAPS.lFirstFourierLine array')
-            #     has_FirstFourierLine = False
-            # else:
-            #     lFirstFourierLine = atoi(temp[0].c_str())
-            #     has_FirstFourierLine = True
-            #
-            # # get the center partition parameters
+            try:
+                temp = doc_root['ParamMap_YAPS']['ParamLong_lFirstFourierLine']
+            except:
+                logging.warning('YAPS.lFirstFourierLine not found')
+            try:
+                lFirstFourierLine = int(temp['value'])
+                has_FirstFourierLine = True
+            except:
+                logging.warning('Failed to find YAPS.lFirstFourierLine array')
+                has_FirstFourierLine = False
+
+            # get the center partition parameters
             # n2 = apply_visitor(XProtocol::getChildNodeByName("MEAS.sKSpace.lPartitions"), n);
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else
-            #     logging.warning('MEAS.sKSpace.lPartitions not found')
-            #
-            # if (temp.size() != 1):
-            #     logging.error('Failed to find MEAS.sKSpace.lPartitions array')
-            #     raise RuntimeError()
-            # else:
-            #     lPartitions = atoi(temp[0].c_str())
-            #
-            # # Note: iNoOfFourierPartitions is sometimes absent for 2D sequences
+            try:
+                temp = [ int(doc_root['ParamMap_sKSpace']['ParamLong_lPartitions']['value']) ]
+            except:
+                logging.warning('MEAS.sKSpace.lPartitions not found')
+            if len(temp) != 1:
+                logging.error('Failed to find MEAS.sKSpace.lPartitions array')
+                raise RuntimeError()
+            else:
+                lPartitions = temp[0]
+
+            # Note: iNoOfFourierPartitions is sometimes absent for 2D sequences
             # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.iNoOfFourierPartitions"), n);
-            # if n2:
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
-            #     if (temp.size() != 1):
-            #         iNoOfFourierPartitions = 1
-            #     else:
-            #         iNoOfFourierPartitions = atoi(temp[0].c_str());
-            # else:
-            #     iNoOfFourierPartitions = 1
-            #
-            # has_FirstFourierPartition = False
-            # n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierPartition"), n);
-            # if (n2):
-            #     temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
-            # else:
-            #     logging.warning('YAPS.lFirstFourierPartition not found')
-            #
+            try:
+                temp = apply_visitor(XProtocol::getStringValueArray(), *n2);
+                if (temp.size() != 1):
+                    iNoOfFourierPartitions = 1
+                else:
+                    iNoOfFourierPartitions = atoi(temp[0].c_str());
+            except:
+                iNoOfFourierPartitions = 1
+
+            has_FirstFourierPartition = False
+            n2 = apply_visitor(XProtocol::getChildNodeByName("YAPS.lFirstFourierPartition"), n);
+            if (n2):
+                temp = apply_visitor(XProtocol::getStringValueArray(), *n2)
+            else:
+                logging.warning('YAPS.lFirstFourierPartition not found')
+
             # if (temp.size() != 1):
             #     logging.warning('Failed to find encYAPS.lFirstFourierPartition array')
             #     has_FirstFourierPartition = False

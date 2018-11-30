@@ -12,7 +12,7 @@ def bssfp_2d_cylinder_params():
     }
     return(params)
 
-def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,phase_cyc=0):
+def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,phase_cyc=0,kspace=False):
     '''Simulates axial bSSFP scan of cylindrical phantom.
 
     TR -- Repetition time.
@@ -22,6 +22,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
     radius -- Radius of cylinder in arbitrary units.
     field_map -- (dim_x,dim_y) field map. If None, linear gradient in x used.
     phase_cyc -- Phase cycling used in simulated bSSFP acquisition.
+    kspace -- Whether or not to return data in kspace or imspace.
     '''
 
     # Grab the numerical parameters
@@ -50,7 +51,11 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
     im = ssfp_mat(T1s,T2s,TR,alpha,field_map,phase_cyc=phase_cyc,M0=PD)
     # im[np.isnan(im)] = 0
     # view(im)
-    return(im)
+
+    if kspace:
+        return(np.fft.fftshift(np.fft.fft2(np.fft.fftshift(im),axes=(0,1)),axes=(0,1)))
+    else:
+        return(im)
 
 if __name__ == '__main__':
     pass

@@ -268,14 +268,14 @@ class XProtParser(object):
             #     self.values = []
             #     # self.level -= 1
 
-            if len(p) > 4:
-                if p[2] not in self.param_data:
-                    self.param_data[p[2]] = []
-                self.param_data[p[2]].append({ p[4]: self.values, 'parent': self.prev_key, 'grandparent': self.prev_prev_key, 'greatgrandparent': self.prev_prev_prev_key })
-                self.values = []
-                self.prev_prev_prev_key = self.prev_prev_key
-                self.prev_prev_key = self.prev_key
-                self.prev_key = p[2] + '.' + p[4]
+            # if len(p) > 4:
+            #     if p[2] not in self.param_data:
+            #         self.param_data[p[2]] = []
+            #     self.param_data[p[2]].append({ p[4]: self.values, 'parent': self.prev_key, 'grandparent': self.prev_prev_key, 'greatgrandparent': self.prev_prev_prev_key })
+            #     self.values = []
+            #     self.prev_prev_prev_key = self.prev_prev_key
+            #     self.prev_prev_key = self.prev_key
+            #     self.prev_key = p[2] + '.' + p[4]
 
         def p_value(p):
             '''value : tag_empty INTEGER
@@ -337,3 +337,12 @@ class XProtParser(object):
         # print(json.dumps(self.structure['XProtocol']['ParamRoot'],indent=2))
         # print(json.dumps(self.param_data,indent=2))
         # print('Num overwrites:',self.overwrites)
+
+        # # Now get result for ParamArray section using parser from rdi
+        # infoLex = InfoLex()
+        # lexer = infoLex.lexer
+        # tokens = infoLex.tokens
+        #
+        # rdiparser = InfoParser()
+        # xml = rdiparser.raw2xml(xprot)
+        # print(xml)
