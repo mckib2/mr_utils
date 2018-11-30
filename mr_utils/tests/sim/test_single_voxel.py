@@ -23,7 +23,7 @@ class SingleVoxelImagingTestCase(unittest.TestCase):
 
         # Compute in-plane voxel size in millimeters
         voxel_size = [ 10*im_size[ii]/dim for ii in range(len(im_size)) ]
-        print(voxel_size)
+        # print(voxel_size)
 
         # Now we want to split this image into 2 parts, both with the same
         # resolution, but one offset from the other by half a pixel in one

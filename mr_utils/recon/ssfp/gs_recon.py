@@ -210,7 +210,7 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
     den_weights = np.sum(den_patches,axis=(-2,-1))
 
     # Equation [18]
-    weights = numerator_weights/(2*den_weights)
+    weights = numerator_weights/(2*den_weights + np.finfo(float).eps)
 
     # Find Iw, the weighted sum of image pair (I0,I1), equation [14]
     Iw = I0*weights + I1*(1 - weights)
