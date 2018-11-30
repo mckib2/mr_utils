@@ -1,5 +1,5 @@
 import numpy as np
-from mr_utils.sim.ssfp import ssfp_mat
+from mr_utils.sim.ssfp import ssfp
 from mr_utils import view
 
 def bssfp_2d_cylinder_params():
@@ -48,7 +48,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
         fy = np.zeros(dims[1])
         field_map,_ = np.meshgrid(fx,fy)
 
-    im = ssfp_mat(T1s,T2s,TR,alpha,field_map,phase_cyc=phase_cyc,M0=PD)
+    im = ssfp(T1s,T2s,TR,alpha,field_map,phase_cyc=phase_cyc,M0=PD)
     # im[np.isnan(im)] = 0
     # view(im)
 
