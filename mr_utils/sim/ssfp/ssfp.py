@@ -37,6 +37,7 @@ def ssfp(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
     TR -- repetition time.
     alpha -- flip angle.
     field_map -- B0 field map.
+    M0 -- proton density.
 
     Implementation of equations [1-2] in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
