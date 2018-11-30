@@ -2,6 +2,16 @@ import numpy as np
 from sklearn.decomposition import PCA
 import logging
 
+def python_pca(X,n_components=False):
+
+    M = np.mean(X.T,axis=1)
+    C = X - M
+    V = np.cov(C.T)
+    values,vectors = np.linalg.eig(V)
+    P = vectors.T.dot(C.T)[:n_components,:].T
+
+    return(P)
+
 def coil_pca(coil_ims,coil_dim=-1,n_components=4,give_explained_var=False,debug_level=logging.WARNING):
     '''Reduce the dimensionality of the coil dimension using PCA.
 
