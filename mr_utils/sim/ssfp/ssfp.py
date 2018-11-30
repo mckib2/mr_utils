@@ -1,20 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def ssfp(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
-    '''SSFP transverse signal right after RF pulse.
-
-    T1 -- longitudinal exponential decay time constant.
-    T2 -- transverse exponential decay time constant.
-    TR -- repetition time.
-    alpha -- flip angle.
-    field_map -- B0 field map.
-
-    Implementation of equations [1-2] in
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
-    '''
+def ssfp_old(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
+    '''Legacy SSFP sim code.  Try using current SSFP function.'''
 
     theta = get_theta(TR,field_map,phase_cyc)
     E1 = np.exp(-TR/T1)
@@ -41,8 +29,25 @@ def ssfp(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
     Mxy *= get_bssfp_phase(TR,field_map)
     return(Mxy)
 
-def ssfp_mat(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
-    '''Assumes T1,T2,field_map are all matrices.'''
+def ssfp(T1,T2,TR,alpha,field_map,phase_cyc=0,M0=1):
+    '''SSFP transverse signal right after RF pulse.
+
+    T1 -- longitudinal exponential decay time constant.
+    T2 -- transverse exponential decay time constant.
+    TR -- repetition time.
+    alpha -- flip angle.
+    field_map -- B0 field map.
+    M0 -- proton density.
+
+    Implementation of equations [1-2] in
+        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+        bSSFP imaging with an elliptical signal model." Magnetic resonance in
+        medicine 71.3 (2014): 927-933.
+    '''
+
+    # Make sure we're working with arrays
+    T1 = np.array(T1)
+    T2 = np.array(T2)
 
     # All this nonsense so we don't divide by 0
     E1 = np.zeros(T1.shape)
@@ -147,7 +152,7 @@ def spectrum(T1,T2,TR,alpha):
 
     # Get all possible off-resonance frequencies
     df = np.linspace(-1/TR,1/TR,100)
-    sig = ssfp(T1,T2,TR,alpha,df)
+    sig = ssfp_old(T1,T2,TR,alpha,df)
     return(sig)
 
 def get_bssfp_phase(TR,field_map,delta_cs=0,phi_rf=0,phi_edd=0,phi_drift=0):
@@ -236,7 +241,11 @@ def get_complex_cross_point(I1,I2,I3,I4):
     x4,y4 = I4.real,I4.imag
 
     den = (x1 - x3)*(y2 - y4) + (x2 - x4)*(y3 - y1)
-    M = ((x1*y3 - x3*y1)*(I2 - I4) - (x2*y4 - x4*y2)*(I1 - I3))/(den + np.finfo(float).eps)
+    if (den == 0).any():
+        # Make sure we're not dividing by zero
+        den += np.finfo(float).eps
+
+    M = ((x1*y3 - x3*y1)*(I2 - I4) - (x2*y4 - x4*y2)*(I1 - I3))/den
     return(M)
 
 if __name__ == '__main__':
