@@ -36,6 +36,7 @@ def view(
         avg_axis=None,
         coil_combine_axis=None,
         coil_combine_method='walsh',
+        is_imspace=False,
         mag=None,
         phase=False,
         log=False,
@@ -63,6 +64,7 @@ def view(
     avg_axis -- Take average over given set of axes.
     coil_combine_axis -- Which axis to perform coil combination over.
     coil_combine_method -- Method to use to combine coils.
+    is_imspace -- Whether or not the data is in image space. For coil combine.
 
     mag -- View magnitude image. Defaults to True if data is complex.
     phase -- View phase image.
@@ -131,11 +133,36 @@ def view(
 
     # Let's collapse the coil dimension using the specified algorithm
     if coil_combine_axis is not None:
-        if coil_combine == 'walsh':
-            logging.info('Performing Walsh coil combine across %d axis...' % coil_combine_axis)
-            # # coil_ims =
-            csm_walsh,_ = calculate_csm_walsh(data[jj,...])
-            # pc_est_walsh[jj,...] = np.sum(csm_walsh*np.conj(coil_ims[jj,...]),axis=0)
+
+        # We'll need to know the fft_axes if the data is in kspace
+        if not is_imspace and fft_axes is None:
+            raise ValueError('fft_axes required to do coil combination of k-space data!')
+
+        if coil_combine_method == 'walsh':
+            assert len(fft_axes) == 2,'Walsh only works with 2D images!'
+            logging.info('Performing Walsh 2d coil combine across axis %d...' % list(range(data.ndim))[coil_combine_axis])
+
+            # We need to do this is image domain...
+            if not is_imspace:
+                fft_data = np.fft.ifftshift(np.fft.ifftn(data,axes=fft_axes),axes=fft_axes)
+            else:
+                fft_data = data
+
+            # walsh expects (coil,y,x)
+            fft_data = np.moveaxis(fft_data,coil_combine_axis,0)
+            csm_walsh,_ = calculate_csm_walsh(fft_data)
+            fft_data = np.sum(csm_walsh*np.conj(fft_data),axis=0,keepdims=True)
+
+            # Sum kept the axis where coil used to be so we can rely on
+            # fft_axes to be correct when do the FT back to kspace
+            fft_data = np.moveaxis(fft_data,0,coil_combine_axis)
+
+            # Now move back to kspace and squeeze the dangling axis
+            if not is_imspace:
+                data = np.fft.fftn(np.fft.fftshift(fft_data,axes=fft_axes),axes=fft_axes).squeeze()
+            else:
+                data = fft_data.squeeze()
+
 
     # Show the image.  Let's also try to help the user out again.  If we have
     # 3 dimensions, one of them is probably a montage or a movie.  If the user
