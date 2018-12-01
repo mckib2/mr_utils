@@ -91,13 +91,13 @@ class GadgetronClient(object):
         path = str(Path('mr_utils/test_data/tests/gadgetron/client/epi_2d_out_20161020_pjv.h5').resolve())
         return(path)
 
-    @staticmethod
-    def epi_raw_input_filename():
-        '''Gadgetron test data.
-        http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/epi_ave/meas_MID01349_FID12150_amri_ep2d_bold_96x72x5_R2_16avg_gadgetron.dat
-        '''
-        path = str(Path('mr_utils/test_data/tests/gadgetron/client/meas_MID01349_FID12150_amri_ep2d_bold_96x72x5_R2_16avg_gadgetron.dat').resolve())
-        return(path)
+    # @staticmethod
+    # def epi_raw_input_filename():
+    #     '''Gadgetron test data.
+    #     http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/epi_ave/meas_MID01349_FID12150_amri_ep2d_bold_96x72x5_R2_16avg_gadgetron.dat
+    #     '''
+    #     path = str(Path('mr_utils/test_data/tests/gadgetron/client/meas_MID01349_FID12150_amri_ep2d_bold_96x72x5_R2_16avg_gadgetron.dat').resolve())
+    #     return(path)
 
 ## NPY FILES
 # For ssfp multiphase:
