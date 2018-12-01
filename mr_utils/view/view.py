@@ -29,7 +29,6 @@ def view(
         image,
         load_opts={},
         is_raw=None,
-        raw_loader='s2i',
         prep=None,
         fft=False,
         fft_axes=None,
@@ -46,7 +45,8 @@ def view(
         movie_axis=None,
         movie_repeat=True,
         save_npy=False,
-        debug_level='DEBUG'
+        debug_level=logging.DEBUG,
+        test_run=False
     ):
     '''Image viewer to quickly inspect data.
 
@@ -54,7 +54,6 @@ def view(
     load_opts -- Options to pass to data loader.
 
     is_raw -- Inform if data is raw. Will attempt to guess from extension.
-    raw_loader -- Raw data loader to use (see mr_utils.load_data.load_raw).
     prep -- Lambda function to process the data before it's displayed.
 
     fft -- Whether or not to perform n-dimensional FFT of data.
@@ -78,18 +77,11 @@ def view(
 
     save_npy -- Whether or not to save the output as npy file.
 
-    debug_level -- Level of verbosity: CRITICAL,ERROR,WARNING,INFO,DEBUG,NOTSET.
+    debug_level -- Level of verbosity. See logging module.
+    test_run -- Doesn't show figure, returns debug object. Mostly for testing.
     '''
 
     # Set up logging...
-    debug_level = {
-        'CRITICAL': logging.CRITICAL,
-        'ERROR': logging.ERROR,
-        'WARNING': logging.WARNING,
-        'INFO': logging.INFO,
-        'DEBUG': logging.DEBUG,
-        'NOTSET': logging.NOTSET
-    }[debug_level]
     logging.basicConfig(format='%(levelname)s: %(message)s',level=debug_level)
 
     # If the user wants to look at numpy matrix, recognize that filename is the
@@ -107,9 +99,9 @@ def view(
 
         # If the user says data is raw, then trust the user
         if is_raw or (ext == '.dat'):
-            data = load_raw(image,use=raw_loader)
+            data = load_raw(image,**load_opts)
         elif ext == '.npy':
-            data = np.load(image)
+            data = np.load(image,**load_opts)
         elif ext == '.mat':
             # Help out the user a little bit...  If only one nontrivial key is
             # found then go ahead and assume it's that one
@@ -140,10 +132,10 @@ def view(
     # Let's collapse the coil dimension using the specified algorithm
     if coil_combine_axis is not None:
         if coil_combine == 'walsh':
+            logging.info('Performing Walsh coil combine across %d axis...' % coil_combine_axis)
             # # coil_ims =
-            # csm_walsh,_ = calculate_csm_walsh(data[jj,...])
+            csm_walsh,_ = calculate_csm_walsh(data[jj,...])
             # pc_est_walsh[jj,...] = np.sum(csm_walsh*np.conj(coil_ims[jj,...]),axis=0)
-            pass
 
     # Show the image.  Let's also try to help the user out again.  If we have
     # 3 dimensions, one of them is probably a montage or a movie.  If the user
@@ -188,12 +180,13 @@ def view(
     # axes, let's try to guess them:
     if (fft or (fftshift is not False)) and (fft_axes is None):
         all_axes = list(range(data.ndim))
+
         if (montage_axis is not None) and (movie_axis is not None):
-            fft_axes = np.delete(all_axes,[montage_axis,movie_axis])
+            fft_axes = np.delete(all_axes,[all_axes[montage_axis],all_axes[movie_axis]])
         elif montage_axis is not None:
-            fft_axes = np.delete(all_axes,montage_axis)
+            fft_axes = np.delete(all_axes,all_axes[montage_axis])
         elif movie_axis is not None:
-            fft_axes = np.delete(all_axes,movie_axis)
+            fft_axes = np.delete(all_axes,all_axes[movie_axis])
         else:
             fft_axes = all_axes
 
@@ -272,7 +265,9 @@ def view(
             return im,
 
         ani = animation.FuncAnimation(fig,updatefig,frames=data.shape[-1],interval=50,blit=True,repeat=movie_repeat)
-        plt.show()
+
+        if not test_run:
+            plt.show()
     else:
         if data.ndim == 1:
             plt.plot(data)
@@ -282,7 +277,8 @@ def view(
         else:
             raise ValueError('%d is too many dimensions!' % data.ndim)
 
-        plt.show()
+        if not test_run:
+            plt.show()
 
     # Save what we looked at if desired
     if save_npy:
@@ -291,6 +287,10 @@ def view(
         else:
             filename = 'view-output'
         np.save(filename,data)
+
+    # If we're testing, return all the local vars
+    if test_run:
+        return(locals())
 
 if __name__ == '__main__':
 
@@ -310,7 +310,7 @@ if __name__ == '__main__':
     parser.add_argument('-i',metavar='image',dest='image',help='Name of the file including the file extension or numpy array.',required=True)
     parser.add_argument('--load_opts',action=StoreDictKeyPair,metavar='KEY1=VAL1,KEY2=VAL2...',help='Options to pass to data loader',default={})
     parser.add_argument('--is_raw',action='store_true',help='Inform if data is raw. Will attempt to guess from extension.',default=None)
-    parser.add_argument('--raw_loader',choices=['s2i','bart','rdi'],help='Raw data loader to use (see mr_utils.load_data.load_raw).',default='s2i')
+    # parser.add_argument('--raw_loader',choices=['s2i','bart','rdi'],help='Raw data loader to use (see mr_utils.load_data.load_raw).',default='s2i')
     # parser.add_argument('prep -- Lambda function to process the data before it's displayed.
     parser.add_argument('--fft',action='store_true',help='Whether or not to perform n-dimensional FFT of data.')
     parser.add_argument('--fft_axes',nargs='*',type=int,metavar='axis',help='Axis to perform FFT over, determines dimension of n-dim FFT.',default=None)

@@ -103,6 +103,14 @@ class SSFPMultiphase(object):
         data = np.load(path_180)
         return(data)
 
+# For VIEW testing:
+class ViewTestData(object):
+
+    @staticmethod
+    def ssfp_ankle_te_6_pc_0():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_0.npy').resolve())
+        return(path)
+
 # For BART reordering recon
 class BARTReordering(object):
 
