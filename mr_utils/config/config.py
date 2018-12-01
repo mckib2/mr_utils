@@ -1,7 +1,8 @@
 ## IDEA:
 # Provide an interface to set things like gadgetron host, port, etc.
 
-from configparser import ConfigParser,ExtendedInterpolation
+from configparser import ConfigParser,ExtendedInterpolation,NoOptionError
+import os
 from mr_utils.definitions import ROOT_DIR
 
 class ProfileConfig(object):
@@ -17,11 +18,14 @@ class ProfileConfig(object):
 
         self.defaults = {
             'gadgetron.host': 'localhost',
-            'gadgetron.port': 9002
+            'gadgetron.port': 9002,
+            'siemens_to_ismrmrd.host': 'localhost',
+            'siemens_to_ismrmrd.user': 'user',
+            'siemens_to_ismrmrd.ssh_key': '%s/.ssh/id_rsa' % os.environ['HOME']
         }
 
         # Make sure there is a section called 'default'
-        self.parser = ConfigParser()
+        self.parser = ConfigParser(allow_no_value=True,interpolation=ExtendedInterpolation())
         self.parser.read(self.filename)
         if 'default' not in self.parser.sections():
             self.parser['default'] = self.defaults
@@ -98,7 +102,16 @@ class ProfileConfig(object):
             return(self.parser.getint(self.active_profile,key))
         else:
             # as strings
-            return(self.parser.get(self.active_profile,key))
+            try:
+                return(self.parser.get(self.active_profile,key))
+            except NoOptionError:
+                # Create the option
+                args = dict(self.parser.items(self.active_profile))
+                args[key] = ''
+                print(args)
+                self.parser[self.active_profile] = args
+                self.update_file()
+                return(self.get_config_val(key))
 
 
 if __name__ == '__main__':

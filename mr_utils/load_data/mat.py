@@ -3,11 +3,16 @@ with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=ImportWarning)
     from scipy.io import loadmat
 
-def deal_with_7_3_complex(data):
+def deal_with_7_3(data):
     # Complex arrays will have a structured datatype...
     dt = data.dtype
-    if 'imag' in dt.names:
-        data = data['real'] + 1j*data['imag']
+    try:
+        if 'imag' in dt.names:
+            data = data['real'] + 1j*data['imag']
+    except:
+        # Not complex, we're fine
+        pass
+
     return(data)
 
 def load_mat(filename,key=None):
@@ -17,7 +22,7 @@ def load_mat(filename,key=None):
         else:
             return(loadmat(filename)[key])
     except NotImplementedError:
-        # So mat files v7.3 won't work with loadmat, so we use h5py
+        # MAT files v7.3 won't work with loadmat, so we use h5py
         print('Old mat file version detected...')
 
         import numpy as np
@@ -29,7 +34,12 @@ def load_mat(filename,key=None):
             if key is None:
                 data = {}
                 for k,v in f.items():
-                    data[k] = deal_with_7_3_complex(np.array(v))
+                    data[k] = deal_with_7_3(np.array(v))
+
+                # If there's only one key, just grab that key's value
+                if len(data) == 1:
+                    data = list(data.values())[0]
+
                 return(data)
             else:
-                return(deal_with_7_3_complex(np.array(f[key])))
+                return(deal_with_7_3(np.array(f[key])))

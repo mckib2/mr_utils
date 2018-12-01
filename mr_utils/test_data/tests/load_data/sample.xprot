@@ -28,6 +28,7 @@
 
   <ParamMap."">
   {
+
     <ParamMap."HEADER">
     {
       <ParamString."PatientQuadruple">
@@ -665,10 +666,7 @@
         }
 
     }
-
-
   }
-
   <ParamCardLayout."Inline Evaluation">
   {
     <Repr> "LAYOUT_10X2_WIDE_CONTROLS"

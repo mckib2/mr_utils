@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=FutureWarning)
+    warnings.filterwarnings("ignore",category=ImportWarning)
     import h5py
     import ismrmrd
 
@@ -100,6 +101,59 @@ class SSFPMultiphase(object):
     def ssfp_ankle_te_6_pc_180():
         path_180 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_180.npy').resolve())
         data = np.load(path_180)
+        return(data)
+
+# For VIEW testing:
+class ViewTestData(object):
+
+    @staticmethod
+    def ssfp_ankle_te_6_pc_0():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_0.npy').resolve())
+        return(path)
+
+# For BART reordering recon
+class BARTReordering(object):
+
+    @staticmethod
+    def ksp_sim():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/ksp_sim.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_img():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_img.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def lowres_ksp():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/lowres_ksp.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco1():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco1.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def reco2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/reco2.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def sens():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/sens.npy').resolve())
+        data = np.load(path)
+        return(data)
+
+    @staticmethod
+    def traj_rad2():
+        path = str(Path('mr_utils/test_data/tests/recon/reordering/bart/traj_rad2.npy').resolve())
+        data = np.load(path)
         return(data)
 
 ## MAT FILES

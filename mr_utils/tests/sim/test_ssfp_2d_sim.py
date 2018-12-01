@@ -41,19 +41,19 @@ class BSSFP2DSimTestCase(unittest.TestCase):
         }
 
     def test_t1_t2_field_map_mats(self):
-        from mr_utils.sim.ssfp import ssfp_mat
+        from mr_utils.sim.ssfp import ssfp
 
         # Let T1,T2, and field_map all be matrices over the entire 2d image
-        sig = ssfp_mat(self.T1s,self.T2s,self.TR,self.alpha,self.field_map,phase_cyc=0,M0=self.PD)
+        sig = ssfp(self.T1s,self.T2s,self.TR,self.alpha,self.field_map,phase_cyc=0,M0=self.PD)
         # view(sig)
 
     def test_gs(self):
-        from mr_utils.sim.ssfp import ssfp_mat
+        from mr_utils.sim.ssfp import ssfp
         from mr_utils.recon.ssfp import gs_recon
 
         pcs = np.zeros((4,self.dim,self.dim),dtype='complex')
         for ii,pc in enumerate([ 0,np.pi/2,np.pi,3*np.pi/2 ]):
-            pcs[ii,...] = ssfp_mat(**self.args,phase_cyc=pc)
+            pcs[ii,...] = ssfp(**self.args,phase_cyc=pc)
         # view(pcs)
 
         recon = gs_recon(*[ x.squeeze() for x in np.split(pcs,4) ])

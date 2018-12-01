@@ -1,6 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
-import json
+import json,operator
+from functools import reduce
 
 class XProtLexer(object):
 
@@ -10,20 +11,13 @@ class XProtLexer(object):
         'XPROT','NAME','ID','USERVERSION','EVASTRTAB','PARAMCARDLAYOUT','REPR',
         'CONTROL','PARAM','POS','DEPENDENCY','DLL','CONTEXT','VISIBLE',
         'PROTOCOLCOMPOSER','INFILE','PARAMMAP','PARAMSTRING','PARAMLONG',
-        'PARAMBOOL','PARAMCHOICE','PARAMDOUBLE','PARAMARRAY',
+        'PARAMBOOL','PARAMCHOICE','PARAMDOUBLE','PARAMARRAY','PIPE',
+        'PIPESERVICE','PARAMFUNCTOR','EVENT','METHOD','CONNECTION',
 
-        'LIMITRANGE','DEFAULT','MINSIZE','MAXSIZE','LIMIT','PRECISION',
+        'LIMITRANGE','DEFAULT','MINSIZE','MAXSIZE','LIMIT','PRECISION','UNIT',
+        'CLASS','LABEL','COMMENTTAG','TOOLTIP',
 
         'QUOTED_STRING','INTEGER','FLOAT',
-
-        # 'ID',
-        # '',
-        # '',
-        #
-        # 'OPEN_PARAM_MAP',
-        #
-        # 'INTEGER',
-        # 'REST_OF_LINE',
 
     )
 
@@ -57,6 +51,12 @@ class XProtLexer(object):
     t_PARAMCHOICE = r'ParamChoice'
     t_PARAMDOUBLE = r'ParamDouble'
     t_PARAMARRAY = r'ParamArray'
+    t_PIPE = r'Pipe'
+    t_PIPESERVICE = r'PipeService'
+    t_PARAMFUNCTOR  = r'ParamFunctor'
+    t_EVENT = r'Event'
+    t_METHOD = r'Method'
+    t_CONNECTION = r'Connection'
 
     t_LIMITRANGE = r'LimitRange'
     t_DEFAULT = r'Default'
@@ -64,6 +64,11 @@ class XProtLexer(object):
     t_MAXSIZE = r'MaxSize'
     t_LIMIT = r'Limit'
     t_PRECISION = r'Precision'
+    t_UNIT = r'Unit'
+    t_CLASS = r'Class'
+    t_LABEL = r'Label'
+    t_COMMENTTAG = r'Comment'
+    t_TOOLTIP = r'Tooltip'
 
     t_QUOTED_STRING = r'\"(.|\n)*?\"'
     t_INTEGER = r'-?\d+'
@@ -102,6 +107,7 @@ class XProtParser(object):
         self.structure['XProtocol']['ParamCardLayout'] = []
         self.structure['XProtocol']['Dependency'] = {}
         self.structure['XProtocol']['ProtocolComposer'] = {}
+        self.structure['XProtocol']['Params'] = {}
 
         # Helpers
         self.control = None
@@ -109,6 +115,21 @@ class XProtParser(object):
         self.dependency_key = None
         self.stringlist = []
         self.protcomposers = []
+        self.values = []
+        self.tag_value = None
+        self.param_data = {}
+        self.overwrites = 0
+        self.level = 0
+        self.is_val = None
+        self.is_inner = None
+        self.is_param = None
+        self.prev_key = None
+        self.prev_prev_key = None
+        self.prev_prev_prev_key = None
+
+
+        self.stack = [ 'Params' ]
+        self.xml = ''
 
     def parse(self,xprot):
 
@@ -116,7 +137,8 @@ class XProtParser(object):
             '''document : LANGLE XPROT RANGLE LBRACE xprotocol RBRACE'''
 
         def p_xprotocol(p):
-            '''xprotocol : name id userversion evastringtable parammap paramcardlayout dependencies protocolcomposers'''
+            '''xprotocol : name id userversion evastringtable param paramcardlayout dependencies protocolcomposers'''
+            # self.structure['XProtocol']['Params'] = self.param_data
 
         def p_name(p):
             '''name : LANGLE NAME RANGLE QUOTED_STRING'''
@@ -223,28 +245,6 @@ class XProtParser(object):
             if len(p) == 6:
                 self.protcomposers.append({ p[3]: p[5] })
 
-        def p_parammap(p):
-            '''parammap : LANGLE PARAMMAP PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-            self.stringlist = []
-
-        def p_paramstring(p):
-            '''paramstring : LANGLE PARAMSTRING PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramlong(p):
-            '''paramlong : LANGLE PARAMLONG PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_parambool(p):
-            '''parambool : LANGLE PARAMBOOL PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramchoice(p):
-            '''paramchoice : LANGLE PARAMCHOICE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramdouble(p):
-            '''paramdouble : LANGLE PARAMDOUBLE PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
-        def p_paramarray(p):
-            '''paramarray : LANGLE PARAMARRAY PERIOD QUOTED_STRING RANGLE LBRACE paramsorvalues RBRACE'''
-
         def p_paramsorvalues(p):
             '''paramsorvalues : tag param paramsorvalues
             | param paramsorvalues
@@ -252,13 +252,55 @@ class XProtParser(object):
             | empty'''
 
         def p_param(p):
-            '''param : parammap
-            | paramstring
-            | paramlong
-            | parambool
-            | paramchoice
-            | paramdouble
-            | paramarray'''
+            '''param : open close
+            | LBRACE paramsorvalues RBRACE'''
+
+        def p_open(p):
+            '''open : LANGLE PARAMMAP PERIOD QUOTED_STRING
+            | LANGLE PARAMSTRING PERIOD QUOTED_STRING
+            | LANGLE PARAMLONG PERIOD QUOTED_STRING
+            | LANGLE PARAMBOOL PERIOD QUOTED_STRING
+            | LANGLE PARAMCHOICE PERIOD QUOTED_STRING
+            | LANGLE PARAMDOUBLE PERIOD QUOTED_STRING
+            | LANGLE PARAMARRAY PERIOD QUOTED_STRING
+            | LANGLE PIPE PERIOD QUOTED_STRING
+            | LANGLE PIPESERVICE PERIOD QUOTED_STRING
+            | LANGLE PARAMFUNCTOR PERIOD QUOTED_STRING
+            | LANGLE EVENT PERIOD QUOTED_STRING
+            | LANGLE METHOD PERIOD QUOTED_STRING
+            | LANGLE CONNECTION PERIOD QUOTED_STRING'''
+            # print('open',p[4])
+            key = p[4].replace('\"','')
+
+            # Use the stack to generate multilevel key to the param dictionary
+            d = reduce(operator.getitem,self.stack,self.structure['XProtocol'])
+            if key in d:
+                raise ValueError('Key already exists!')
+            d[key] = {}
+            self.stack.append(key)
+
+        def p_close(p):
+            '''close : RANGLE LBRACE paramsorvalues RBRACE'''
+            # print('I have opened and closed')
+            if len(self.values):
+                d = reduce(operator.getitem,self.stack[:-1],self.structure['XProtocol'])[self.stack[-1]]
+
+                # If we have a definition of defaults and then followed by
+                # braces giving the values:
+                if d:
+                    new_key = '%s_vals' % self.stack[-1]
+                    d[new_key] = self.values
+                    self.stack[-1] = new_key
+                    # print('*'*80)
+                    # print(d)
+                    # print('*'*80)
+                else:
+                    d = self.values
+                # print(self.stack,self.values)
+            # print('values',self.values)
+            popped = self.stack.pop()
+            # print('close',popped)
+            self.values = []
 
         def p_value(p):
             '''value : tag_empty INTEGER
@@ -266,29 +308,35 @@ class XProtParser(object):
             | tag_empty LBRACE listofquotedstrings RBRACE
             | tag_empty FLOAT'''
 
+            self.is_param = False
+
+            if len(p) == 3 and self.tag_value is not None:
+                self.values.append({ self.tag_value: p[2] })
+                self.tag_value = None
+            elif len(p) == 3:
+                self.values.append(p[2])
+            else:
+                self.values.append(self.stringlist)
+                self.stringlist = []
+
         def p_tag(p):
             '''tag : LANGLE DEFAULT RANGLE
             | LANGLE LIMITRANGE RANGLE
             | LANGLE MINSIZE RANGLE
             | LANGLE MAXSIZE RANGLE
             | LANGLE LIMIT RANGLE
-            | LANGLE PRECISION RANGLE'''
+            | LANGLE PRECISION RANGLE
+            | LANGLE UNIT RANGLE
+            | LANGLE CLASS RANGLE
+            | LANGLE LABEL RANGLE
+            | LANGLE VISIBLE RANGLE
+            | LANGLE COMMENTTAG RANGLE
+            | LANGLE TOOLTIP RANGLE'''
+            self.tag_value = p[2]
 
         def p_tag_empty(p):
             '''tag_empty : tag
             | empty'''
-
-
-    	# param_array
-    	# node
-    	# param_generic
-    	# quoted_string
-    	# array_value
-    	# burn_properties
-    	# burn_param_card_layout
-    	# burn_dependency
-    	# burn_protocol_composer
-    	# strict_double
 
 
         def p_empty(p):
@@ -311,3 +359,15 @@ class XProtParser(object):
         # load in the data
         result = parser.parse(xprot)
         # print(json.dumps(self.structure,indent=2))
+        # print(json.dumps(self.structure['XProtocol']['ParamRoot'],indent=2))
+        # print(json.dumps(self.param_data,indent=2))
+        # print('Num overwrites:',self.overwrites)
+
+        # # Now get result for ParamArray section using parser from rdi
+        # infoLex = InfoLex()
+        # lexer = infoLex.lexer
+        # tokens = infoLex.tokens
+        #
+        # rdiparser = InfoParser()
+        # xml = rdiparser.raw2xml(xprot)
+        # print(xml)
