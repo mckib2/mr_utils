@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mr_utils.sim.ssfp import ssfp
+from mr_utils.sim.ssfp import ssfp_old
 
 def get_keys(T1s,T2s,alphas):
     '''Generate matrix of params [T1,T2,alpha] to generate a dictionary.
@@ -37,7 +37,7 @@ def ssfp_dictionary(T1s,T2s,TR,alphas,df):
     keys = get_keys(T1s,T2s,alphas)
 
     # Use more efficient matrix formulation
-    D = ssfp(keys[0,:],keys[1,:],TR,keys[2,:],df)
+    D = ssfp_old(keys[0,:],keys[1,:],TR,keys[2,:],df)
     return(D,keys)
 
 def ssfp_dictionary_for_loop(T1s,T2s,TR,alphas,df):
@@ -50,7 +50,7 @@ def ssfp_dictionary_for_loop(T1s,T2s,TR,alphas,df):
     N = np.sum(keys.shape[1])
     D = np.zeros((N,df.size),dtype='complex')
     for ii in range(N):
-        D[ii,:] = ssfp(keys[0,ii],keys[1,ii],TR,keys[2,ii],df)
+        D[ii,:] = ssfp_old(keys[0,ii],keys[1,ii],TR,keys[2,ii],df)
     return(D,keys)
 
 def find_atom(sig,D,keys):

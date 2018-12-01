@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import matplotlib.pyplot as plt
+from mr_utils import view
 
 class GSReconTestCase(unittest.TestCase):
 
@@ -55,6 +55,15 @@ class GSReconTestCase(unittest.TestCase):
 
         I0 = gs_recon(self.I1 + n1,self.I2 + n2,self.I3 + n3,self.I4 + n4)
         I1 = gs_recon_for_loop(self.I1 + n1,self.I2 + n2,self.I3 + n3,self.I4 + n4)
+        self.assertTrue(np.allclose(I0,I1))
+
+    def test_gs_recon3d(self):
+        from mr_utils.recon.ssfp import gs_recon,gs_recon3d
+
+        # Try individually
+        I0 = gs_recon(self.I1,self.I2,self.I3,self.I4)
+        I0 = np.stack((I0,gs_recon(self.I1,self.I2,self.I3,self.I4)),axis=-1)
+        I1 = gs_recon3d(np.stack((self.I1,self.I1),axis=-1),np.stack((self.I2,self.I2),axis=-1),np.stack((self.I3,self.I3),axis=-1),np.stack((self.I4,self.I4),axis=-1))
         self.assertTrue(np.allclose(I0,I1))
 
 

@@ -1,12 +1,18 @@
+from mr_utils.definitions import BART_PATH,SIEMENS_TO_ISMRMRD_INSTALLED
 import numpy as np
 
 def load_raw(
     filename,
     use='bart',
     bart_args='-A',
-    s2i_ROS=True):
+    s2i_ROS=True,
+    as_ismrmrd=False):
 
     if use == 'bart':
+
+        if BART_PATH is None:
+            raise SystemError('BART is not installed!')
+
         from bart import bart,cfl
         from tempfile import NamedTemporaryFile
         from subprocess import Popen,PIPE
@@ -16,7 +22,7 @@ def load_raw(
         # twixread to work, so I'll just do this...
         tmp_name = NamedTemporaryFile().name
         cmd = 'bart twixread %s %s %s' % (bart_args,filename,tmp_name)
-        print(cmd)
+        # print(cmd)
         # data = bart(1,'twixread %s %s' % (bart_args,filename))
         process = Popen(cmd.split(),stdout=PIPE)
         output,error = process.communicate()
@@ -40,15 +46,25 @@ def load_raw(
 
         tmp_name = NamedTemporaryFile().name
 
-        cmd = 'siemens_to_ismrmrd -f %s -o %s' % (filename,tmp_name)
-        process = Popen(cmd.split(),stdout=PIPE)
-        output,error = process.communicate()
+        # Check to make sure siemens_to_ismrmrd is installed
+        if SIEMENS_TO_ISMRMRD_INSTALLED:
+            cmd = 'siemens_to_ismrmrd -f %s -o %s' % (filename,tmp_name)
+            process = Popen(cmd.split(),stdout=PIPE)
+            output,error = process.communicate()
+        else:
+            raise SystemError('siemens_to_ismrmrd is not installed!')
+
         if output is not None:
             print(output.decode('utf-8'))
 
             # Load in the file and start getting to work...
             # See https://github.com/ismrmrd/ismrmrd-python-tools/blob/master/recon_ismrmrd_dataset.py
             dset = ismrmrd.Dataset(tmp_name,'/dataset',False)
+
+            # If the user asked for the ismrmrd format, stop here and give it back
+            if as_ismrmrd:
+                print('Skipping everything else and only returning ismrmrd.Dataset!')
+                return(dset)
 
             header = ismrmrd.xsd.CreateFromDocument(dset.read_xml_header())
             enc = header.encoding[0]
@@ -139,9 +155,17 @@ def load_raw(
                 slice = acq.idx.slice
                 y = acq.idx.kspace_encode_step_1
                 z = acq.idx.kspace_encode_step_2
-                all_data[avg, contrast, slice, :, z, y, :] = acq.data
 
-            data = all_data.astype('complex64').transpose((6,5,4,3,0,1,2)).squeeze()
+                try:
+                    all_data[avg, contrast, slice, :, z, y, :] = acq.data
+                except:
+                    all_data = None
+                    all_data = acq.data
+
+            try:
+                data = all_data.astype('complex64').transpose((6,5,4,3,0,1,2)).squeeze()
+            except:
+                data = all_data
 
         if error is not None:
             print(error)
@@ -149,7 +173,11 @@ def load_raw(
 
     elif use == 'rdi':
         from rawdatarinator.raw import raw
-        data = raw(filename)['kSpace'].transpose((0,1,3,2))
+        data = raw(filename)['kSpace']
+        try:
+            data = data.transpose((0,1,3,2))
+        except:
+            pass
     else:
         raise Exception('You must specify a method to read raw data in!')
 

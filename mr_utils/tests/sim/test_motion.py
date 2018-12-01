@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 class SimMotionTestCase(unittest.TestCase):
 
+    @unittest.skip('suppress test with figure')
     def test_motion(self):
         from mr_utils.sim.motion import cartesian_acquire
         from mr_utils.test_data.phantom import modified_shepp_logan
