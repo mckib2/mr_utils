@@ -7,7 +7,7 @@ from mr_utils.test_data import GadgetronClient
 from mr_utils import view
 
 
-class GadgetronConfigTestCase(unittest.TestCase):
+class GadgetronEPIConfigTestCase(unittest.TestCase):
 
     def setUp(self):
         self.config = GadgetronConfig()

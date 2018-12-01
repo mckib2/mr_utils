@@ -91,6 +91,15 @@ class GadgetronClient(object):
         path = str(Path('mr_utils/test_data/tests/gadgetron/client/epi_2d_out_20161020_pjv.h5').resolve())
         return(path)
 
+    @staticmethod
+    def generic_cartesian_grappa_filename():
+        '''Gadgetron test data.
+        http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/tse/meas_MID00450_FID76726_SAX_TE62_DIR_TSE/ref_20160319.dat
+        '''
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/meas_MID00450_FID76726_SAX_TE62_DIR_TSE.dat').resolve())
+        return(path)
+
+
     # @staticmethod
     # def epi_raw_input_filename():
     #     '''Gadgetron test data.

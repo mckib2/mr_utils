@@ -141,6 +141,7 @@ def client(
             logger.error('Failed to send acquisition %d' % idx)
             return
 
+
     logger.debug('Sending close message to Gadgetron')
     con.send_gadgetron_close()
     con.wait()
