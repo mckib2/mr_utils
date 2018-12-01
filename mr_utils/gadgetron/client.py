@@ -77,10 +77,8 @@ def client(
     for id in [ gt.GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_USHORT,gt.GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_FLOAT,gt.GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_CPLX_FLOAT ]:
         con.register_reader(id,gt.ImageAttribMessageReader(outfile,out_group))
     # DICOM
-    con.register_reader(gt.GADGET_MESSAGE_DICOM,
-            gt.BlobMessageReader(out_group,'dcm'))
-    con.register_reader(gt.GADGET_MESSAGE_DICOM_WITHNAME,
-            gt.BlobAttribMessageReader('','dcm'))
+    con.register_reader(gt.GADGET_MESSAGE_DICOM,gt.BlobMessageReader(out_group,'dcm'))
+    con.register_reader(gt.GADGET_MESSAGE_DICOM_WITHNAME,gt.BlobAttribMessageReader('','dcm'))
 
     # Connect to Gadgetron - if no host, port were supplied then look at the
     # active profile to get the values

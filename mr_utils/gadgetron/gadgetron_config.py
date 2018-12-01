@@ -73,8 +73,12 @@ class GadgetronConfig(object):
         # Let's try to be smart about the dlls...
         dll_el = ET.SubElement(gadget,'dll')
         if dll is None:
-            if 'Grappa' in name:
+            if 'grappa' in name.lower():
                 dll_el.text = 'gadgetron_grappa'
+            elif 'epi' in name.lower() or 'epi' in classname.lower():
+                dll_el.text = 'gadgetron_epi'
+            elif 'gtplus' in name.lower() or 'gtplus' in classname.lower():
+                dll_el.text = 'gadgetronPlus'
             else:
                 dll_el.text = 'gadgetron_mricore'
         else:
