@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import matplotlib.pyplot as plt
+from mr_utils import view
 
 class PatchReorderTestCase(unittest.TestCase):
 
@@ -18,10 +18,20 @@ class PatchReorderTestCase(unittest.TestCase):
         imspace = np.fft.ifft2(kspace)
 
         # Get patches
-        patches = get_patches(imspace,(4,4))
+        patches = get_patches(imspace,(3,3))
 
-        # Reorder patches
-        
+        # Take mean of each patch to be the pixel value
+        im = np.mean(patches,axis=(-2,-1))
+        # view(im)
+
+        # Flatten the array and sort
+        im = im.flatten()
+        idx = np.argsort(im) # sorts by real
+        # idx = np.argsort(-np.abs(im)) # sorts by magnitude
+        # view(im[idx])
+        view(np.diff(im[idx]))
+
+
 
 if __name__ == '__main__':
     unittest.main()
