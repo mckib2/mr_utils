@@ -213,42 +213,43 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
 
     # first flip
     phi = 0
-    rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
-    rznegdphi = np.array([ [np.cos(-phi),np.sin(-phi),0],[-np.sin(-phi),np.cos(-phi),0],[0,0,1] ])
+    c_phi,s_phi = np.cos(phi),np.sin(phi)
+    rzdphi = np.array([ [c_phi,s_phi,0],[-s_phi,c_phi,0],[0,0,1] ])
+    rznegdphi = np.array([ [c_phi,-s_phi,0],[s_phi,c_phi,0],[0,0,1] ])
     rot_vec = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi))
     Mgre[:,0,...] = np.tensordot(rot_vec,Mgre[:,0,...],axes=1)
 
-    # assume steady state after 200 flips
+    # Precompute some values we each loop
+    E1 = np.exp(-TR/T1)
+    E2 = np.exp(-TR/T2)
+    cycles = field_map*TR
+    rotation_angle = np.fmod(cycles,1)*2*np.pi
+    c_ra = np.cos(rotation_angle)
+    s_ra = np.sin(rotation_angle)
+
+    # assume steady state after iter flips
     for n in trange(1,iter):
 
         # relaxation
-        Mgre[0,n,...] = Mgre[0,n-1,...]*np.exp(-TR/T2) # x
-        Mgre[1,n,...] = Mgre[1,n-1,...]*np.exp(-TR/T2) # y
-        Mgre[2,n,...] = 1 + (Mgre[2,n-1,...] - 1)*np.exp(-TR/T1) # z
+        Mgre[0,n,...] = Mgre[0,n-1,...]*E2 # x
+        Mgre[1,n,...] = Mgre[1,n-1,...]*E2 # y
+        Mgre[2,n,...] = 1 + (Mgre[2,n-1,...] - 1)*E1 # z
 
-        cycles = field_map*TR
-        rotation_angle = np.fmod(cycles,1)*2*np.pi
+        # Here's where we spend most of our time:
         for idx,fm in np.ndenumerate(field_map):
-            rzoffres = np.array([ [np.cos(rotation_angle[idx[0],idx[1]]),np.sin(rotation_angle[idx[0],idx[1]]),0],[-np.sin(rotation_angle[idx[0],idx[1]]),np.cos(rotation_angle[idx[0],idx[1]]),0],[0,0,1] ])
+            rzoffres = np.array([ [c_ra[idx[0],idx[1]],s_ra[idx[0],idx[1]],0],[-s_ra[idx[0],idx[1]],c_ra[idx[0],idx[1]],0],[0,0,1] ])
             Mgre[:,n,idx[0],idx[1]] = rzoffres.dot(Mgre[:,n,idx[0],idx[1]])
 
-        # # Here's where we spend most of our time:
-        # for idx,fm in np.ndenumerate(field_map):
-        #     cycles = fm*TR
-        #     rotation_angle = np.fmod(cycles,1)*2*np.pi
-        #     rzoffres = np.array([ [np.cos(rotation_angle),np.sin(rotation_angle),0],[-np.sin(rotation_angle),np.cos(rotation_angle),0],[0,0,1] ])
-        #     Mgre[:,n,idx[0],idx[1]] = rzoffres.dot(Mgre[:,n,idx[0],idx[1]])
-
-        # next tip
-        # delete phase information! to make it gre
+        # next tip - delete phase information! to make it gre
         Mgre[0,n,...] = 0
         Mgre[1,n,...] = 0
 
         # will got over 2*pi but shouldn't matter
         phi += dphi
 
-        rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
-        rznegdphi = np.array([ [np.cos(-phi),np.sin(-phi),0],[-np.sin(-phi),np.cos(-phi),0],[0,0,1] ])
+        c_phi,s_phi = np.cos(phi),np.sin(phi)
+        rzdphi = np.array([ [c_phi,s_phi,0],[-s_phi,c_phi,0],[0,0,1] ])
+        rznegdphi = np.array([ [c_phi,-s_phi,0],[s_phi,c_phi,0],[0,0,1] ])
         rot_vec = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi))
         Mgre[:,n,...] = np.tensordot(rot_vec,Mgre[:,n,...],axes=1)
 
@@ -258,10 +259,11 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
     Mss[1,...] = Mgre[1,-1,...]*np.exp(-TE/T2)
     Mss[2,...] = Mgre[2,-1,...]
 
+    cycles = field_map*TE
+    rotation_angle = np.fmod(cycles,1)*2*np.pi
+    c_ra,s_ra = np.cos(rotation_angle),np.sin(rotation_angle)
     for idx,fm in np.ndenumerate(field_map):
-        cycles = fm*TE
-        rotation_angle = np.fmod(cycles,1)*2*np.pi
-        rzoffres = np.array([ [np.cos(rotation_angle),np.sin(rotation_angle),0],[-np.sin(rotation_angle),np.cos(rotation_angle),0],[0,0,1] ])
+        rzoffres = np.array([ [c_ra[idx[0],idx[1]],s_ra[idx[0],idx[1]],0],[-s_ra[idx[0],idx[1]],c_ra[idx[0],idx[1]],0],[0,0,1] ])
         Mss[:,idx[0],idx[1]] = rzoffres.dot(Mss[:,idx[0],idx[1]])
 
     return(Mss[0,...] + 1j*Mss[1,...])
