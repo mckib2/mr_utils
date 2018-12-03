@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import matplotlib.pyplot as plt
+from mr_utils import view
 
 class GSReconTestCase(unittest.TestCase):
 
