@@ -105,7 +105,7 @@ def spoiled_gre(T1,T2star,TR,TE,alpha=None,M0=1):
     S = M0*np.sin(alpha)*(1 - E1)*E2/(1 - np.cos(alpha)*E1)
     return(S)
 
-def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,iter=200):
+def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1,iter=200):
     '''Simulate GRE pulse sequence.
 
     T1 -- longitudinal exponential decay time constant.
@@ -134,8 +134,18 @@ def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,
     T2 = T2.flatten()
     M0 = M0.flatten()
 
+    # Make sure we don't divide by zero...
+    idx1 = np.nonzero(T1)
+    idx2 = np.nonzero(T2)
+    E1 = np.zeros(T1.shape)
+    E2 = np.zeros(T2.shape)
+    E3 = np.zeros(T2.shape)
+    E1[idx1] = np.exp(-TR/T1[idx1])
+    E2[idx2] = np.exp(-TR/T2[idx2])
+    E3[idx2] = np.exp(-TE/T2[idx2])
+
     Mgre = np.zeros((3,T1.size))
-    for ii in trange(T1.size):
+    for ii in trange(T1.size,desc='GRE steady-state'):
         # first flip
         phi = 0
         rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
@@ -151,9 +161,9 @@ def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,
         for n in range(1,iter):
 
             # relaxation
-            tmp[0,n] = tmp[0,n-1]*np.exp(-TR/T2[ii]) # x
-            tmp[1,n] = tmp[1,n-1]*np.exp(-TR/T2[ii]) # y
-            tmp[2,n] = 1 + (tmp[2,n-1] - 1)*np.exp(-TR/T1[ii]) # z
+            tmp[0,n] = tmp[0,n-1]*E2[ii] # x
+            tmp[1,n] = tmp[1,n-1]*E2[ii] # y
+            tmp[2,n] = 1 + (tmp[2,n-1] - 1)*E1[ii] # z
 
             # convert offres into angle to tip
             cycles = field_map[ii]*TR
@@ -174,8 +184,8 @@ def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,
             tmp[:,n] = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi,tmp[:,n]))
 
         # take steady state sample and relax in TE
-        Mgre[0,ii] = tmp[0,-1]*np.exp(-TE/T2[ii])
-        Mgre[1,ii] = tmp[1,-1]*np.exp(-TE/T2[ii])
+        Mgre[0,ii] = tmp[0,-1]*E3[ii]
+        Mgre[1,ii] = tmp[1,-1]*E3[ii]
 
 
         cycles = field_map[ii]*TE
@@ -188,7 +198,7 @@ def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,
     return(Mxy)
 
 
-def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,iter=200):
+def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1,tol=1e-5,iter=None):
     '''Simulate GRE pulse sequence.
 
     T1 -- longitudinal exponential decay time constant.
@@ -199,13 +209,20 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
     field_map -- offresonance field map (in hertz).
     dphi -- phase  cycling of RF pulses.
     M0 -- proton density.
+    tol -- Maximum difference between voxel intensity iter to iter until stop.
     iter -- number of excitations till steady state.
+
+    iter=None will run until difference between all voxel intensities iteration
+    to iteration is within given tolerance, tol (default=1e-5).
+
+    Returns complex transverse magnetization (Mx + 1j*My)
     '''
 
     if field_map is None:
         field_map = np.zeros(T1.shape)
 
-    Mgre = np.zeros((3,iter) + T1.shape)
+    # We have 2 states: current, previous iteration
+    Mgre = np.zeros((3,2) + T1.shape)
     Mgre[2,0,...] = M0
 
     # Rotation matrix each Rx pulse
@@ -219,30 +236,33 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
     rot_vec = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi))
     Mgre[:,0,...] = np.tensordot(rot_vec,Mgre[:,0,...],axes=1)
 
-    # Precompute some values we each loop
-    E1 = np.exp(-TR/T1)
-    E2 = np.exp(-TR/T2)
+    # Precompute some values we each loop, making sure we don't divide by zero
+    idx1 = np.nonzero(T1)
+    idx2 = np.nonzero(T2)
+    E1 = np.zeros(T1.shape)
+    E2 = np.zeros(T2.shape)
+    E1[idx1] = np.exp(-TR/T1[idx1])
+    E2[idx2] = np.exp(-TR/T2[idx2])
     cycles = field_map*TR
     rotation_angle = np.fmod(cycles,1)*2*np.pi
     c_ra = np.cos(rotation_angle)
     s_ra = np.sin(rotation_angle)
 
-    # assume steady state after iter flips
-    for n in trange(1,iter):
-
+    # Heavy lifting function run each iteration
+    def iter_fun(Mgre,phi=0):
         # relaxation
-        Mgre[0,n,...] = Mgre[0,n-1,...]*E2 # x
-        Mgre[1,n,...] = Mgre[1,n-1,...]*E2 # y
-        Mgre[2,n,...] = 1 + (Mgre[2,n-1,...] - 1)*E1 # z
+        Mgre[0,1,...] = Mgre[0,0,...]*E2 # x
+        Mgre[1,1,...] = Mgre[1,0,...]*E2 # y
+        Mgre[2,1,...] = 1 + (Mgre[2,0,...] - 1)*E1 # z
 
         # Here's where we spend most of our time:
         for idx,fm in np.ndenumerate(field_map):
             rzoffres = np.array([ [c_ra[idx[0],idx[1]],s_ra[idx[0],idx[1]],0],[-s_ra[idx[0],idx[1]],c_ra[idx[0],idx[1]],0],[0,0,1] ])
-            Mgre[:,n,idx[0],idx[1]] = rzoffres.dot(Mgre[:,n,idx[0],idx[1]])
+            Mgre[:,1,idx[0],idx[1]] = rzoffres.dot(Mgre[:,1,idx[0],idx[1]])
 
         # next tip - delete phase information! to make it gre
-        Mgre[0,n,...] = 0
-        Mgre[1,n,...] = 0
+        Mgre[0,1,...] = 0
+        Mgre[1,1,...] = 0
 
         # will got over 2*pi but shouldn't matter
         phi += dphi
@@ -251,12 +271,34 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
         rzdphi = np.array([ [c_phi,s_phi,0],[-s_phi,c_phi,0],[0,0,1] ])
         rznegdphi = np.array([ [c_phi,-s_phi,0],[s_phi,c_phi,0],[0,0,1] ])
         rot_vec = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi))
-        Mgre[:,n,...] = np.tensordot(rot_vec,Mgre[:,n,...],axes=1)
+        Mgre[:,1,...] = np.tensordot(rot_vec,Mgre[:,1,...],axes=1)
+
+        # Update prev iteration
+        Mgre[:,0,...] = Mgre[:,1,...]
+
+        return(Mgre,phi)
+
+    # Do either fixed number of iter or until tolerance achieved
+    if iter is not None:
+        # assume steady state after iter flips
+        for n in trange(iter,desc='GRE steady-state'):
+            Mgre,phi = iter_fun(Mgre,phi)
+    else:
+        # Run until all voxels within tolerance
+        Mgre_prev = np.ones(Mgre.shape)*np.inf
+        stop_cond = False
+        while not stop_cond:
+            Mgre,phi = iter_fun(Mgre,phi)
+            stop_cond = np.any(np.abs(Mgre - Mgre_prev) < tol)
+            Mgre_prev = Mgre
+
 
     # take steady state sample and relax in TE
     Mss = np.zeros((3,) + T1.shape)
-    Mss[0,...] = Mgre[0,-1,...]*np.exp(-TE/T2)
-    Mss[1,...] = Mgre[1,-1,...]*np.exp(-TE/T2)
+    E2 = np.zeros(T2.shape)
+    E2[idx2] = np.exp(-TE/T2[idx2])
+    Mss[0,...] = Mgre[0,-1,...]*E2
+    Mss[1,...] = Mgre[1,-1,...]*E2
     Mss[2,...] = Mgre[2,-1,...]
 
     cycles = field_map*TE

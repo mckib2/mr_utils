@@ -46,9 +46,9 @@ class GSFMTestCase(unittest.TestCase):
         PD,T1s,T2s = cylinder_2d(dims=args['dims'],FOV=args['FOV'],radius=args['radius'])
         m1 = gre_sim(T1s,T2s,TR=args['TR'],TE=TE1,alpha=args['alpha'],field_map=args['field_map'],dphi=np.pi,M0=PD,iter=50)
         m2 = gre_sim(T1s,T2s,TR=args['TR'],TE=TE2,alpha=args['alpha'],field_map=args['field_map'],dphi=np.pi,M0=PD,iter=50)
-        view(np.concatenate((m1,m2)))
         grefm = dual_echo_gre(m1,m2,TE1,TE2)
-        view(grefm)
+
+        view(np.concatenate((grefm,gsfm)))
 
         # field_map_pw = np.mod(field_map*2*np.pi,2*np.pi) - np.pi
         # view(field_map_pw)
