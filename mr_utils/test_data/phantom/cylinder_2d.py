@@ -1,6 +1,6 @@
 import numpy as np
 from mr_utils.sim.ssfp import ssfp
-from mr_utils.sim.gre import spoiled_gre
+from mr_utils.sim.gre import spoiled_gre,gre_sim
 from mr_utils import view
 
 def cylinder_2d_params():
@@ -60,6 +60,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
         field_map,_ = np.meshgrid(fx,fy)
 
     im = ssfp(T1s,T2s,TR,alpha,field_map,phase_cyc=phase_cyc,M0=PD)
+    # im = gre_sim(T1s,T2s,TR,TR/2,alpha,field_map,phi=phase_cyc,dphi=phase_cyc,M0=PD,spoil=False,iter=200)
     # im[np.isnan(im)] = 0
     # view(im)
 

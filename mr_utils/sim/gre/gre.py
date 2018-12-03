@@ -198,7 +198,7 @@ def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1
     return(Mxy)
 
 
-def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1,tol=1e-5,iter=None):
+def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,phi=0,dphi=0,M0=1,tol=1e-5,iter=None,spoil=True):
     '''Simulate GRE pulse sequence.
 
     T1 -- longitudinal exponential decay time constant.
@@ -207,6 +207,7 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1,tol=
     TE -- echo time.
     alpha -- flip angle.
     field_map -- offresonance field map (in hertz).
+    phi -- Reference starting phase.
     dphi -- phase  cycling of RF pulses.
     M0 -- proton density.
     tol -- Maximum difference between voxel intensity iter to iter until stop.
@@ -229,7 +230,6 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1,tol=
     rxalpha = np.array([ [1,0,0],[0,np.cos(alpha),np.sin(alpha)],[0,-np.sin(alpha),np.cos(alpha)] ])
 
     # first flip
-    phi = 0
     c_phi,s_phi = np.cos(phi),np.sin(phi)
     rzdphi = np.array([ [c_phi,s_phi,0],[-s_phi,c_phi,0],[0,0,1] ])
     rznegdphi = np.array([ [c_phi,-s_phi,0],[s_phi,c_phi,0],[0,0,1] ])
@@ -261,8 +261,9 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=0,M0=1,tol=
             Mgre[:,1,idx[0],idx[1]] = rzoffres.dot(Mgre[:,1,idx[0],idx[1]])
 
         # next tip - delete phase information! to make it gre
-        Mgre[0,1,...] = 0
-        Mgre[1,1,...] = 0
+        if spoil:
+            Mgre[0,1,...] = 0
+            Mgre[1,1,...] = 0
 
         # will got over 2*pi but shouldn't matter
         phi += dphi

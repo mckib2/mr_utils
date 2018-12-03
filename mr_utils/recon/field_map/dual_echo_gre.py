@@ -11,5 +11,5 @@ def dual_echo_gre(m1,m2,TE1,TE2):
     Returns field map in herz.
     '''
 
-    fm = np.angle(np.conj(m1)*m2)/np.abs(TE1 - TE2)
+    fm = np.angle(np.conj(m1)*m2)/(np.abs(TE1 - TE2)*2*np.pi)
     return(fm)
