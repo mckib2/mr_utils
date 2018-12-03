@@ -1,5 +1,5 @@
 import numpy as np
-from mr_utils.sim.ssfp import ssfp
+from tqdm import trange
 
 def ernst(TR,T1):
     '''Computes the Ernst angle.
@@ -103,3 +103,86 @@ def spoiled_gre(T1,T2star,TR,TE,alpha=None,M0=1):
     # Do the thing:
     S = M0*np.sin(alpha)*(1 - E1)*E2/(1 - np.cos(alpha)*E1)
     return(S)
+
+def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,iter=200):
+    '''Simulate GRE pulse sequence.
+
+    T1 -- longitudinal exponential decay time constant.
+    T2 -- Transverse exponential decay time constant.
+    TR -- repetition time.
+    TE -- echo time.
+    alpha -- flip angle.
+    field_map -- offresonance field map (in hertz).
+    dphi -- phase  cycling of RF pulses.
+    M0 -- proton density.
+    iter -- number of excitations till steady state.
+
+    '''
+
+    if field_map is None:
+        field_map = np.zeros(T1.shape)
+
+    # Rotation matrix each Rx pulse
+    rxalpha = np.array([ [1,0,0],[0,np.cos(alpha),np.sin(alpha)],[0,-np.sin(alpha),np.cos(alpha)] ])
+
+    # Make everythinig a 1D vector, save the original size so we can hand that
+    # back to the caller
+    orig_size = T1.shape[:]
+    field_map = field_map.flatten()
+    T1 = T1.flatten()
+    T2 = T2.flatten()
+    M0 = M0.flatten()
+
+
+    Mgre = np.zeros((3,T1.size))
+    for ii in trange(T1.size):
+        # first flip
+        phi = 0
+        rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
+        rznegdphi = np.array([ [np.cos(-phi),np.sin(-phi),0],[-np.sin(-phi),np.cos(-phi),0],[0,0,1] ])
+        Mgre[:,ii] = np.array([0,0,1])*M0[ii]
+
+        # This used to reference M, but I think this was a mistake
+        Mgre[:,ii] = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi,Mgre[:,ii]))
+
+        # assume steady state after 200 flips
+        tmp = np.zeros((3,iter))
+        tmp[:,0] = Mgre[:,ii]
+        for n in range(1,iter):
+
+            # relaxation
+            tmp[0,n] = tmp[0,n-1]*np.exp(-TR/T2[ii]) # x
+            tmp[1,n] = tmp[1,n-1]*np.exp(-TR/T2[ii]) # y
+            tmp[2,n] = 1 + (tmp[2,n-1] - 1)*np.exp(-TR/T1[ii]) # z
+
+            # convert offres into angle to tip
+            cycles = field_map[ii]*TR
+            rotation_angle = np.fmod(cycles,1)*2*np.pi
+            rzoffres = np.array([ [np.cos(rotation_angle),np.sin(rotation_angle),0],[-np.sin(rotation_angle),np.cos(rotation_angle),0],[0,0,1] ])
+            tmp[:,n] = rzoffres.dot(tmp[:,n]) # dephase by offres
+
+            # next tip
+            # delete phase information! to make it gre
+            tmp[0,n] = 0
+            tmp[1,n] = 0
+
+            # will got over 2*pi but shouldn't matter
+            phi += dphi
+
+            rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
+            rznegdphi = np.array([ [np.cos(-phi),np.sin(-phi),0],[-np.sin(-phi),np.cos(-phi),0],[0,0,1] ])
+            tmp[:,n] = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi,tmp[:,n]))
+
+        # take steady state sample and relax in TE
+        Mgre[0,ii] = tmp[0,-1]*np.exp(-TE/T2[ii])
+        Mgre[1,ii] = tmp[1,-1]*np.exp(-TE/T2[ii])
+
+
+        cycles = field_map[ii]*TE
+        rotation_angle = np.fmod(cycles,1)*2*np.pi
+        rzoffres = np.array([ [np.cos(rotation_angle),np.sin(rotation_angle),0],[-np.sin(rotation_angle),np.cos(rotation_angle),0],[0,0,1] ])
+        Mgre[:,ii] = rzoffres.dot(Mgre[:,ii])
+
+    # We want the complex transverse magnetization
+    Mxy = (Mgre[0,:] + 1j*Mgre[1,:]).reshape(orig_size)
+    return(Mxy)

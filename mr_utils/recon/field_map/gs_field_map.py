@@ -11,30 +11,37 @@ def gs_field_map(I0,I1,I2,I3,TR):
     I1,I3 -- Second phase-cycle pair, separated by 180 degrees.
     TR -- Repetition time of acquisitons in ms.
 
+    Returns wrapped field map in hertz.
+
     Implements field map estimation given in:
         Taylor, Meredith, et al. "MRI Field Mapping using bSSFP Elliptical
         Signal model." Proceedings of the ISMRM Annual Conference (2017).
     '''
 
-    # view(np.concatenate((I0,I1,I2,I3)))
-
-    # First find the geometric solution to the elliptical signal model
+    TE = 2*TR
     gs_sol = gs_recon(I0,I1,I2,I3)
-    # view(gs_sol)
+    gsfm = np.angle(gs_sol)/(TE*2*np.pi)
+    return(gsfm)
 
-    # The complex estimate of the GS has a phase that is half the angular free
-    # precession per repetition time (TR)
-    gsfm = np.angle(gs_sol)
-    gsfm[np.isnan(gsfm)] = False
-    # view(gsfm)
-
-    # # Try TV denoising
-    # gsfm = denoise_tv_bregman(gsfm,weight=20)
-    # view(gsfm)
-
-    # First phase unwrap
-    assert (np.min(gsfm) > -np.pi) and (np.max(gsfm) < np.pi)
-    gsfm = unwrap_phase(gsfm)
+    # # view(np.concatenate((I0,I1,I2,I3)))
+    #
+    # # First find the geometric solution to the elliptical signal model
+    # gs_sol = gs_recon(I0,I1,I2,I3)
+    # # view(gs_sol)
+    #
+    # # The complex estimate of the GS has a phase that is half the angular free
+    # # precession per repetition time (TR)
+    # gsfm = np.angle(gs_sol)
+    # gsfm[np.isnan(gsfm)] = False
+    # # view(gsfm)
+    #
+    # # # Try TV denoising
+    # # gsfm = denoise_tv_bregman(gsfm,weight=20)
+    # # view(gsfm)
+    #
+    # # First phase unwrap
+    # assert (np.min(gsfm) > -np.pi) and (np.max(gsfm) < np.pi)
+    # gsfm = unwrap_phase(gsfm)
 
     # mask = np.logical_not(np.isnan(gsfm))
     # gsfm[np.isnan(gsfm)] = 0
@@ -77,6 +84,6 @@ def gs_field_map(I0,I1,I2,I3,TR):
     # I'm uncomfortable with this negative sign
     # Also, removed the scaling by 2 at the beginning and dividing it back out
     # here, as unwrap_phase expects -pi -> pi input.
-    gsfm /= -TR*np.pi
-    # view(gsfm)
-    return(gsfm)
+    # gsfm /= -TR*np.pi
+    # # view(gsfm)
+    # return(gsfm)

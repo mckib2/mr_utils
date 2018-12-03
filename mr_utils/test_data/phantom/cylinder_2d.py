@@ -69,7 +69,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
         return(im)
 
 
-def spoiled_gre_2d_cylinder(TR=0.3,TE=0.003,alpha=None,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,kspace=False):
+def spoiled_gre_2d_cylinder(TR=0.3,TE=0.003,alpha=None,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,kspace=False):
     '''Simulates axial spoiled GRE scan of cylindrical phantom.
 
     TR -- Repetition time.
@@ -85,7 +85,7 @@ def spoiled_gre_2d_cylinder(TR=0.3,TE=0.003,alpha=None,dims=(64,64),FOV=((-1,1),
     PD,T1s,T2s = cylinder_2d(dims=dims,FOV=FOV,radius=radius)
 
     # Do the sim
-    im = spoiled_gre(T1s,T2s,TR,TE,alpha,M0=PD)
+    im = spoiled_gre(T1s,T2s,TR,TE,alpha,field_map=field_map,M0=PD)
 
     # Hand back what we asked for
     if kspace:
