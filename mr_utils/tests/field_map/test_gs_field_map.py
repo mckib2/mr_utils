@@ -41,6 +41,8 @@ class GSFMTestCase(unittest.TestCase):
 
         # Estimate field map using GS to ESM
         gsfm = gs_field_map(*[ x.squeeze() for x in np.split(pcs,len(pc_vals)) ],TR=args['TR'],gs_recon_opts={ 'second_pass': False })
+        # TODO: Interestingly, the second pass solution fails... Why is this?
+
 
         # Now do sims for GRE for a sanity check
         TE1 = args['TR']/2
@@ -72,9 +74,9 @@ class GSFMTestCase(unittest.TestCase):
 
         # For some reason the edges are off by about pi, so let's clip it...
         val = val[:,19:-19]
-        field_map = field_map[:,19:-19]
+        field_map_clipped = field_map[:,19:-19]
         idx = np.where(np.abs(val) > 0)
-        self.assertTrue(np.allclose(field_map[idx],val[idx]))
+        self.assertTrue(np.allclose(field_map_clipped[idx],val[idx]))
 
 if __name__ == '__main__':
     unittest.main()
