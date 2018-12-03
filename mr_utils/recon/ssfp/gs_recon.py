@@ -92,12 +92,13 @@ def gs_recon3d(I1,I2,I3,I4,slice_axis=-1,isophase=np.pi):
         recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice],isophase=isophase)
     return(recon)
 
-def gs_recon(I1,I2,I3,I4,isophase=np.pi):
+def gs_recon(I1,I2,I3,I4,isophase=np.pi,second_pass=True):
     '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1,I3 -- 1st diagonal pair of images (offset 180 deg).
     I2,I4 -- 2nd diagonal pair of images (offset 180 deg).
     isophase -- Only neighbours with isophase max phase difference contribute.
+    second_pass -- Compute the second pass solution, increasing SNR by sqrt(2).
 
     Implements algorithm shown in Fig 2 of
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -120,6 +121,10 @@ def gs_recon(I1,I2,I3,I4,isophase=np.pi):
     # singularities
     mask = np.abs(Id) > I_max_mag
     Id[mask] = CS[mask]
+
+    # Bail early if we don't want the second pass solution
+    if not second_pass:
+        return(Id)
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
     Iw13 = compute_Iw(I1,I3,Id,isophase=isophase)
