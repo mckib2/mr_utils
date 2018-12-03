@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import trange
+from mr_utils import view
 
 def ernst(TR,T1):
     '''Computes the Ernst angle.
@@ -104,7 +105,7 @@ def spoiled_gre(T1,T2star,TR,TE,alpha=None,M0=1):
     S = M0*np.sin(alpha)*(1 - E1)*E2/(1 - np.cos(alpha)*E1)
     return(S)
 
-def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,iter=200):
+def gre_sim_loop(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,iter=200):
     '''Simulate GRE pulse sequence.
 
     T1 -- longitudinal exponential decay time constant.
@@ -132,7 +133,6 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
     T1 = T1.flatten()
     T2 = T2.flatten()
     M0 = M0.flatten()
-
 
     Mgre = np.zeros((3,T1.size))
     for ii in trange(T1.size):
@@ -186,3 +186,82 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,
     # We want the complex transverse magnetization
     Mxy = (Mgre[0,:] + 1j*Mgre[1,:]).reshape(orig_size)
     return(Mxy)
+
+
+def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,dphi=np.pi,M0=1,iter=200):
+    '''Simulate GRE pulse sequence.
+
+    T1 -- longitudinal exponential decay time constant.
+    T2 -- Transverse exponential decay time constant.
+    TR -- repetition time.
+    TE -- echo time.
+    alpha -- flip angle.
+    field_map -- offresonance field map (in hertz).
+    dphi -- phase  cycling of RF pulses.
+    M0 -- proton density.
+    iter -- number of excitations till steady state.
+    '''
+
+    if field_map is None:
+        field_map = np.zeros(T1.shape)
+
+    Mgre = np.zeros((3,iter) + T1.shape)
+    Mgre[2,0,...] = M0
+
+    # Rotation matrix each Rx pulse
+    rxalpha = np.array([ [1,0,0],[0,np.cos(alpha),np.sin(alpha)],[0,-np.sin(alpha),np.cos(alpha)] ])
+
+    # first flip
+    phi = 0
+    rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
+    rznegdphi = np.array([ [np.cos(-phi),np.sin(-phi),0],[-np.sin(-phi),np.cos(-phi),0],[0,0,1] ])
+    rot_vec = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi))
+    Mgre[:,0,...] = np.tensordot(rot_vec,Mgre[:,0,...],axes=1)
+
+    # assume steady state after 200 flips
+    for n in trange(1,iter):
+
+        # relaxation
+        Mgre[0,n,...] = Mgre[0,n-1,...]*np.exp(-TR/T2) # x
+        Mgre[1,n,...] = Mgre[1,n-1,...]*np.exp(-TR/T2) # y
+        Mgre[2,n,...] = 1 + (Mgre[2,n-1,...] - 1)*np.exp(-TR/T1) # z
+
+        cycles = field_map*TR
+        rotation_angle = np.fmod(cycles,1)*2*np.pi
+        for idx,fm in np.ndenumerate(field_map):
+            rzoffres = np.array([ [np.cos(rotation_angle[idx[0],idx[1]]),np.sin(rotation_angle[idx[0],idx[1]]),0],[-np.sin(rotation_angle[idx[0],idx[1]]),np.cos(rotation_angle[idx[0],idx[1]]),0],[0,0,1] ])
+            Mgre[:,n,idx[0],idx[1]] = rzoffres.dot(Mgre[:,n,idx[0],idx[1]])
+
+        # # Here's where we spend most of our time:
+        # for idx,fm in np.ndenumerate(field_map):
+        #     cycles = fm*TR
+        #     rotation_angle = np.fmod(cycles,1)*2*np.pi
+        #     rzoffres = np.array([ [np.cos(rotation_angle),np.sin(rotation_angle),0],[-np.sin(rotation_angle),np.cos(rotation_angle),0],[0,0,1] ])
+        #     Mgre[:,n,idx[0],idx[1]] = rzoffres.dot(Mgre[:,n,idx[0],idx[1]])
+
+        # next tip
+        # delete phase information! to make it gre
+        Mgre[0,n,...] = 0
+        Mgre[1,n,...] = 0
+
+        # will got over 2*pi but shouldn't matter
+        phi += dphi
+
+        rzdphi = np.array([ [np.cos(phi),np.sin(phi),0],[-np.sin(phi),np.cos(phi),0],[0,0,1] ])
+        rznegdphi = np.array([ [np.cos(-phi),np.sin(-phi),0],[-np.sin(-phi),np.cos(-phi),0],[0,0,1] ])
+        rot_vec = np.linalg.multi_dot((rzdphi,rxalpha,rznegdphi))
+        Mgre[:,n,...] = np.tensordot(rot_vec,Mgre[:,n,...],axes=1)
+
+    # take steady state sample and relax in TE
+    Mss = np.zeros((3,) + T1.shape)
+    Mss[0,...] = Mgre[0,-1,...]*np.exp(-TE/T2)
+    Mss[1,...] = Mgre[1,-1,...]*np.exp(-TE/T2)
+    Mss[2,...] = Mgre[2,-1,...]
+
+    for idx,fm in np.ndenumerate(field_map):
+        cycles = fm*TE
+        rotation_angle = np.fmod(cycles,1)*2*np.pi
+        rzoffres = np.array([ [np.cos(rotation_angle),np.sin(rotation_angle),0],[-np.sin(rotation_angle),np.cos(rotation_angle),0],[0,0,1] ])
+        Mss[:,idx[0],idx[1]] = rzoffres.dot(Mss[:,idx[0],idx[1]])
+
+    return(Mss[0,...] + 1j*Mss[1,...])
