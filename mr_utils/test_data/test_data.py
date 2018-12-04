@@ -16,6 +16,14 @@ single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_vo
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
+# For Gadgetron GRAPPA Examples
+class BSSFPGrappa(object):
+
+    @staticmethod
+    def pc0_r2():
+        path = str(Path('mr_utils/test_data/examples/gadgetron/meas_MID16_TRUFI_STW_TE2_FID34482.dat').resolve())
+        return(path)
+
 ## XPROT FILES
 # For xprot_parser
 class XProtParserTest(object):
