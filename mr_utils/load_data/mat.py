@@ -2,6 +2,9 @@ import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=ImportWarning)
     from scipy.io import loadmat
+import logging
+
+logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
 def deal_with_7_3(data):
     # Complex arrays will have a structured datatype...
@@ -23,7 +26,7 @@ def load_mat(filename,key=None):
             return(loadmat(filename)[key])
     except NotImplementedError:
         # MAT files v7.3 won't work with loadmat, so we use h5py
-        print('Old mat file version detected...')
+        logging.info('Old mat file version detected...')
 
         import numpy as np
         with warnings.catch_warnings():

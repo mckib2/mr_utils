@@ -42,7 +42,7 @@ def view(
         mag=None,
         phase=False,
         log=False,
-        cmap='gray',
+        imshow_opts={'cmap':'gray'},
         montage_axis=None,
         montage_opts={'padding_width':2},
         movie_axis=None,
@@ -72,7 +72,7 @@ def view(
     mag -- View magnitude image. Defaults to True if data is complex.
     phase -- View phase image.
     log -- View log of magnitude data. Defaults to False.
-    cmap -- Color map to use in plot.
+    imshow_opts -- Options to pass to imshow. Defaults to { 'cmap'='gray' }.
 
     montage_axis -- Which axis is the number of images to be shown.
     montage_opts -- Additional options to pass to the skimage.util.montage.
@@ -330,7 +330,7 @@ def view(
     if movie_axis is not None:
         fig = plt.figure()
         data = np.moveaxis(data,movie_axis,-1)
-        im = plt.imshow(data[...,0],cmap=cmap)
+        im = plt.imshow(data[...,0],**imshow_opts)
 
         def updatefig(frame):
             im.set_array(data[...,frame])
@@ -345,7 +345,7 @@ def view(
             plt.plot(data)
         elif data.ndim == 2:
             # Just a regular old 2d image...
-            plt.imshow(data,cmap=cmap)
+            plt.imshow(data,**imshow_opts)
         else:
             raise ValueError('%d is too many dimensions!' % data.ndim)
 

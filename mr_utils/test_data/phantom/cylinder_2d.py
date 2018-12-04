@@ -26,9 +26,9 @@ def cylinder_2d(dims=(64,64),FOV=((-1,1),(-1,1)),radius=0.5):
     X,Y = np.meshgrid(x,y)
     bottle_idx = np.sqrt(X**2 + Y**2) < radius
 
-    PD = np.zeros(dims)
-    T1s = np.zeros(dims)
-    T2s = np.zeros(dims)
+    PD = np.zeros(dims).T
+    T1s = np.zeros(dims).T
+    T2s = np.zeros(dims).T
 
     PD[bottle_idx] = params['M0']
     T1s[bottle_idx] = params['T1']
@@ -59,7 +59,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
         fy = np.zeros(dims[1])
         field_map,_ = np.meshgrid(fx,fy)
 
-    im = ssfp(T1s,T2s,TR,alpha,field_map,phase_cyc=phase_cyc,M0=PD)
+    im = ssfp(T1s,T2s,TR,alpha,field_map,phase_cyc=phase_cyc,M0=PD).T
     # im = gre_sim(T1s,T2s,TR,TR/2,alpha,field_map,phi=phase_cyc,dphi=phase_cyc,M0=PD,spoil=False,iter=200)
     # im[np.isnan(im)] = 0
     # view(im)
@@ -70,7 +70,7 @@ def bssfp_2d_cylinder(TR=6e-3,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),rad
         return(im)
 
 
-def spoiled_gre_2d_cylinder(TR=0.3,TE=0.003,alpha=None,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,kspace=False):
+def spgr_2d_cylinder(TR=0.3,TE=0.003,alpha=np.pi/3,dims=(64,64),FOV=((-1,1),(-1,1)),radius=.5,field_map=None,kspace=False):
     '''Simulates axial spoiled GRE scan of cylindrical phantom.
 
     TR -- Repetition time.
@@ -86,7 +86,8 @@ def spoiled_gre_2d_cylinder(TR=0.3,TE=0.003,alpha=None,dims=(64,64),FOV=((-1,1),
     PD,T1s,T2s = cylinder_2d(dims=dims,FOV=FOV,radius=radius)
 
     # Do the sim
-    im = spoiled_gre(T1s,T2s,TR,TE,alpha,field_map=field_map,M0=PD)
+    # im = spoiled_gre(T1s,T2s,TR,TE,alpha,field_map=field_map,M0=PD)
+    im = gre_sim(T1s,T2s,TR,TE,alpha,field_map,M0=PD)
 
     # Hand back what we asked for
     if kspace:
