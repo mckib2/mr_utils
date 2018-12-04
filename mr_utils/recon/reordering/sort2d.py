@@ -1,4 +1,5 @@
 import numpy as np
+from mr_utils import view
 
 def sort2d_loop(A):
     '''An efficient selection sorting algorithm for two-dimensional arrays.
@@ -35,14 +36,32 @@ def sort2d_loop(A):
     return(B)
 
 def sort2d(A):
-    return(np.reshape(-np.sort(np.sort(-A,axis=1).flatten('F'),axis=0),A.shape,order='C'))
+    # Get the indices
+    idx0 = np.arange(A.size).reshape(A.shape)
+    idx1 = idx0[np.arange(A.shape[0])[:,None],np.argsort(-A,axis=1)]
+    idx2 = idx1.flatten('F')
+    idx3 = idx2.take(np.argsort(np.sort(-A,axis=1).flatten('F')),axis=0)
+    idx4 = idx3.reshape(A.shape,order='C')
+
+    # Tread carefully...
+    # val0 = -A.take(idx2)
+    # assert np.allclose(np.sort(-A,axis=1).flatten('F'),val0)
+    #
+    # val1 = A.take(idx3)
+    # assert np.allclose(-np.sort(np.sort(-A,axis=1).flatten('F'),axis=0),val1)
+    #
+    # val2 = A.take(idx4)
+    # assert np.allclose(np.reshape(-np.sort(np.sort(-A,axis=1).flatten('F'),axis=0),A.shape,order='C'),val2)
+
+    val = np.reshape(-np.sort(np.sort(-A,axis=1).flatten('F'),axis=0),A.shape,order='C')
+    return(val,idx4)
 
 if __name__ == '__main__':
 
     A = np.array([ [3,4,6],[7,2,8],[1,9,5] ])
 
     B = sort2d_loop(A)
-    C = sort2d(A)
+    C,idx = sort2d(A)
 
     print(A)
     print(B)
