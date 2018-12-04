@@ -5,6 +5,7 @@ from mr_utils.load_data import load_mat
 from scipy.io import savemat
 import logging
 from mr_utils.config import ProfileConfig
+from mr_utils.definitions import done_token
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -12,7 +13,7 @@ class MATLAB(object):
     def __init__(self):
 
         # When we run a command we need to know when we're done...
-        self.done_token = '__mr_utils_done__'
+        self.done_token = done_token
 
         # start instance of matlab of host
         cmd = 'matlab -nodesktop -nosplash'
@@ -22,19 +23,23 @@ class MATLAB(object):
         # Read out opening message
         self.catch_output()
 
-    def run(self,cmd):
+    def run(self,cmd,log_func=None):
         '''Run MATLAB command in subprocess.'''
 
         self.process.stdin.write(('%s\n' % cmd))
         self.process.stdin.write("fprintf('%s\\n')\n" % self.done_token)
         logging.info(cmd)
+        if log_func is not None:
+            log_func(cmd)
 
         # Capture output if any from command.  There will at least be the
         # done_token to collect.
-        self.catch_output()
+        self.catch_output(log_func=log_func)
 
-    def catch_output(self):
+    def catch_output(self,log_func=None):
         for l in self.process.stdout:
+            if log_func is not None:
+                log_func(l.rstrip())
             if self.done_token in l.rstrip():
                 break
             logging.info(l.rstrip())
@@ -99,15 +104,26 @@ class MATLAB(object):
 class MyTCPHandler(socketserver.StreamRequestHandler):
 
     def handle(self):
-        self.cmd = self.rfile.readline().strip()
+
+        # Incoming connection...
         logging.info('%s connected' % self.client_address[0])
-        logging.info('cmd issued: %s' % self.cmd.decode())
 
-        self.server.matlab.run(self.cmd.decode())
+        # See what they want to do
+        self.what = self.rfile.readline().strip().decode()
+        if self.what == 'RUN':
 
-        self.wfile.write(self.cmd.upper())
+            # The command will be coming next
+            self.cmd = self.rfile.readline().strip()
+            # logging.info('cmd issued: %s' % self.cmd.decode())
+            self.server.matlab.run(self.cmd.decode(),log_func=lambda x: self.wfile.write(x.encode()))
 
+        elif self.what == 'GET':
+            pass
 
+        else:
+            msg = 'Not quite sure what you want me to do, %s is not a valid identifier.' % self.what
+            self.wfile.write(msg.encode())
+            logging.info(msg)
 
 if __name__ == '__main__':
 
@@ -128,4 +144,5 @@ if __name__ == '__main__':
         logging.info('Interrupt the server with Ctrl-C')
         server.serve_forever()
     finally:
+        logging.info('Just a sec, stopping matlab and freeing up ports...')
         matlab.exit()
