@@ -1,18 +1,14 @@
+import socketserver
 from subprocess import Popen,PIPE
-import logging
 from tempfile import NamedTemporaryFile
 from mr_utils.load_data import load_mat
 from scipy.io import savemat
+import logging
+from mr_utils.config import ProfileConfig
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-class Client():
-    '''Open MATLAB subprocess to run commands and view output.
-
-    Currently only works with MATLAB installations installed on the same
-    computer the client is launched from.
-    '''
-
+class MATLAB(object):
     def __init__(self):
 
         # When we run a command we need to know when we're done...
@@ -99,5 +95,37 @@ class Client():
         else:
             logging.error(exit_message)
 
+# Create the server, binding to localhost on port
+class MyTCPHandler(socketserver.StreamRequestHandler):
+
+    def handle(self):
+        self.cmd = self.rfile.readline().strip()
+        logging.info('%s connected' % self.client_address[0])
+        logging.info('cmd issued: %s' % self.cmd.decode())
+
+        self.server.matlab.run(self.cmd.decode())
+
+        self.wfile.write(self.cmd.upper())
+
+
+
 if __name__ == '__main__':
-    pass
+
+    # Find host,port from profiles.config
+    profile = ProfileConfig()
+    host = profile.get_config_val('matlab.host')
+    port = profile.get_config_val('matlab.port')
+
+    # Start an instance of MATLAB
+    try:
+        matlab = MATLAB()
+        server = socketserver.TCPServer((host,port),MyTCPHandler)
+        server.matlab = matlab
+
+        # Activate the server; this will keep running until you
+        # interrupt the program with Ctrl-C
+        logging.info('Server running on %s:%d' % (host,port))
+        logging.info('Interrupt the server with Ctrl-C')
+        server.serve_forever()
+    finally:
+        matlab.exit()

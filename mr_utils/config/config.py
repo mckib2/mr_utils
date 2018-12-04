@@ -98,7 +98,7 @@ class ProfileConfig(object):
     def get_config_val(self,key):
 
         # parse these out as integers
-        if key in [ 'gadgetron.port' ]:
+        if key in [ 'gadgetron.port','matlab.port' ]:
             return(self.parser.getint(self.active_profile,key))
         else:
             # as strings
