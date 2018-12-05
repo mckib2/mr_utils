@@ -6,6 +6,7 @@ from scipy.io import savemat
 import logging
 from mr_utils.config import ProfileConfig
 from mr_utils.definitions import done_token
+from functools import partial
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -60,16 +61,9 @@ class MATLAB(object):
 
         tmp_filename = NamedTemporaryFile(suffix='.mat').name
         cmd = "save('%s',%s)" % (tmp_filename,','.join([ "'%s'" % vname for vname in varnames ]))
-        # logging.info(cmd)
         self.run(cmd)
 
-        try:
-            data = load_mat(tmp_filename)
-        except:
-            raise ValueError('Was not able to read MATLAB workspace variables.')
-
-        vals = { key: data[key] for key in varnames }
-        return(vals)
+        return(tmp_filename)
 
     def put(self,vars):
         '''Put variables from python into MATLAB workspace.
@@ -118,7 +112,20 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
             self.server.matlab.run(self.cmd.decode(),log_func=lambda x: self.wfile.write(x.encode()))
 
         elif self.what == 'GET':
-            pass
+
+            # Client will say what the bufsize is:
+            bufsize = int(self.rfile.readline().strip().decode())
+            logging.info('bufsize for GET is %d' % bufsize)
+
+            # The list of varnames to get from the workspace will be next
+            varnames = self.rfile.readline().strip().decode()
+            tmp_filename = self.server.matlab.get(varnames.split())
+
+            # Send binary file over socket
+            with open(tmp_filename,'rb') as f:
+                for chunk in iter(partial(f.read,bufsize),b''):
+                    self.wfile.write(chunk)
+            self.wfile.write(done_token.encode())
 
         else:
             msg = 'Not quite sure what you want me to do, %s is not a valid identifier.' % self.what
