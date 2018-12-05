@@ -21,7 +21,10 @@ class ProfileConfig(object):
             'gadgetron.port': 9002,
             'siemens_to_ismrmrd.host': 'localhost',
             'siemens_to_ismrmrd.user': 'user',
-            'siemens_to_ismrmrd.ssh_key': '%s/.ssh/id_rsa' % os.environ['HOME']
+            'siemens_to_ismrmrd.ssh_key': '%s/.ssh/id_rsa' % os.environ['HOME'],
+            'matlab.host': 'localhost',
+            'matlab.port': 9999,
+            'matlab.bufsize': 1024
         }
 
         # Make sure there is a section called 'default'
