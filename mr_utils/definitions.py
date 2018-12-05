@@ -18,6 +18,3 @@ if find_executable('siemens_to_ismrmrd') is not None:
     SIEMENS_TO_ISMRMRD_INSTALLED = True
 else:
     SIEMENS_TO_ISMRMRD_INSTALLED = False
-
-# Define 'done token' for communication with MATLAB server
-done_token = '__mr_utils_done__'

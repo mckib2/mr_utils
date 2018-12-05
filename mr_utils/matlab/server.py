@@ -2,10 +2,9 @@ import socketserver
 from subprocess import Popen,PIPE
 from tempfile import NamedTemporaryFile
 from mr_utils.load_data import load_mat
-from scipy.io import savemat
 import logging
 from mr_utils.config import ProfileConfig
-from mr_utils.definitions import done_token
+from mr_utils.matlab.contract import done_token,RUN,GET,PUT
 from functools import partial
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
@@ -65,21 +64,12 @@ class MATLAB(object):
 
         return(tmp_filename)
 
-    def put(self,vars):
+    def put(self,tmp_filename):
         '''Put variables from python into MATLAB workspace.
 
-        vars -- Python variables to be injected into MATLAB workspace.
-
-        Notice that vars should be a dictionary: keys are the desired names of
-        the variables in the MATLAB workspace and values are the python
-        variables.
+        tmp_filename -- MAT file holding variables to inject into workspace.
         '''
 
-        if type(vars) is not dict:
-            raise ValueError('vars should be a dictionary of python variables!')
-
-        tmp_filename = NamedTemporaryFile(suffix='.mat').name
-        savemat(tmp_filename,vars)
         cmd = "load('%s','-mat')" % tmp_filename
         self.run(cmd)
 
@@ -104,18 +94,18 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
 
         # See what they want to do
         self.what = self.rfile.readline().strip().decode()
-        if self.what == 'RUN':
+        if self.what == RUN:
 
             # The command will be coming next
             self.cmd = self.rfile.readline().strip()
             # logging.info('cmd issued: %s' % self.cmd.decode())
             self.server.matlab.run(self.cmd.decode(),log_func=lambda x: self.wfile.write(x.encode()))
 
-        elif self.what == 'GET':
+        elif self.what == GET:
 
             # Client will say what the bufsize is:
             bufsize = int(self.rfile.readline().strip().decode())
-            logging.info('bufsize for GET is %d' % bufsize)
+            logging.info('bufsize for %s is %d' % (GET,bufsize))
 
             # The list of varnames to get from the workspace will be next
             varnames = self.rfile.readline().strip().decode()
@@ -127,13 +117,31 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                     self.wfile.write(chunk)
             self.wfile.write(done_token.encode())
 
+        elif self.what == PUT:
+
+            # Client will say what the bufsize is:
+            bufsize = int(self.rfile.readline().strip().decode())
+            logging.info('bufsize for %s is %d' % (PUT,bufsize))
+
+            # Get ready to recieve file
+            tmp_filename = NamedTemporaryFile().name
+            with open(tmp_filename,'wb') as f:
+                done = False
+                while not done:
+                    received = self.rfile.read(bufsize)
+                    if bytes(done_token,'utf-8') in received:
+                        received = received[:-len(done_token)]
+                        done = True
+                    f.write(received)
+
+            self.server.matlab.put(tmp_filename)
+
         else:
             msg = 'Not quite sure what you want me to do, %s is not a valid identifier.' % self.what
             self.wfile.write(msg.encode())
             logging.info(msg)
 
-if __name__ == '__main__':
-
+def start_server():
     # Find host,port from profiles.config
     profile = ProfileConfig()
     host = profile.get_config_val('matlab.host')
@@ -153,3 +161,7 @@ if __name__ == '__main__':
     finally:
         logging.info('Just a sec, stopping matlab and freeing up ports...')
         matlab.exit()
+
+
+if __name__ == '__main__':
+    start_server()
