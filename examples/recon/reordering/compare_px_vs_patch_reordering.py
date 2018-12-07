@@ -1,7 +1,7 @@
 import numpy as np
 from mr_utils import view
 from mr_utils.recon.reordering import sort2d
-from mr_utils.matlab import Client
+from mr_utils.matlab import client_run,client_get,client_put
 from mr_utils.load_data import load_mat
 from mr_utils.test_data.phantom import bssfp_2d_cylinder
 from skimage.measure import compare_mse,compare_ssim,compare_psnr
@@ -9,10 +9,19 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def run_ganesh_tcr(kspace,mask,weight_fidelity,weight_temporal,beta_sqrd,noi):
-    client = Client()
-    client.run('cd mr_utils/recon/reordering/temporal_tv')
-    client.put({
+def run_ganesh_tcr(kspace,mask,weight_fidelity,weight_temporal,beta_sqrd,noi,reordering=None):
+
+    if reordering is not None:
+        client_put({ 'idx_real':reordering.real,'idx_imag':reordering.imag })
+        client_run("save('reordering.mat','idx_real','idx_imag')")
+        client_run('use_reorder = true;')
+    else:
+        client_run('use_reorder = false;')
+
+    client_run('clear')
+    client_run('pwd')
+    client_run('cd mr_utils/recon/reordering/temporal_tv')
+    client_put({
         'Coil':kspace,
         'mask_k_space_sparse':mask,
         'weight_fidelity':weight_fidelity,
@@ -21,12 +30,11 @@ def run_ganesh_tcr(kspace,mask,weight_fidelity,weight_temporal,beta_sqrd,noi):
         'noi':noi
     })
     # client.run('load Coil6.mat; load mask_k_space_sparse.mat')
-    client.run('reduced_k_space = Coil.*mask_k_space_sparse;')
-    client.run('prior = generate_prior(reduced_k_space);')
+    client_run('reduced_k_space = Coil.*mask_k_space_sparse;')
+    client_run('prior = generate_prior(reduced_k_space);')
     # client.run('recon_data = zeros(size(prior));')
-    client.run('recon_data = recon_tcr_reorder(prior,reduced_k_space,mask_k_space_sparse,noi,weight_fidelity,weight_temporal,beta_sqrd);')
-    data = client.get([ 'Coil','mask_k_space_sparse','recon_data' ])
-    client.exit()
+    client_run('recon_data = recon_tcr_reorder(prior,reduced_k_space,mask_k_space_sparse,noi,weight_fidelity,weight_temporal,beta_sqrd,use_reorder);')
+    data = client_get([ 'Coil','mask_k_space_sparse','recon_data' ])
     return(data)
 
 def preprocess(data):
@@ -36,6 +44,7 @@ def preprocess(data):
     return(coil_imspace,recon_flipped,prior)
 
 def do_compare(coil_imspace,recon_flipped):
+
     # Normalize so they are comparable
     abs_coil_imspace = np.abs(coil_imspace)
     abs_coil_imspace /= np.max(abs_coil_imspace)
@@ -73,25 +82,29 @@ if __name__ == '__main__':
     weight_temporal = 0.01
     beta_sqrd = 1e-7
     noi = 200
-    data = run_ganesh_tcr(circ,mask,weight_fidelity,weight_temporal,beta_sqrd,noi)
+    # data = run_ganesh_tcr(circ,mask,weight_fidelity,weight_temporal,beta_sqrd,noi)
+    #
+    # # Unpack, FFT, apply masks to reference, recon, and prior image estimates
+    # coil_imspace,recon_flipped,prior = preprocess(data)
+    #
+    # view(coil_imspace)
+    # view(prior)
+    # view(recon_flipped)
+    #
+    # # Do comparisons
+    # MSE_no,SSIM_no,PSNR_no = do_compare(coil_imspace,prior)
+    # MSE_px,SSIM_px,PSNR_px = do_compare(coil_imspace,recon_flipped)
+    #
+    # logging.info('For no recon:')
+    # logging.info('  MSE : %g' % MSE_no)
+    # logging.info('  SSIM: %g' % SSIM_no)
+    # logging.info('  PSNR: %g' % PSNR_no)
+    #
+    # logging.info('For px recon:')
+    # logging.info('  MSE : %g' % MSE_px)
+    # logging.info('  SSIM: %g' % SSIM_px)
+    # logging.info('  PSNR: %g' % PSNR_px)
 
-    # Unpack, FFT, apply masks to reference, recon, and prior image estimates
-    coil_imspace,recon_flipped,prior = preprocess(data)
-
-    view(coil_imspace)
-    view(prior)
-    view(recon_flipped)
-
-    # Do comparisons
-    MSE_no,SSIM_no,PSNR_no = do_compare(coil_imspace,prior)
-    MSE_px,SSIM_px,PSNR_px = do_compare(coil_imspace,recon_flipped)
-
-    logging.info('For no recon:')
-    logging.info('  MSE : %g' % MSE_no)
-    logging.info('  SSIM: %g' % SSIM_no)
-    logging.info('  PSNR: %g' % PSNR_no)
-
-    logging.info('For px recon:')
-    logging.info('  MSE : %g' % MSE_px)
-    logging.info('  SSIM: %g' % SSIM_px)
-    logging.info('  PSNR: %g' % PSNR_px)
+    # Try patch reordering
+    # idx_real = sort2d()
+    data = run_ganesh_tcr(circ,mask,weight_fidelity,weight_temporal,beta_sqrd,noi,reordering=None)
