@@ -11,6 +11,9 @@ logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
 def run_ganesh_tcr(kspace,mask,weight_fidelity,weight_temporal,beta_sqrd,noi,reordering=None):
 
+    # start with a clean slate
+    client_run('clear')
+
     if reordering is not None:
         client_put({ 'idx_real':reordering.real,'idx_imag':reordering.imag })
         client_run("save('reordering.mat','idx_real','idx_imag')")
@@ -18,7 +21,6 @@ def run_ganesh_tcr(kspace,mask,weight_fidelity,weight_temporal,beta_sqrd,noi,reo
     else:
         client_run('use_reorder = false;')
 
-    client_run('clear')
     client_run('pwd')
     client_run('cd mr_utils/recon/reordering/temporal_tv')
     client_put({
@@ -108,3 +110,9 @@ if __name__ == '__main__':
     # Try patch reordering
     # idx_real = sort2d()
     data = run_ganesh_tcr(circ,mask,weight_fidelity,weight_temporal,beta_sqrd,noi,reordering=None)
+    coil_imspace,recon_flipped,prior = preprocess(data)
+    view(coil_imspace)
+    view(prior)
+    view(recon_flipped)
+
+# look at FFT scale
