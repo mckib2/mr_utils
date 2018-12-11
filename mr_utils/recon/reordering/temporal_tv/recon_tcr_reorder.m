@@ -1,6 +1,6 @@
-function img_est = recon_tcr_reorder(prior,reduced_k_space,mask_k_space_sparse,noi,weight_fidelity,weight_temporal,beta_sqrd)
+function img_est = recon_tcr_reorder(prior,reduced_k_space,mask_k_space_sparse,noi,weight_fidelity,weight_temporal,beta_sqrd,use_reorder)
 
-[sort_order_real sort_order_imag] = sort_real_imag_parts(prior);
+[sort_order_real sort_order_imag] = sort_real_imag_parts(prior,use_reorder);
 
 measuredImgDomain = zeros(size(reduced_k_space));
 for i = 1:size(measuredImgDomain,3)
