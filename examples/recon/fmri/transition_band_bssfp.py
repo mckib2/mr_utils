@@ -49,9 +49,11 @@ def hrf(times):
 if __name__ == '__main__':
 
     saveNifti = True
-    hrf_scale = .05
-    time_pts = 80
-    sigma = .25
+    hrf_scale = 0.05
+    time_pts = 180
+    # num_slices = 40
+    sigma = 0.08
+    plots = True
 
     # IDEA:
     # - Acquire T1,T2 maps before hand (perhaps during structural scan)
@@ -99,20 +101,22 @@ if __name__ == '__main__':
 
     # Now choose only time_pts points
     samples = np.round(np.linspace(0,design.size - 1,time_pts)).astype(int)
+    print('dt: %g' % (samples[1] - samples[0]))
     design = design[samples]
     hrf0 = hrf0[samples]
 
-    plt.subplot(1,2,1)
-    plt.plot(t,hrf_kernel)
-    plt.xlabel('sec')
-    plt.title('HRF Model')
+    if plots:
+        plt.subplot(1,2,1)
+        plt.plot(t,hrf_kernel)
+        plt.xlabel('sec')
+        plt.title('HRF Model')
 
-    plt.subplot(1,2,2)
-    plt.plot(hrf0/hrf_scale,label='Convolved HRF')
-    plt.plot(design,label='Block design')
-    plt.xlabel('time index')
-    plt.legend()
-    plt.show()
+        plt.subplot(1,2,2)
+        plt.plot(hrf0/hrf_scale,label='Convolved HRF')
+        plt.plot(design,label='Block design')
+        plt.xlabel('time index')
+        plt.legend()
+        plt.show()
 
     # Choose what areas to varying in time
     pd,t1s,t2s = cylinder_2d(radius=.1)
@@ -146,7 +150,14 @@ if __name__ == '__main__':
         for jj,pc in enumerate(pc_vals):
             bssfp_acqs[jj,...,ii] = bssfp_acq(T1s,T2s,PD,tv_field_map[...,ii],TR=bssfp_TR,phase_cyc=pc)
     # view(acqs,movie_axis=-1)
-    view(np.concatenate((gre_acqs,bssfp_acqs[0,...])),movie_axis=-1)
+    # view(np.concatenate((gre_acqs,bssfp_acqs[0,...])),movie_axis=-1)
+
+    # Translate the GRE data so we can get a good look at the actual changes
+    gre_acqs[np.abs(gre_acqs) > 0] -= np.max(gre_acqs[np.abs(gre_acqs) > 0].flatten())
+    gre_acqs[np.abs(gre_acqs) > 0] += np.min(gre_acqs[np.abs(gre_acqs) > 0].flatten())
+
+    if plots:
+        view(gre_acqs,movie_axis=-1)
 
     # Now get field maps
     recon_fm = np.zeros(tv_field_map.shape)
@@ -155,35 +166,37 @@ if __name__ == '__main__':
     # recon_fm[0,0,:] = 1 # ref pixel
     # view(recon_fm,movie_axis=-1)
     # view(np.stack((recon_fm[31,16,:],tv_field_map[31,16,:])))
-    plt.subplot(1,3,1)
-    plt.plot(recon_fm[31,16,:],label='Recon FM')
-    plt.plot(tv_field_map[31,16,:],label='Noisy FM')
-    plt.plot(hrf0,label='True HDR')
-    plt.legend()
 
-    plt.subplot(1,3,2)
-    plt.plot(recon_fm[31,16,:],label='Recon FM')
-    plt.plot(hrf0,label='True HDR')
-    plt.legend()
+    if plots:
+        plt.subplot(1,3,1)
+        plt.plot(recon_fm[31,16,:],label='Recon FM')
+        plt.plot(tv_field_map[31,16,:],label='Noisy FM')
+        plt.plot(hrf0,label='True HDR')
+        plt.legend()
 
-    plt.subplot(1,3,3)
-    plt.plot(np.abs(gre_acqs[31,16,:]),label='GRE')
-    plt.legend()
-    plt.show()
+        plt.subplot(1,3,2)
+        plt.plot(recon_fm[31,16,:],label='Recon FM')
+        plt.plot(hrf0,label='True HDR')
+        plt.legend()
+
+        plt.subplot(1,3,3)
+        plt.plot(np.abs(gre_acqs[31,16,:]),label='GRE')
+        plt.legend()
+        plt.show()
 
     if saveNifti:
         # Now we need to stick this data in something AFNI can work with
         data = np.expand_dims(recon_fm,2)
         data = np.stack((data,data),axis=2)
         data += np.min(data)
-        img = nib.Nifti1Image(data,np.eye(4))
+        img = nib.Nifti1Image(data.astype(np.float32),np.eye(4))
         filename = 'examples/recon/fmri/bssfp.nii.gz'
         nib.save(img,filename)
         logging.info('Wrote %s with shape %s' % (filename,data.shape))
 
         data = np.expand_dims(np.abs(gre_acqs),2)
         data = np.stack((data,data),axis=2)
-        img = nib.Nifti1Image(data,np.eye(4))
+        img = nib.Nifti1Image(data.astype(np.float32),np.eye(4))
         filename = 'examples/recon/fmri/gre.nii.gz'
         nib.save(img,filename)
         logging.info('Wrote %s with shape %s' % (filename,data.shape))
