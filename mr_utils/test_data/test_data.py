@@ -16,6 +16,14 @@ single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_vo
 single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
 single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
+# For Gadgetron GRAPPA Examples
+class BSSFPGrappa(object):
+
+    @staticmethod
+    def pc0_r2():
+        path = str(Path('mr_utils/test_data/examples/gadgetron/meas_MID16_TRUFI_STW_TE2_FID34482.dat').resolve())
+        return(path)
+
 ## XPROT FILES
 # For xprot_parser
 class XProtParserTest(object):
@@ -83,6 +91,31 @@ class GadgetronClient(object):
         data = np.load(path)
         return(data)
 
+    @staticmethod
+    def epi_input_filename():
+        '''Gadgetron test data.
+        http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/epi/epi_2d_out_20161020_pjv.h5
+        '''
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/epi_2d_out_20161020_pjv.h5').resolve())
+        return(path)
+
+    @staticmethod
+    def generic_cartesian_grappa_filename():
+        '''Gadgetron test data.
+        http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/tse/meas_MID00450_FID76726_SAX_TE62_DIR_TSE/ref_20160319.dat
+        '''
+        path = str(Path('mr_utils/test_data/tests/gadgetron/client/meas_MID00450_FID76726_SAX_TE62_DIR_TSE.dat').resolve())
+        return(path)
+
+
+    # @staticmethod
+    # def epi_raw_input_filename():
+    #     '''Gadgetron test data.
+    #     http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/epi_ave/meas_MID01349_FID12150_amri_ep2d_bold_96x72x5_R2_16avg_gadgetron.dat
+    #     '''
+    #     path = str(Path('mr_utils/test_data/tests/gadgetron/client/meas_MID01349_FID12150_amri_ep2d_bold_96x72x5_R2_16avg_gadgetron.dat').resolve())
+    #     return(path)
+
 ## NPY FILES
 # For ssfp multiphase:
 class SSFPMultiphase(object):
@@ -102,6 +135,14 @@ class SSFPMultiphase(object):
         path_180 = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_180.npy').resolve())
         data = np.load(path_180)
         return(data)
+
+# For VIEW testing:
+class ViewTestData(object):
+
+    @staticmethod
+    def ssfp_ankle_te_6_pc_0():
+        path = str(Path('mr_utils/test_data/tests/recon/ssfp/ssfp_ankle_te_6_pc_0.npy').resolve())
+        return(path)
 
 # For BART reordering recon
 class BARTReordering(object):

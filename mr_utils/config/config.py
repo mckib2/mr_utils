@@ -21,7 +21,10 @@ class ProfileConfig(object):
             'gadgetron.port': 9002,
             'siemens_to_ismrmrd.host': 'localhost',
             'siemens_to_ismrmrd.user': 'user',
-            'siemens_to_ismrmrd.ssh_key': '%s/.ssh/id_rsa' % os.environ['HOME']
+            'siemens_to_ismrmrd.ssh_key': '%s/.ssh/id_rsa' % os.environ['HOME'],
+            'matlab.host': 'localhost',
+            'matlab.port': 9999,
+            'matlab.bufsize': 1024
         }
 
         # Make sure there is a section called 'default'
@@ -98,7 +101,7 @@ class ProfileConfig(object):
     def get_config_val(self,key):
 
         # parse these out as integers
-        if key in [ 'gadgetron.port' ]:
+        if key in [ 'gadgetron.port','matlab.port','matlab.bufsize' ]:
             return(self.parser.getint(self.active_profile,key))
         else:
             # as strings

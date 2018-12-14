@@ -1,6 +1,7 @@
 import unittest
 from mr_utils.sim.gre import spoiled_gre,ernst,gre_sim,gre_sim_loop
 from mr_utils.test_data.phantom import cylinder_2d
+from mr_utils.sim.ssfp import ssfp
 from mr_utils import view
 import numpy as np
 
@@ -39,3 +40,11 @@ class TestGRE(unittest.TestCase):
         # same within a scale factor...
         val = np.abs(im1) - np.abs(im2)
         self.assertTrue(np.all(np.diff(val[np.nonzero(val)]) == 0))
+
+    def test_gre_unspoiled_and_bssfp(self):
+        M0,T1,T2 = 5.0,1.0,.5
+        im1 = gre_sim(T1,T2,TR=self.TR,TE=self.TR/2,alpha=self.alpha,field_map=np.zeros(1),M0=M0,spoil=False,iter=200)
+        im2 = ssfp(T1,T2,TR=self.TR,alpha=self.alpha,field_map=np.zeros(1),phase_cyc=0,M0=M0)
+
+        # Currently failing...
+        self.assertEqual(im1,im2)

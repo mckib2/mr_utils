@@ -2,11 +2,13 @@ import warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore",category=FutureWarning)
     import ismrmrd
-
 import struct
 import socket
 import threading
 import numpy as np
+import logging
+
+logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
 GADGET_MESSAGE_INT_ID_MIN                             =   0
 GADGET_MESSAGE_CONFIG_FILE                            =   1
@@ -189,14 +191,15 @@ class Connector(object):
 
     def read_task(self):
         while True:
-            msg = readsock(self.sock, SIZEOF_GADGET_MESSAGE_IDENTIFIER)
+            msg = readsock(self.sock,SIZEOF_GADGET_MESSAGE_IDENTIFIER)
             kind = GadgetMessageIdentifier.unpack(msg)[0]
 
+            # TODO: Figure out why we're getting invalid message ids...
             if kind == GADGET_MESSAGE_CLOSE:
-                print('GADGET_MESSAGE_CLOSE')
+                # logging.info('GADGET_MESSAGE_CLOSE')
                 break
             elif kind not in self.readers:
-                print("***Invalid message ID received: %d" % kind)
+                # logging.warning('Invalid message ID received: %d' % kind)
                 continue
 
             reader = self.readers[kind]

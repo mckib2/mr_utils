@@ -155,9 +155,17 @@ def load_raw(
                 slice = acq.idx.slice
                 y = acq.idx.kspace_encode_step_1
                 z = acq.idx.kspace_encode_step_2
-                all_data[avg, contrast, slice, :, z, y, :] = acq.data
 
-            data = all_data.astype('complex64').transpose((6,5,4,3,0,1,2)).squeeze()
+                try:
+                    all_data[avg, contrast, slice, :, z, y, :] = acq.data
+                except:
+                    all_data = None
+                    all_data = acq.data
+
+            try:
+                data = all_data.astype('complex64').transpose((6,5,4,3,0,1,2)).squeeze()
+            except:
+                data = all_data
 
         if error is not None:
             print(error)
@@ -165,7 +173,11 @@ def load_raw(
 
     elif use == 'rdi':
         from rawdatarinator.raw import raw
-        data = raw(filename)['kSpace'].transpose((0,1,3,2))
+        data = raw(filename)['kSpace']
+        try:
+            data = data.transpose((0,1,3,2))
+        except:
+            pass
     else:
         raise Exception('You must specify a method to read raw data in!')
 

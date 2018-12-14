@@ -219,6 +219,11 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,phi=0,dphi=0,M0=
     Returns complex transverse magnetization (Mx + 1j*My)
     '''
 
+    if type(T1) is not np.ndarray:
+        T1 = np.array([ T1 ])
+        T2 = np.array([ T2 ])
+        M0 = np.array([ M0 ])
+
     if field_map is None:
         field_map = np.zeros(T1.shape)
 
@@ -257,8 +262,8 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,phi=0,dphi=0,M0=
 
         # Here's where we spend most of our time:
         for idx,fm in np.ndenumerate(field_map):
-            rzoffres = np.array([ [c_ra[idx[0],idx[1]],s_ra[idx[0],idx[1]],0],[-s_ra[idx[0],idx[1]],c_ra[idx[0],idx[1]],0],[0,0,1] ])
-            Mgre[:,1,idx[0],idx[1]] = rzoffres.dot(Mgre[:,1,idx[0],idx[1]])
+            rzoffres = np.array([ [c_ra[idx],s_ra[idx],0],[-s_ra[idx],c_ra[idx],0],[0,0,1] ])
+            Mgre[(slice(None),1) + idx] = rzoffres.dot(Mgre[(slice(None),1) + idx])
 
         # next tip - delete phase information! to make it gre
         if spoil:
@@ -306,7 +311,7 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,phi=0,dphi=0,M0=
     rotation_angle = np.fmod(cycles,1)*2*np.pi
     c_ra,s_ra = np.cos(rotation_angle),np.sin(rotation_angle)
     for idx,fm in np.ndenumerate(field_map):
-        rzoffres = np.array([ [c_ra[idx[0],idx[1]],s_ra[idx[0],idx[1]],0],[-s_ra[idx[0],idx[1]],c_ra[idx[0],idx[1]],0],[0,0,1] ])
-        Mss[:,idx[0],idx[1]] = rzoffres.dot(Mss[:,idx[0],idx[1]])
+        rzoffres = np.array([ [c_ra[idx],s_ra[idx],0],[-s_ra[idx],c_ra[idx],0],[0,0,1] ])
+        Mss[(slice(None),) + idx] = rzoffres.dot(Mss[(slice(None),) + idx])
 
     return(Mss[0,...] + 1j*Mss[1,...])
