@@ -136,7 +136,8 @@ if __name__ == '__main__':
     # view(tv_field_map,movie_axis=-1)
 
     # Now acquire 4 phase-cycles at each time point
-    # also get GRE sims for comparison
+    # also get GRE sims for comparison - we'll also use the first bSSFP phase
+    # cycle to do quantitative reconstruction of the field map.
     pc_vals = [ 0,np.pi/2,np.pi,3*np.pi/2 ]
     bssfp_acqs = np.zeros((len(pc_vals),) + tv_field_map.shape,dtype='complex')
     gre_acqs = np.zeros(tv_field_map.shape,dtype='complex')
@@ -166,6 +167,14 @@ if __name__ == '__main__':
     # recon_fm[0,0,:] = 1 # ref pixel
     # view(recon_fm,movie_axis=-1)
     # view(np.stack((recon_fm[31,16,:],tv_field_map[31,16,:])))
+
+    # Now get the quantitative reconstruction of the field map using any of the
+    # bSSFP phase-cycles - choose the first arbitrarily (I'm not sure it
+    # matters...)
+    qbssfp_fm = np.zeros(tv_field_map.shape)
+    
+    for ii in range(time_pts):
+        qbssfp_fm[...,ii] =
 
     if plots:
         plt.subplot(1,3,1)
