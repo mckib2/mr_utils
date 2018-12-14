@@ -6,6 +6,7 @@ from mr_utils.test_data.phantom import cylinder_2d
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.recon.field_map import gs_field_map
 from mr_utils.sim.gre import gre_sim
+from mr_utils.sim.ssfp import quantitative_fm
 import matplotlib.pyplot as plt
 import logging
 from tqdm import trange
@@ -52,8 +53,8 @@ if __name__ == '__main__':
     hrf_scale = 0.05
     time_pts = 180
     # num_slices = 40
-    sigma = 0.08
-    plots = True
+    sigma = 0.5
+    plots = False
 
     # IDEA:
     # - Acquire T1,T2 maps before hand (perhaps during structural scan)
@@ -141,17 +142,26 @@ if __name__ == '__main__':
     pc_vals = [ 0,np.pi/2,np.pi,3*np.pi/2 ]
     bssfp_acqs = np.zeros((len(pc_vals),) + tv_field_map.shape,dtype='complex')
     gre_acqs = np.zeros(tv_field_map.shape,dtype='complex')
-    bssfp_TR = 5e-3
+    bssfp_TR = 2e-3
+    bssfp_alpha = np.deg2rad(50)
     gre_TR = 2.5
     gre_TE = 28e-3
-    for ii in trange(time_pts,leave=False):
+    for ii in trange(time_pts,leave=False,desc='GRE/bSSFP sim'):
 
         gre_acqs[...,ii] = gre_acq(T1s,T2s,PD,tv_field_map[...,ii],TR=gre_TR,TE=gre_TE,alpha=np.pi/2)
 
         for jj,pc in enumerate(pc_vals):
-            bssfp_acqs[jj,...,ii] = bssfp_acq(T1s,T2s,PD,tv_field_map[...,ii],TR=bssfp_TR,phase_cyc=pc)
-    # view(acqs,movie_axis=-1)
+            bssfp_acqs[jj,...,ii] = bssfp_acq(T1s,T2s,PD,tv_field_map[...,ii],alpha=bssfp_alpha,TR=bssfp_TR,phase_cyc=pc)
+    # view(bssfp_acqs[0,...],movie_axis=-1)
     # view(np.concatenate((gre_acqs,bssfp_acqs[0,...])),movie_axis=-1)
+
+    # Now get field maps
+    recon_fm = np.zeros(tv_field_map.shape)
+    for ii in trange(time_pts,leave=False,desc='GSFM'):
+        recon_fm[...,ii] = gs_field_map(*[ x.squeeze() for x in np.split(bssfp_acqs[...,ii],len(pc_vals)) ],TR=bssfp_TR)
+    # recon_fm[0,0,:] = 1 # ref pixel
+    # view(recon_fm,movie_axis=-1)
+    # view(np.stack((recon_fm[31,16,:],tv_field_map[31,16,:])))
 
     # Translate the GRE data so we can get a good look at the actual changes
     gre_acqs[np.abs(gre_acqs) > 0] -= np.max(gre_acqs[np.abs(gre_acqs) > 0].flatten())
@@ -160,21 +170,20 @@ if __name__ == '__main__':
     if plots:
         view(gre_acqs,movie_axis=-1)
 
-    # Now get field maps
-    recon_fm = np.zeros(tv_field_map.shape)
-    for ii in range(time_pts):
-        recon_fm[...,ii] = gs_field_map(*[ x.squeeze() for x in np.split(bssfp_acqs[...,ii],len(pc_vals)) ],TR=bssfp_TR)
-    # recon_fm[0,0,:] = 1 # ref pixel
-    # view(recon_fm,movie_axis=-1)
-    # view(np.stack((recon_fm[31,16,:],tv_field_map[31,16,:])))
 
     # Now get the quantitative reconstruction of the field map using any of the
     # bSSFP phase-cycles - choose the first arbitrarily (I'm not sure it
     # matters...)
     qbssfp_fm = np.zeros(tv_field_map.shape)
-    
-    for ii in range(time_pts):
-        qbssfp_fm[...,ii] =
+    dfs = np.arange(-1/bssfp_TR,1/bssfp_TR,.1) # Do for all possible df
+    q_pc = 0
+    mask = T1s > 0
+    for tt in trange(time_pts,leave=False,desc='qFM'):
+        qbssfp_fm[...,tt] = quantitative_fm(bssfp_acqs[q_pc,...,tt],dfs,T1s,T2s,PD,bssfp_TR,bssfp_alpha,phase_cyc=pc_vals[q_pc],mask=mask)
+    qbssfp_fm[np.abs(qbssfp_fm) > 0] -= np.min(qbssfp_fm[np.abs(qbssfp_fm) > 0].flatten())
+
+    if plots:
+        view(qbssfp_fm,movie_axis=-1)
 
     if plots:
         plt.subplot(1,3,1)
@@ -185,6 +194,7 @@ if __name__ == '__main__':
 
         plt.subplot(1,3,2)
         plt.plot(recon_fm[31,16,:],label='Recon FM')
+        plt.plot(qbssfp_fm[31,16,:],label='qFM')
         plt.plot(hrf0,label='True HDR')
         plt.legend()
 
@@ -207,5 +217,12 @@ if __name__ == '__main__':
         data = np.stack((data,data),axis=2)
         img = nib.Nifti1Image(data.astype(np.float32),np.eye(4))
         filename = 'examples/recon/fmri/gre.nii.gz'
+        nib.save(img,filename)
+        logging.info('Wrote %s with shape %s' % (filename,data.shape))
+
+        data = np.expand_dims(np.abs(qbssfp_fm),2)
+        data = np.stack((data,data),axis=2)
+        img = nib.Nifti1Image(data.astype(np.float32),np.eye(4))
+        filename = 'examples/recon/fmri/qfm.nii.gz'
         nib.save(img,filename)
         logging.info('Wrote %s with shape %s' % (filename,data.shape))
