@@ -54,7 +54,7 @@ if __name__ == '__main__':
     time_pts = 180
     # num_slices = 40
     sigma = 0.5
-    plots = False
+    plots = True
 
     # IDEA:
     # - Acquire T1,T2 maps before hand (perhaps during structural scan)
@@ -163,6 +163,20 @@ if __name__ == '__main__':
     # view(recon_fm,movie_axis=-1)
     # view(np.stack((recon_fm[31,16,:],tv_field_map[31,16,:])))
 
+    # Compare to just getting field map 4 times
+    avg_field_map = np.zeros(tv_field_map.shape)
+    for ii in trange(len(pc_vals),desc='AvgFM',leave=False):
+        avg_field_map += np.random.normal(0,sigma,tv_field_map.shape)
+        avg_field_map[idx,:] += hrf0
+    avg_field_map /= len(pc_vals)
+
+    if plots:
+        plt.plot(hrf0,label='HDR')
+        plt.plot(recon_fm[31,16,:],label='Recon FM')
+        plt.plot(avg_field_map[31,16,:],'--',label='Avg FM')
+        plt.legend()
+        plt.show()
+
     # Translate the GRE data so we can get a good look at the actual changes
     gre_acqs[np.abs(gre_acqs) > 0] -= np.max(gre_acqs[np.abs(gre_acqs) > 0].flatten())
     gre_acqs[np.abs(gre_acqs) > 0] += np.min(gre_acqs[np.abs(gre_acqs) > 0].flatten())
@@ -180,7 +194,7 @@ if __name__ == '__main__':
     mask = T1s > 0
     for tt in trange(time_pts,leave=False,desc='qFM'):
         qbssfp_fm[...,tt] = quantitative_fm(bssfp_acqs[q_pc,...,tt],dfs,T1s,T2s,PD,bssfp_TR,bssfp_alpha,phase_cyc=pc_vals[q_pc],mask=mask)
-    qbssfp_fm[np.abs(qbssfp_fm) > 0] -= np.min(qbssfp_fm[np.abs(qbssfp_fm) > 0].flatten())
+    #qbssfp_fm[np.abs(qbssfp_fm) > 0] -= np.min(qbssfp_fm[np.abs(qbssfp_fm) > 0].flatten())
 
     if plots:
         view(qbssfp_fm,movie_axis=-1)
@@ -188,18 +202,23 @@ if __name__ == '__main__':
     if plots:
         plt.subplot(1,3,1)
         plt.plot(recon_fm[31,16,:],label='Recon FM')
-        plt.plot(tv_field_map[31,16,:],label='Noisy FM')
+        # plt.plot(tv_field_map[31,16,:],'--',label='Noisy FM')
         plt.plot(hrf0,label='True HDR')
         plt.legend()
 
         plt.subplot(1,3,2)
         plt.plot(recon_fm[31,16,:],label='Recon FM')
-        plt.plot(qbssfp_fm[31,16,:],label='qFM')
+        plt.plot(qbssfp_fm[31,16,:],'--',label='qFM')
         plt.plot(hrf0,label='True HDR')
         plt.legend()
 
         plt.subplot(1,3,3)
         plt.plot(np.abs(gre_acqs[31,16,:]),label='GRE')
+        plt.legend()
+        plt.show()
+
+        plt.plot(qbssfp_fm[31,16,:],label='qFM')
+        plt.plot(tv_field_map[31,16,:],label='True FM')
         plt.legend()
         plt.show()
 
