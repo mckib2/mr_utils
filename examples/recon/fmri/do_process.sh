@@ -6,10 +6,15 @@
 # -tr 20 refers to the fact that each task was 20 seconds long
 make_stim_times.py -files SpT1_timing.txt -prefix stim -tr 20 -nruns 1 -nt 6
 
+# Do Gaussian spatial blurring, 4mm
+3dmerge -prefix bssfp_blur4.nii.gz -1blur_fwhm 4.0 -doall bssfp.nii.gz -overwrite
+3dmerge -prefix gre_blur4.nii.gz -1blur_fwhm 4.0 -doall gre.nii.gz -overwrite
+3dmerge -prefix qfm_blur4.nii.gz -1blur_fwhm 4.0 -doall qfm.nii.gz -overwrite
+
 # Run the single-subject multiple regression analysis for bSSFP dataset
 3dDeconvolve -overwrite \
     -force_TR .75 \
-    -input bssfp.nii.gz \
+    -input bssfp_blur4.nii.gz \
     -polort A \
     -mask mask.nii'[0]' \
     -num_stimts 2 \
@@ -28,7 +33,7 @@ make_stim_times.py -files SpT1_timing.txt -prefix stim -tr 20 -nruns 1 -nt 6
 # Run the single-subject multiple regression analysis for GRE dataset
 3dDeconvolve -overwrite \
     -force_TR .75 \
-    -input gre.nii.gz \
+    -input gre_blur4.nii.gz \
     -polort A \
     -mask mask.nii'[0]' \
     -num_stimts 2 \
@@ -47,7 +52,7 @@ make_stim_times.py -files SpT1_timing.txt -prefix stim -tr 20 -nruns 1 -nt 6
   # Run the single-subject multiple regression analysis for aFM dataset
   3dDeconvolve -overwrite \
       -force_TR .75 \
-      -input qfm.nii.gz \
+      -input qfm_blur4.nii.gz \
       -polort A \
       -mask mask.nii'[0]' \
       -num_stimts 2 \

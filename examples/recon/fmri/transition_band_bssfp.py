@@ -51,10 +51,10 @@ if __name__ == '__main__':
 
     saveNifti = True
     hrf_scale = 0.05
-    time_pts = 180
+    time_pts = 80
     # num_slices = 40
-    sigma = 0.5
-    plots = True
+    sigma = .1
+    plots = False
 
     # IDEA:
     # - Acquire T1,T2 maps before hand (perhaps during structural scan)
@@ -111,11 +111,13 @@ if __name__ == '__main__':
         plt.plot(t,hrf_kernel)
         plt.xlabel('sec')
         plt.title('HRF Model')
+        plt.ylabel('a.u.')
 
         plt.subplot(1,2,2)
         plt.plot(hrf0/hrf_scale,label='Convolved HRF')
         plt.plot(design,label='Block design')
         plt.xlabel('time index')
+        plt.ylabel('a.u.')
         plt.legend()
         plt.show()
 
@@ -125,8 +127,11 @@ if __name__ == '__main__':
     t1s = np.roll(t1s,-15)
     idx0 = pd > 0
     idx1 = t1s > 0
+    print('Cluster size: %d' % np.sum(idx0))
     idx = idx0 + idx1
-    # view(idx1 + idx0 + brain)
+
+    if plots:
+        view(idx1 + idx0 + brain*50)
 
     # Make time varying field to simulate blood flow
     tv_field_map = np.zeros(field_map.shape + (time_pts,))
@@ -208,7 +213,7 @@ if __name__ == '__main__':
 
         plt.subplot(1,3,2)
         plt.plot(recon_fm[31,16,:],label='Recon FM')
-        plt.plot(qbssfp_fm[31,16,:],'--',label='qFM')
+        plt.plot(qbssfp_fm[31,16,:],'--',label='FFM')
         plt.plot(hrf0,label='True HDR')
         plt.legend()
 
@@ -217,8 +222,8 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
 
-        plt.plot(qbssfp_fm[31,16,:],label='qFM')
-        plt.plot(tv_field_map[31,16,:],label='True FM')
+        plt.plot(qbssfp_fm[31,16,:],label='FFM')
+        plt.plot(tv_field_map[31,16,:],'--',label='True FM')
         plt.legend()
         plt.show()
 
