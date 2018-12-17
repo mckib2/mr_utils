@@ -33,7 +33,8 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
     previous_step_size = np.inf
     f_prev = None
     f_prev_prev = None
-    alpha0_backup = 1
+    alpha0_default = 0.5
+    alpha0_backup = alpha0_default
 
     # Do the thing!
     pbar = tqdm(total=100,desc='GD',leave=False)
@@ -51,7 +52,7 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
             warnings.filterwarnings('error',category=LineSearchWarning)
             try:
                 alpha0,fc,gc,f_prev,f_prev_prev,derphi_star = alpha(f,lambda x: grad(f,x),prev_x,s0,g0,f_prev,f_prev_prev)
-                alpha0_backup = 1
+                alpha0_backup = alpha0_default
             except LineSearchWarning:
                 alpha0 = alpha0_backup
                 alpha0_backup /= 2
