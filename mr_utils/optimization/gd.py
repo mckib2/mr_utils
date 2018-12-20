@@ -12,7 +12,7 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
     x0 -- Initial point to start to start descent.
     alpha -- Either a fixed step size or a function that returns step size.
     iter -- Do not exceed this number of iterations.
-    tol -- Run until change in step size within this number.
+    tol -- Run until change in norm of gradient is within this number.
     '''
 
     if type(x0) is not np.ndarray:
@@ -53,7 +53,7 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
                 # print('Working!')
                 alpha0_backup = alpha0_default
             except LineSearchWarning:
-                # print('Broke')
+                print('Broke')
                 alpha0 = alpha0_backup
                 alpha0_backup /= 2
 
