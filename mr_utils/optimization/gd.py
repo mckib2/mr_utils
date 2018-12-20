@@ -21,9 +21,8 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
     # Use scipy.optimize.line_search by default
     if alpha is None:
         alpha = line_search
-
-    # If stepsize is constant, package it in a constant function
-    if not callable(alpha):
+    elif not callable(alpha):
+        # If stepsize is constant, package it in a constant function
         alpha0 = alpha
         def alpha(*args,**kwargs):
             return(alpha0,0,0,None,None,None)
@@ -31,13 +30,12 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
     # Set up everything we need for the loop
     cur_x = x0.copy()
     previous_step_size = np.inf
-    f_prev = None
-    f_prev_prev = None
     alpha0_default = 0.5
     alpha0_backup = alpha0_default
+    f_vals = [ None,None ]
 
     # Do the thing!
-    pbar = tqdm(total=100,desc='GD',leave=False)
+    pbar = tqdm(total=100,desc='GD %s' % f.__name__,leave=False)
     for ii in range(int(iter)):
 
         prev_x = cur_x.copy()
@@ -51,17 +49,24 @@ def gd(f,grad,x0,alpha=None,iter=1e6,tol=1e-8):
         with warnings.catch_warnings():
             warnings.filterwarnings('error',category=LineSearchWarning)
             try:
-                alpha0,fc,gc,f_prev,f_prev_prev,derphi_star = alpha(f,lambda x: grad(f,x),prev_x,s0,g0,f_prev,f_prev_prev)
+                alpha0,fc,gc,f_vals[0],f_vals[1],derphi_star = alpha(f,lambda x: grad(f,x),prev_x,s0,g0,f_vals[0],f_vals[1])
+                # print('Working!')
                 alpha0_backup = alpha0_default
             except LineSearchWarning:
+                # print('Broke')
                 alpha0 = alpha0_backup
                 alpha0_backup /= 2
+
+                # Take care of objective cycling
+                f_vals[1] = f_vals[0]
+                f_vals[0] = None
 
         # Take the step
         cur_x += alpha0*s0
 
         # Figure out if we can end
-        previous_step_size = np.abs(cur_x - prev_x)
+        # previous_step_size = np.abs(cur_x - prev_x)
+        previous_step_size = np.linalg.norm(grad(f,cur_x))
         pbar.n = 0
         val = np.clip(np.round(100*tol/np.max(previous_step_size + np.finfo(float).eps)),0,100)
         pbar.update(val)
