@@ -3,3 +3,4 @@ mr_utils.egg-info/
 profiles.config
 parser.out
 parsetab.py
+*.nii.gz

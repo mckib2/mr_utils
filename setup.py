@@ -25,7 +25,8 @@ setup(
         "tqdm>=4.19.6",
         "paramiko>=2.4.2",
         "ismrmrd>=1.4.0",
-        "xmltodict>=0.11.0"
+        "xmltodict>=0.11.0",
+        "nibabel>=2.3.1"
     ],
     python_requires='>=3.5',
 )
