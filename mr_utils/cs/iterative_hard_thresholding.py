@@ -5,18 +5,27 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def IHT(A,y,k,maxiter=500,tol=1e-8,x=None,disp=False):
+def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
     '''Iterative hard thresholding algorithm (IHT).
 
     A -- Measurement matrix.
     y -- Measurements (i.e., y = Ax).
     k -- Number of expected nonzero coefficients.
+    mu -- Step size.
     maxiter -- Maximum number of iterations.
     tol -- Stopping criteria.
     x -- True signal we are trying to estimate.
     disp -- Whether or not to display iterations.
 
-    If disp=True, then MSE will be calculated using provided x.
+    Solves the problem:
+        min_x || y - Ax ||^2_2  s.t.  ||x||_0 <= k
+
+    If disp=True, then MSE will be calculated using provided x. mu=1 seems to
+    satisfy Theorem 8.4 often, but might need to be adjusted (usually < 1).
+
+    Implements Algorithm 8.5 from:
+        Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed sensing: theory
+        and applications. Cambridge University Press, 2012.
     '''
 
     # length of measurement vector and original signal
@@ -47,8 +56,8 @@ def IHT(A,y,k,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
-        # Pre-threshold value
-        x_hat += np.dot(A.T,r)
+        # Update estimate using residual scaled by step size
+        x_hat += mu*np.dot(A.T,r)
 
         # Find the k'th largest coefficient of gamma, use it as threshold
         thresh = -np.sort(-np.abs(x_hat))[k-1]
