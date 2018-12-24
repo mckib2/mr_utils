@@ -21,7 +21,7 @@ def rotation(alpha,beta,gamma):
 
     return(rot)
 
-def sim_loop(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
+def sim_loop(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3):
     '''Loop implementation to verify matrix implementation.'''
 
     # Initalize spins at thermal equilibrium at first time point
@@ -29,9 +29,9 @@ def sim_loop(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
     spins[0,2,...] = M0
 
     # Aux variables to construct A matrix
-    wx = gyro*Bx*np.ones(T1.shape)
-    wy = gyro*By*np.ones(T1.shape)
-    wz = gyro*Bz*np.ones(T1.shape)
+    wx = Bx*np.ones(T1.shape)
+    wy = By*np.ones(T1.shape)
+    wz = Bz*np.ones(T1.shape)
     R1 = -1/T1
     R2 = -1/T2
 

@@ -42,8 +42,7 @@ class TestBloch(unittest.TestCase):
         spins0 = bloch.gre(self.T1,self.T2,self.M0,Nt,h,*self.RF,TR,TE)
         spins0 = spins0[0,...] + 1j*spins0[1,...]
 
-        spins1 = gre_sim(self.T1,self.T2,TR,TE,alpha=self.RF[1],field_map=None,phi=0,dphi=0,M0=self.M0,tol=1e-5,iter=None,spoil=True)
-
+        spins1 = gre_sim(self.T1,self.T2,TR,TE,alpha=self.RF[1],field_map=None,phi=0,dphi=0,M0=self.M0,iter=num_TRs,spoil=True)
         view(np.stack((spins0,spins1)))
 
 if __name__ == '__main__':
