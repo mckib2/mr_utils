@@ -3,6 +3,7 @@ from tqdm import trange
 import matplotlib.pyplot as plt
 
 def rotation(alpha,beta,gamma):
+    '''Create 3D rotation matrix from alpha,beta,gamma.'''
 
     ca = np.cos(alpha)
     cb = np.cos(beta)
@@ -56,16 +57,33 @@ def sim_loop(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
     # plt.show()
     return(spins)
 
-def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
+def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3):
+    '''Finite difference solution to Bloch equations.
+
+    T1 -- longitudinal relaxation constant.
+    T2 -- transverse relaxation constant.
+    M0 -- value at thermal equilibrium.
+    Nt -- number of time points for finite difference solution.
+    h -- step size for finite difference solutions.
+    alpha,beta,gamma -- RF pulse tip angles.
+    Bx -- x component of magnetic field.
+    By -- y component of magnetic field.
+    Bz -- z component of magnetic field.
+
+    T1,T2,M0 can be arrays (must be same size) to simulate phantoms.
+
+    See:
+    https://en.wikipedia.org/wiki/Bloch_equations#Matrix_form_of_Bloch_equations
+    '''
 
     # Initalize spins at thermal equilibrium at first time point
     spins = np.zeros((Nt,3,) + M0.shape)
     spins[0,2,...] = M0
 
     # Aux variables to construct A matrix
-    wx = gyro*Bx*np.ones(T1.shape)
-    wy = gyro*By*np.ones(T1.shape)
-    wz = gyro*Bz*np.ones(T1.shape)
+    wx = Bx*np.ones(T1.shape)
+    wy = By*np.ones(T1.shape)
+    wz = Bz*np.ones(T1.shape)
     R1 = -1/T1
     R2 = -1/T2
     zfac = h*M0/T1
@@ -88,8 +106,24 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
 
     return(spins)
 
-def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3,gyro=1):
-    '''Bloch simulation of spoiled GRE pulse sequence.'''
+def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3):
+    '''Finite different Bloch simulation of spoiled GRE pulse sequence.
+
+    T1 -- longitudinal relaxation constant.
+    T2 -- transverse relaxation constant.
+    M0 -- value at thermal equilibrium.
+    Nt -- number of time points for finite difference solution.
+    h -- step size for finite difference solutions.
+    alpha,beta,gamma -- RF pulse tip angles.
+    TR -- repetition time.
+    TE -- echo time.
+    Bx -- x component of magnetic field.
+    By -- y component of magnetic field.
+    Bz -- z component of magnetic field.
+
+    T1,T2,M0 can be arrays (must be same size) to simulate phantoms.
+
+    '''
 
     # Initalize
     spins = np.zeros((3,) + M0.shape)
@@ -100,9 +134,9 @@ def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3,gyro=1):
     spins = np.tensordot(R,spins,axes=1)
 
     # Aux variables
-    wx = gyro*Bx*np.ones(T1.shape)
-    wy = gyro*By*np.ones(T1.shape)
-    wz = gyro*Bz*np.ones(T1.shape)
+    wx = Bx*np.ones(T1.shape)
+    wy = By*np.ones(T1.shape)
+    wz = Bz*np.ones(T1.shape)
     R1 = -1/T1
     R2 = -1/T2
     zfac = h*M0/T1
