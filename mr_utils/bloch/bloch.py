@@ -32,27 +32,37 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
     R1 = -1/T1
     R2 = -1/T2
 
-    # Tip
-    spins[0,:,...] = rotation(alpha,beta,gamma).dot(spins[0,:,...].squeeze())[:,None,None,None]
-    # print(rotation(alpha,beta,gamma).dot(spins[:,...].squeeze()))
+    # Apply RF tip at each voxel
+    R = rotation(alpha,beta,gamma)
+    spins[0,...] = np.tensordot(R,spins[0,...],axes=1)
+    #
+    # for tt in range(1,Nt):
+    #     for xx in range(T1.shape[0]):
+    #         for yy in range(T1.shape[1]):
+    #             for zz in range(T1.shape[2]):
+    #
+    #                 # xn = (-spins[tt-1,0,xx,yy,zz]/T2[xx,yy,zz] + gyro*Bz*spins[tt-1,1,xx,yy,zz] - gyro*By*spins[tt-1,-1,xx,yy,zz])*h + spins[tt-1,0,xx,yy,xx]
+    #                 # yn = (-gyro*Bz*spins[tt-1,0,xx,yy,zz] - spins[tt-1,1,xx,yy,zz]/T2[xx,yy,zz] + gyro*Bx*spins[tt-1,-1,xx,yy,zz])*h + spins[tt-1,1,xx,yy,xx]
+    #                 # zn = (gyro*By*spins[tt-1,0,xx,yy,zz] - gyro*Bx*spins[tt-1,1,xx,yy,zz] + (M0[xx,yy,zz] - spins[tt-1,-1,xx,yy,zz])/T1[xx,yy,zz])*h + spins[tt-1,-1,xx,yy,zz]
+    #                 # spins[tt,:,xx,yy,zz] = [ xn,yn,zn ]
+    #
+    #                 A = np.array([
+    #                     [  R2[xx,yy,zz], wz[xx,yy,zz],-wy[xx,yy,zz] ],
+    #                     [ -wz[xx,yy,zz], R2[xx,yy,zz], wx[xx,yy,zz] ],
+    #                     [  wy[xx,yy,zz],-wx[xx,yy,zz], R1[xx,yy,zz] ]
+    #                 ])
+    #                 spins[tt,:,xx,yy,zz] = A.dot(spins[tt-1,:,xx,yy,zz])*h + spins[tt-1,:,xx,yy,zz] + np.array([ 0,0,M0[xx,yy,zz]/T1[xx,yy,zz] ])*h
+    #                 # assert np.allclose(spins[tt,:,xx,yy,zz],[ xn,yn,zn ])
 
     for tt in range(1,Nt):
-        for xx in range(T1.shape[0]):
-            for yy in range(T1.shape[1]):
-                for zz in range(T1.shape[2]):
+        A = np.array([
+            [  R2, wz,-wy ],
+            [ -wz, R2, wx ],
+            [  wy,-wx, R1 ]
+        ])
+        spins[tt,...] = np.einsum('ijxyz,ixyz->jxyz',A,spins[tt-1,...])*h + spins[tt-1,...]
+        spins[tt,2,...] += h*M0/T1
 
-                    # xn = (-spins[tt-1,0,xx,yy,zz]/T2[xx,yy,zz] + gyro*Bz*spins[tt-1,1,xx,yy,zz] - gyro*By*spins[tt-1,-1,xx,yy,zz])*h + spins[tt-1,0,xx,yy,xx]
-                    # yn = (-gyro*Bz*spins[tt-1,0,xx,yy,zz] - spins[tt-1,1,xx,yy,zz]/T2[xx,yy,zz] + gyro*Bx*spins[tt-1,-1,xx,yy,zz])*h + spins[tt-1,1,xx,yy,xx]
-                    # zn = (gyro*By*spins[tt-1,0,xx,yy,zz] - gyro*Bx*spins[tt-1,1,xx,yy,zz] + (M0[xx,yy,zz] - spins[tt-1,-1,xx,yy,zz])/T1[xx,yy,zz])*h + spins[tt-1,-1,xx,yy,zz]
-                    # spins[tt,:,xx,yy,zz] = [ xn,yn,zn ]
-
-                    A = np.array([
-                        [  R2[xx,yy,zz], wz[xx,yy,zz],-wy[xx,yy,zz] ],
-                        [ -wz[xx,yy,zz], R2[xx,yy,zz], wx[xx,yy,zz] ],
-                        [  wy[xx,yy,zz],-wx[xx,yy,zz], R1[xx,yy,zz] ]
-                    ])
-                    spins[tt,:,xx,yy,zz] = A.dot(spins[tt-1,:,xx,yy,zz])*h + spins[tt-1,:,xx,yy,zz] + np.array([ 0,0,M0[xx,yy,zz]/T1[xx,yy,zz] ])*h
-                    # assert np.allclose(spins[tt,:,xx,yy,zz],[ xn,yn,zn ])
 
     plt.plot(np.sqrt(np.sum(spins[:,0:2,0,0,0]**2,axis=1)))
     plt.plot(spins[:,2,0,0,0])
@@ -60,9 +70,9 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
 
 if __name__ == '__main__':
 
-    M0 = np.ones((1,1,1))*1.0
-    T1 = np.ones((1,1,1))*1.5
-    T2 = np.ones((1,1,1))*0.8
+    M0 = np.ones((2,2,1))*1.0
+    T1 = np.ones((2,2,1))*1.5
+    T2 = np.ones((2,2,1))*0.8
     Nt = 100000
     t,h = np.linspace(0,10,Nt,retstep=True)
     print('h: %g' % h)
