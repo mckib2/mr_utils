@@ -73,15 +73,76 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
     R = rotation(alpha,beta,gamma)
     spins[0,...] = np.tensordot(R,spins[0,...],axes=1)
 
+    # Calculate constant A
+    A = np.array([
+        [  R2, wz,-wy ],
+        [ -wz, R2, wx ],
+        [  wy,-wx, R1 ]
+    ])
+
     # Do finite-difference simulation
     for tt in trange(1,Nt,leave=False,desc='Bloch sim'):
-        A = np.array([
-            [  R2, wz,-wy ],
-            [ -wz, R2, wx ],
-            [  wy,-wx, R1 ]
-        ])
         spins[tt,...] = np.einsum('ijxyz,jxyz->ixyz',A,spins[tt-1,...])*h + spins[tt-1,...]
         spins[tt,2,...] += h*M0/T1
+
+    return(spins)
+
+def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3,gyro=1):
+    '''Bloch simulation of spoiled GRE pulse sequence.'''
+
+    # Initalize
+    spins = np.zeros((3,) + M0.shape)
+    spins[2,...] = M0
+
+    # Initial tip
+    R = rotation(alpha,beta,gamma)
+    spins = np.tensordot(R,spins,axes=1)
+
+    # Aux variables
+    wx = gyro*Bx*np.ones(T1.shape)
+    wy = gyro*By*np.ones(T1.shape)
+    wz = gyro*Bz*np.ones(T1.shape)
+    R1 = -1/T1
+    R2 = -1/T2
+
+    # Bloch equation matrix, A
+    A = np.array([
+        [  R2, wz,-wy ],
+        [ -wz, R2, wx ],
+        [  wy,-wx, R1 ]
+    ])
+
+    # Split into TRs
+    num_TRs = int(Nt*h/TR)
+    # print('num_TRs: %g' % num_TRs)
+
+    # Split TRs into TEs
+    num_before_TE = int(TE/TR*num_TRs)
+    # print('num_before_TE: %g' % num_before_TE)
+
+    num_iters_per_TR = np.around(Nt/num_TRs).astype(int)
+    # print('Nt/num_TRs: %g' % num_iters_per_TR)
+
+    # Do all TRs but the last one
+    for tr in trange(num_TRs-1,leave=False,desc='GRE Bloch Sim'):
+
+        # Relaxation
+        for tt in range(num_iters_per_TR):
+            spins += np.einsum('ijxyz,jxyz->ixyz',A,spins)*h
+            spins[2,...] += h*M0/T1
+
+        # Spoil
+        spins[0:2,...] = 0
+
+        # Next tip
+        spins = np.tensordot(R,spins,axes=1)
+
+    # Now readout at TE during last TR
+    for tt in range(num_before_TE):
+        # Relaxation
+        spins += np.einsum('ijxyz,jxyz->ixyz',A,spins)*h
+        spins[2,...] += h*M0/T1
+
 
     return(spins)
 
