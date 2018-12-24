@@ -287,7 +287,7 @@ def gre_sim(T1,T2,TR=12e-3,TE=6e-3,alpha=np.pi/3,field_map=None,phi=0,dphi=0,M0=
     # Do either fixed number of iter or until tolerance achieved
     if iter is not None:
         # assume steady state after iter flips
-        for n in trange(iter,desc='GRE steady-state'):
+        for n in trange(iter,leave=False,desc='GRE steady-state'):
             Mgre,phi = iter_fun(Mgre,phi)
     else:
         # Run until all voxels within tolerance
