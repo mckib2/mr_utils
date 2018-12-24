@@ -68,6 +68,7 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
     wz = gyro*Bz*np.ones(T1.shape)
     R1 = -1/T1
     R2 = -1/T2
+    zfac = h*M0/T1
 
     # Apply initial RF tip at each voxel
     R = rotation(alpha,beta,gamma)
@@ -83,7 +84,7 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3,gyro=1):
     # Do finite-difference simulation
     for tt in trange(1,Nt,leave=False,desc='Bloch sim'):
         spins[tt,...] = np.einsum('ijxyz,jxyz->ixyz',A,spins[tt-1,...])*h + spins[tt-1,...]
-        spins[tt,2,...] += h*M0/T1
+        spins[tt,2,...] += zfac
 
     return(spins)
 
@@ -104,6 +105,7 @@ def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3,gyro=1):
     wz = gyro*Bz*np.ones(T1.shape)
     R1 = -1/T1
     R2 = -1/T2
+    zfac = h*M0/T1
 
     # Bloch equation matrix, A
     A = np.array([
@@ -129,7 +131,7 @@ def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3,gyro=1):
         # Relaxation
         for tt in range(num_iters_per_TR):
             spins += np.einsum('ijxyz,jxyz->ixyz',A,spins)*h
-            spins[2,...] += h*M0/T1
+            spins[2,...] += zfac
 
         # Spoil
         spins[0:2,...] = 0
@@ -141,7 +143,7 @@ def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3,gyro=1):
     for tt in range(num_before_TE):
         # Relaxation
         spins += np.einsum('ijxyz,jxyz->ixyz',A,spins)*h
-        spins[2,...] += h*M0/T1
+        spins[2,...] += zfac
 
 
     return(spins)
