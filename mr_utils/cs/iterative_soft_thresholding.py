@@ -5,13 +5,14 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
-    '''Iterative hard thresholding algorithm (IHT).
+def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
+    '''Iterative soft thresholding algorithm (IST).
 
     A -- Measurement matrix.
     y -- Measurements (i.e., y = Ax).
     k -- Number of expected nonzero coefficients.
     mu -- Step size.
+    theta0 -- Initial threshold, decreased by factor of mu each iteration.
     maxiter -- Maximum number of iterations.
     tol -- Stopping criteria.
     x -- True signal we are trying to estimate.
@@ -20,14 +21,15 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
     Solves the problem:
         min_x || y - Ax ||^2_2  s.t.  ||x||_0 <= k
 
-    If disp=True, then MSE will be calculated using provided x. mu=1 seems to
-    satisfy Theorem 8.4 often, but might need to be adjusted (usually < 1).
-    See normalized IHT for adaptive step size.
+    If disp=True, then MSE will be calculated using provided x. If theta0=None,
+    the initial threshold of the IHT will be used as the starting theta.
 
-    Implements Algorithm 8.5 from:
-        Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed sensing: theory
-        and applications. Cambridge University Press, 2012.
+    Implements Equations [22-23] from:
+
     '''
+
+    # Check to make sure we have good mu
+    assert 0 < mu <= 1,'mu should be 0 < mu <= 1!'
 
     # length of measurement vector and original signal
     n,N = A.shape[:]
@@ -42,7 +44,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
         range_fun = range
     else:
         from tqdm import trange
-        range_fun = lambda x: trange(x,leave=False,desc='IHT')
+        range_fun = lambda x: trange(x,leave=False,desc='IST')
 
     # Initial estimate of x, x_hat
     x_hat = np.zeros(N)
@@ -50,32 +52,41 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
     # Get initial residue
     r = y.copy()
 
+    # Start theta at specified theta0 or use IHT first threshold
+    if theta0 is None:
+        theta = -np.sort(-np.abs(np.dot(A.T,r)))[k-1]
+    else:
+        theta = theta0
+
     # Set up header for logger
     if disp:
-        logging.info('iter\tMSE')
-        logging.info('#'*40)
+        logging.info('iter \tnorm \ttheta \tMSE')
+        logging.info('#'*60)
 
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
         # Update estimate using residual scaled by step size
-        x_hat += mu*np.dot(A.T,r)
+        x_hat += np.dot(A.T,r)
 
-        # Find the k'th largest coefficient of gamma, use it as threshold
-        thresh = -np.sort(-np.abs(x_hat))[k-1]
-
-        # Hard thresholding operator
-        x_hat[np.abs(x_hat) < thresh] = 0
-
-        # Show MSE at current iteration if we wanted it
-        if disp:
-            logging.info('%d \t%g' % (tt,compare_mse(x,x_hat)))
+        # Just like IHT, but use soft thresholding operator
+        # It is unclear to me what sign function needs to be used: count 0 as 0?
+        x_hat[np.abs(x_hat) < theta] = 0
 
         # update the residual
         r = y - np.dot(A,x_hat)
 
         # Check stopping criteria
-        if np.linalg.norm(r)/np.linalg.norm(y) < tol:
+        stop_criteria = np.linalg.norm(r)/np.linalg.norm(y)
+        if stop_criteria < tol:
             break
+
+        # Show MSE at current iteration if we wanted it
+        if disp:
+            logging.info('%d \t%g \t %g \t%g' % (tt,stop_criteria,theta,compare_mse(x,x_hat)))
+
+
+        # Contract theta before we go back around the horn
+        theta *= mu
 
     # Regroup and debrief...
     if tt == (maxiter-1):
