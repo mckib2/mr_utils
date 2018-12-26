@@ -45,7 +45,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
         range_fun = lambda x: trange(x,leave=False,desc='IHT')
 
     # Initial estimate of x, x_hat
-    x_hat = np.zeros(N)
+    x_hat = np.zeros(N,dtype=y.dtype)
 
     # Get initial residue
     r = y.copy()
@@ -58,7 +58,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
         # Update estimate using residual scaled by step size
-        x_hat += mu*np.dot(A.T,r)
+        x_hat += mu*np.dot(A.conj().T,r)
 
         # Find the k'th largest coefficient of gamma, use it as threshold
         thresh = -np.sort(-np.abs(x_hat))[k-1]
@@ -68,7 +68,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
 
         # Show MSE at current iteration if we wanted it
         if disp:
-            logging.info('%d \t%g' % (tt,compare_mse(x,x_hat)))
+            logging.info('%d \t%g' % (tt,compare_mse(x.real,x_hat.real)))
 
         # update the residual
         r = y - np.dot(A,x_hat)
