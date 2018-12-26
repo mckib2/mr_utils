@@ -22,6 +22,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
 
     If disp=True, then MSE will be calculated using provided x. mu=1 seems to
     satisfy Theorem 8.4 often, but might need to be adjusted (usually < 1).
+    See normalized IHT for adaptive step size.
 
     Implements Algorithm 8.5 from:
         Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed sensing: theory
@@ -62,7 +63,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
         # Find the k'th largest coefficient of gamma, use it as threshold
         thresh = -np.sort(-np.abs(x_hat))[k-1]
 
-        # Estimate the signal (by hard thresholding)
+        # Hard thresholding operator
         x_hat[np.abs(x_hat) < thresh] = 0
 
         # Show MSE at current iteration if we wanted it
@@ -72,10 +73,11 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
         # update the residual
         r = y - np.dot(A,x_hat)
 
-        # Stopping criteria
+        # Check stopping criteria
         if np.linalg.norm(r)/np.linalg.norm(y) < tol:
             break
 
+    # Regroup and debrief...
     if tt == (maxiter-1):
         logging.warning('Hit maximum iteration count, estimate may not be accurate!')
     else:
