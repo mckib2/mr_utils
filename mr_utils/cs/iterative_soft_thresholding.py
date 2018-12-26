@@ -5,14 +5,21 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
+def table_hdr(tt,stop_criteria,theta,err):
+    hdr = ''.join(['{:8s}  '.format(tt),'{:12s}  '.format(stop_criteria),'{:12s}  '.format(theta),'{:12s}'.format(err)])
+    return(hdr)
+
+def table_line(tt,stop_criteria,theta,err):
+    return(''.join(['{:8d}  '.format(tt),'{:8e}  '.format(stop_criteria),'{:8e}  '.format(theta),'{:8e}'.format(err)]))
+
+def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
     '''Iterative soft thresholding algorithm (IST).
 
     A -- Measurement matrix.
     y -- Measurements (i.e., y = Ax).
-    k -- Number of expected nonzero coefficients.
     mu -- Step size (theta contraction factor, 0 < mu <= 1).
     theta0 -- Initial threshold, decreased by factor of mu each iteration.
+    k -- Number of expected nonzero coefficients.
     maxiter -- Maximum number of iterations.
     tol -- Stopping criteria.
     x -- True signal we are trying to estimate.
@@ -56,6 +63,7 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Start theta at specified theta0 or use IHT first threshold
     if theta0 is None:
+        assert k is not None,'k (measure of sparsity) required to compute initial threshold!'
         theta = -np.sort(-np.abs(np.dot(A.T,r)))[k-1]
     else:
         assert theta0 > 0,'Threshold must be positive!'
@@ -63,8 +71,10 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Set up header for logger
     if disp:
-        logging.info('iter \tnorm \ttheta \tMSE')
-        logging.info('#'*60)
+        # logging.info('iter \tnorm \ttheta \tMSE')
+        hdr = table_hdr('iter','norm','theta','MSE')
+        logging.info(hdr)
+        logging.info('#'*len(hdr))
 
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
@@ -73,7 +83,7 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
         # Just like IHT, but use soft thresholding operator
         # It is unclear to me what sign function needs to be used: count 0 as 0?
-        x_hat[np.abs(x_hat) < theta] = 0
+        x_hat = np.maximum(np.abs(x_hat) - theta,np.zeros(x_hat.shape))*np.sign(x_hat)
 
         # update the residual
         r = y - np.dot(A,x_hat)
@@ -85,8 +95,7 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
         # Show MSE at current iteration if we wanted it
         if disp:
-            logging.info('%d \t%g \t %g \t%g' % (tt,stop_criteria,theta,compare_mse(x,x_hat)))
-
+            logging.info(table_line(tt,stop_criteria,theta,compare_mse(x,x_hat)))
 
         # Contract theta before we go back around the horn
         theta *= mu

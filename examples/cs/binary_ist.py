@@ -24,7 +24,7 @@ if __name__ == '__main__':
     y = np.dot(A,x)
 
     # Reconstruct using IST
-    x_ist = IST(A,y,k,x=x,disp=True)
+    x_ist = IST(A,y,x=x,theta0=None,k=k,disp=True)
 
     # We fail sometimes if we don't get a random matrix that satisfies RIP
     if not np.allclose(x_ist,x):
