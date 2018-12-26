@@ -11,7 +11,7 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
     A -- Measurement matrix.
     y -- Measurements (i.e., y = Ax).
     k -- Number of expected nonzero coefficients.
-    mu -- Step size.
+    mu -- Step size (theta contraction factor, 0 < mu <= 1).
     theta0 -- Initial threshold, decreased by factor of mu each iteration.
     maxiter -- Maximum number of iterations.
     tol -- Stopping criteria.
@@ -24,8 +24,10 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
     If disp=True, then MSE will be calculated using provided x. If theta0=None,
     the initial threshold of the IHT will be used as the starting theta.
 
+    TODO: add full citation here
     Implements Equations [22-23] from:
-
+        "A Systematic Review of Compressive Sensing: Concepts, Implementations
+        and Applications"
     '''
 
     # Check to make sure we have good mu
@@ -56,6 +58,7 @@ def IST(A,y,k,mu=0.8,theta0=None,maxiter=500,tol=1e-8,x=None,disp=False):
     if theta0 is None:
         theta = -np.sort(-np.abs(np.dot(A.T,r)))[k-1]
     else:
+        assert theta0 > 0,'Threshold must be positive!'
         theta = theta0
 
     # Set up header for logger
