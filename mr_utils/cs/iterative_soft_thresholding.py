@@ -6,13 +6,6 @@ from mr_utils.utils.printtable import Table
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-# def table_hdr(tt,stop_criteria,theta,err):
-#     hdr = ''.join(['{:8s}  '.format(tt),'{:12s}  '.format(stop_criteria),'{:12s}  '.format(theta),'{:12s}'.format(err)])
-#     return(hdr)
-#
-# def table_line(tt,stop_criteria,theta,err):
-#     return(''.join(['{:8d}  '.format(tt),'{:8e}  '.format(stop_criteria),'{:8e}  '.format(theta),'{:8e}'.format(err)]))
-
 def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
     '''Iterative soft thresholding algorithm (IST).
 

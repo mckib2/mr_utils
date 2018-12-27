@@ -1,7 +1,7 @@
 import numpy as np
-from skimage.measure import compare_mse
 import matplotlib.pyplot as plt
 import logging
+from mr_utils.utils.printtable import Table
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -39,6 +39,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Some fancy, asthetic touches...
     if disp:
+        table = Table([ 'iter','MSE' ],[ len(repr(maxiter)),8 ],[ 'd','e' ])
         range_fun = range
     else:
         from tqdm import trange
@@ -52,8 +53,9 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Set up header for logger
     if disp:
-        logging.info('iter\tMSE')
-        logging.info('#'*40)
+        hdr = table.header()
+        for line in hdr.split('\n'):
+            logging.info(line)
 
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
@@ -68,7 +70,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
 
         # Show MSE at current iteration if we wanted it
         if disp:
-            logging.info('%d \t%g' % (tt,compare_mse(x.real,x_hat.real)))
+            logging.info(table.row([ tt,np.mean((np.abs(x - x_hat)**2)) ]))
 
         # update the residual
         r = y - np.dot(A,x_hat)
