@@ -1,6 +1,7 @@
 import numpy as np
 from skimage.measure import compare_mse
 import logging
+from mr_utils.utils.printtable import Table
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
@@ -33,6 +34,12 @@ def nIHT(A,y,k,c=0.1,kappa=None,x=None,maxiter=200,tol=1e-8,disp=False):
         logging.warning('No true x provided, using x=0 for MSE calc.')
         x = np.zeros(N)
 
+    if disp:
+        table = Table([ 'iter','norm','MSE' ],[ len(repr(maxiter)),8,8 ],[ 'd','e','e' ])
+        hdr = table.header()
+        for line in hdr.split('\n'):
+            logging.info(line)
+
     # Initializations
     x_hat = np.zeros(N)
 
@@ -62,7 +69,7 @@ def nIHT(A,y,k,c=0.1,kappa=None,x=None,maxiter=200,tol=1e-8,disp=False):
 
         # Let's check out what's going on
         if disp:
-            print(ii,stop_criteria,compare_mse(x,x_hat))
+            logging.info(table.row([ ii,stop_criteria,compare_mse(x,x_hat) ]))
 
         # Compute step size
         g = np.dot(A.T,r)
