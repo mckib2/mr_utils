@@ -2,15 +2,16 @@ import numpy as np
 from skimage.measure import compare_mse
 import matplotlib.pyplot as plt
 import logging
+from mr_utils.utils.printtable import Table
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def table_hdr(tt,stop_criteria,theta,err):
-    hdr = ''.join(['{:8s}  '.format(tt),'{:12s}  '.format(stop_criteria),'{:12s}  '.format(theta),'{:12s}'.format(err)])
-    return(hdr)
-
-def table_line(tt,stop_criteria,theta,err):
-    return(''.join(['{:8d}  '.format(tt),'{:8e}  '.format(stop_criteria),'{:8e}  '.format(theta),'{:8e}'.format(err)]))
+# def table_hdr(tt,stop_criteria,theta,err):
+#     hdr = ''.join(['{:8s}  '.format(tt),'{:12s}  '.format(stop_criteria),'{:12s}  '.format(theta),'{:12s}'.format(err)])
+#     return(hdr)
+#
+# def table_line(tt,stop_criteria,theta,err):
+#     return(''.join(['{:8d}  '.format(tt),'{:8e}  '.format(stop_criteria),'{:8e}  '.format(theta),'{:8e}'.format(err)]))
 
 def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
     '''Iterative soft thresholding algorithm (IST).
@@ -31,10 +32,10 @@ def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
     If disp=True, then MSE will be calculated using provided x. If theta0=None,
     the initial threshold of the IHT will be used as the starting theta.
 
-    TODO: add full citation here
     Implements Equations [22-23] from:
-        "A Systematic Review of Compressive Sensing: Concepts, Implementations
-        and Applications"
+        Rani, Meenu, S. B. Dhok, and R. B. Deshmukh. "A systematic review of
+        compressive sensing: Concepts, implementations and applications." IEEE
+        Access 6 (2018): 4875-4894.
     '''
 
     # Check to make sure we have good mu
@@ -51,6 +52,11 @@ def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
     # Some fancy, asthetic touches...
     if disp:
         range_fun = range
+        table = Table(
+            [ 'iter','norm','theta','MSE' ],
+            [ len(repr(maxiter)),8,8,8 ],
+            [ 'd','e','e','e' ]
+        )
     else:
         from tqdm import trange
         range_fun = lambda x: trange(x,leave=False,desc='IST')
@@ -71,10 +77,9 @@ def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Set up header for logger
     if disp:
-        # logging.info('iter \tnorm \ttheta \tMSE')
-        hdr = table_hdr('iter','norm','theta','MSE')
-        logging.info(hdr)
-        logging.info('#'*len(hdr))
+        hdr = table.header()
+        for line in hdr.split('\n'):
+            logging.info(line)
 
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
@@ -95,7 +100,7 @@ def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
         # Show MSE at current iteration if we wanted it
         if disp:
-            logging.info(table_line(tt,stop_criteria,theta,compare_mse(x,x_hat)))
+            logging.info(table.row([ tt,stop_criteria,theta,compare_mse(x,x_hat) ]))
 
         # Contract theta before we go back around the horn
         theta *= mu
