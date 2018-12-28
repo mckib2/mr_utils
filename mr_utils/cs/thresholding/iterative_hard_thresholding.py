@@ -58,15 +58,12 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
             logging.info(line)
 
     # Run until tol reached or maxiter reached
-    for tt in range_fun(maxiter):
+    for tt in range_fun(int(maxiter)):
         # Update estimate using residual scaled by step size
         x_hat += mu*np.dot(A.conj().T,r)
 
-        # Find the k'th largest coefficient of gamma, use it as threshold
-        thresh = -np.sort(-np.abs(x_hat))[k-1]
-
-        # Hard thresholding operator
-        x_hat[np.abs(x_hat) < thresh] = 0
+        # Leave only k coefficients nonzero (hard threshold)
+        x_hat[np.argsort(np.abs(x_hat))[:-k]] = 0
 
         # Show MSE at current iteration if we wanted it
         if disp:

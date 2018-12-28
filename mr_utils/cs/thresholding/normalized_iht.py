@@ -77,8 +77,7 @@ def nIHT(A,y,k,c=0.1,kappa=None,x=None,maxiter=200,tol=1e-8,disp=False):
 
         # Hard thresholding
         xn = x_hat + mu*g
-        thresh = -np.sort(-np.abs(xn))[k-1]
-        xn[np.abs(xn) < thresh] = 0
+        xn[np.argsort(np.abs(xn))[:-k]] = 0
 
         # Compute support of xn
         Tn = np.nonzero(xn)
