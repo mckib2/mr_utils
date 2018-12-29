@@ -74,6 +74,12 @@ def cd_gen_complex_step(f,x0,h=None,v=None):
 
 def complex_step_6th_order(f,x0,h=None,v=None):
 
+    # Choose u,v to get 6th order error: 5*h**2 - 7*v**2 = 0
+    if h is None and v is None:
+        v = np.sqrt(np.finfo(float).eps)
+        h = np.sqrt(7/5*v**2)
+        assert 5*h**2 - 7*v**2 == 0
+
     # Precompute constants
     xp0 = 1j*v
     xpf0 = h + 1j*v
