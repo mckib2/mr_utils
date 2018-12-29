@@ -6,7 +6,7 @@ from skimage.measure import compare_mse
 
 if __name__ == '__main__':
 
-    N = 5000
+    N = 1000
     x0 = np.linspace(-100,100,N)
     gs = {
         'grad_quadratic':np.zeros(N),
@@ -27,4 +27,4 @@ if __name__ == '__main__':
             gs[key][ii] = compare_mse(g_true[ii],comp)
 
     for key,val in gs.items():
-        print(key,np.mean(gs[key]))
+        print('Avg MSE for {:>30s}: {:8e}'.format(key,np.mean(gs[key])))
