@@ -35,6 +35,11 @@ def cosamp(A,y,k,lstsq='exact',tol=1e-8,maxiter=500,x=None,disp=False):
     x_hat = np.zeros(N,dtype=y.dtype)
     r = y.copy()
 
+    if x is None:
+        x = np.zeros(x_hat.shape,dtype=y.dtype)
+    elif x.size < x_hat.size:
+        x = np.hstack(([0],x))
+
     # Decide how we want to solve the intermediate least squares problem
     if lstsq == 'exact':
         lstsq_fun = lambda A0,y: np.linalg.lstsq(A0,y,rcond=None)[0]
@@ -58,13 +63,13 @@ def cosamp(A,y,k,lstsq='exact',tol=1e-8,maxiter=500,x=None,disp=False):
     for ii in range(maxiter):
 
         # Get step direction
-        g = np.dot(A.T,r)
+        g = np.dot(A.conj().T,r)
 
         # Add 2*k largest elements of g to support set
         Tn = np.union1d(x_hat.nonzero()[0],np.argsort(np.abs(g))[-(2*k):])
 
         # Solve the least squares problem
-        xn = np.zeros(N)
+        xn = np.zeros(N,dtype=y.dtype)
         xn[Tn] = lstsq_fun(A[:,Tn],y)
 
         xn[np.argsort(np.abs(xn))[:-k]] = 0

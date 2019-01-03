@@ -57,7 +57,7 @@ def nIHT(A,y,k,c=0.1,kappa=None,x=None,maxiter=200,tol=1e-8,disp=False):
         assert kappa > 1/(1 - c),'kappa must be > 1/(1 - c)'
 
     # Do the iterative part of the thresholding...
-    for ii in range(maxiter):
+    for ii in range(int(maxiter)):
 
         # Compute residual
         r = y - np.dot(A,x_hat)
@@ -77,8 +77,7 @@ def nIHT(A,y,k,c=0.1,kappa=None,x=None,maxiter=200,tol=1e-8,disp=False):
 
         # Hard thresholding
         xn = x_hat + mu*g
-        thresh = -np.sort(-np.abs(xn))[k-1]
-        xn[np.abs(xn) < thresh] = 0
+        xn[np.argsort(np.abs(xn))[:-k]] = 0
 
         # Compute support of xn
         Tn = np.nonzero(xn)
@@ -100,6 +99,13 @@ def nIHT(A,y,k,c=0.1,kappa=None,x=None,maxiter=200,tol=1e-8,disp=False):
 
                 Tn = np.nonzero(xn)
                 x_hat = xn
+
+    # Regroup and debrief...
+    if ii == (maxiter-1):
+        logging.warning('Hit maximum iteration count, estimate may not be accurate!')
+    else:
+        if disp:
+            logging.info('Final || r || . || y ||^-1 : %g' % (np.linalg.norm(r)/np.linalg.norm(y)))
 
     return(x_hat)
 

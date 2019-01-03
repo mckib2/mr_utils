@@ -1,7 +1,7 @@
 import numpy as np
 from skimage.measure import compare_mse
 import matplotlib.pyplot as plt
-from mr_utils.cs import IHT
+from mr_utils.cs import IHT,cosamp
 import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
@@ -31,6 +31,7 @@ if __name__ == '__main__':
 
     # Reconstruct using IHT
     x_iht = IHT(A,y,k=10,x=x,disp=True)
+    # x_iht = cosamp(A,y,k=10,x=x,disp=True)
 
     # We fail sometimes if we don't get a random matrix that satisfies RIP
     if not np.allclose(x_iht,x):

@@ -39,7 +39,7 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Some fancy, asthetic touches...
     if disp:
-        table = Table([ 'iter','MSE' ],[ len(repr(maxiter)),8 ],[ 'd','e' ])
+        table = Table([ 'iter','norm','MSE' ],[ len(repr(maxiter)),8,8 ],[ 'd','e','e' ])
         range_fun = range
     else:
         from tqdm import trange
@@ -58,25 +58,24 @@ def IHT(A,y,k,mu=1,maxiter=500,tol=1e-8,x=None,disp=False):
             logging.info(line)
 
     # Run until tol reached or maxiter reached
-    for tt in range_fun(maxiter):
+    for tt in range_fun(int(maxiter)):
         # Update estimate using residual scaled by step size
         x_hat += mu*np.dot(A.conj().T,r)
 
-        # Find the k'th largest coefficient of gamma, use it as threshold
-        thresh = -np.sort(-np.abs(x_hat))[k-1]
+        # Leave only k coefficients nonzero (hard threshold)
+        x_hat[np.argsort(np.abs(x_hat))[:-k]] = 0
 
-        # Hard thresholding operator
-        x_hat[np.abs(x_hat) < thresh] = 0
+        stop_criteria = np.linalg.norm(r)/np.linalg.norm(y)
 
         # Show MSE at current iteration if we wanted it
         if disp:
-            logging.info(table.row([ tt,np.mean((np.abs(x - x_hat)**2)) ]))
+            logging.info(table.row([ tt,stop_criteria,np.mean((np.abs(x - x_hat)**2)) ]))
 
         # update the residual
         r = y - np.dot(A,x_hat)
 
         # Check stopping criteria
-        if np.linalg.norm(r)/np.linalg.norm(y) < tol:
+        if stop_criteria < tol:
             break
 
     # Regroup and debrief...

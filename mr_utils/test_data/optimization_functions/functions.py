@@ -9,6 +9,9 @@ import numpy as np
 def quadratic(x):
     return(x**4 - 3*x**3 + 2)
 
+def grad_quadratic(f,x):
+    return(4*x**3 - 9*x**2)
+
 def rosenbrock(x,a=1,b=100):
     '''Rosenbrock's function.'''
     xp = x[1:]
@@ -29,7 +32,7 @@ def grad_ackley(f,x,a=20,b=0.2,c=2*np.pi):
     '''Gradient of Ackley function.'''
     d = x.size
     return(a*b*x/(np.finfo(float).eps + np.sqrt(1/d*np.sum(x**2)))*np.exp(-b*np.sqrt(np.sum(x**2)/d)) - a*c/d*np.sin(c*x)*np.exp(-np.sum(np.cos(c*x))/d))
-    
+
 def sphere(x):
     '''Sphere function.'''
     return(np.sum(x**2))
