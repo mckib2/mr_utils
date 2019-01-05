@@ -76,7 +76,7 @@ def IST(A,y,mu=0.8,theta0=None,k=None,maxiter=500,tol=1e-8,x=None,disp=False):
 
     # Run until tol reached or maxiter reached
     for tt in range_fun(maxiter):
-        # Update estimate using residual scaled by step size
+        # Update estimate using residual
         x_hat += np.dot(A.T,r)
 
         # Just like IHT, but use soft thresholding operator
