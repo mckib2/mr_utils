@@ -4,11 +4,12 @@ from mr_utils.sim.traj import radial
 # from mr_utils.cs import IHT,cosamp
 from mr_utils.utils.printtable import Table
 from mr_utils.test_data.phantom import binary_smiley
+from time import time
 
 if __name__ == '__main__':
 
     # We want a 2d signal, so let's make a binary smiley face
-    N = 50
+    N = 40
     smiley = binary_smiley(N)
 
     # Make sure it looks alright
@@ -20,17 +21,20 @@ if __name__ == '__main__':
     m = smiley.flatten()
 
     # Create undersampling pattern, try golden angle
-    num_spokes = 72
+    num_spokes = 64
     samp = radial(smiley.shape,num_spokes,skinny=True,extend=False)
     plt.imshow(samp)
     plt.title('Sampling pattern, %d rays' % num_spokes)
     plt.show()
 
     # Construct undersampled fourier transform matrix
+    print('Started computation of matrix E...')
+    t0 = time()
     A = np.fft.fftshift(np.fft.fft(np.eye(N,N)))
     E = np.diag(samp.flatten()).dot(np.kron(A,A))
     E /= np.sqrt(np.sum(np.abs(E)**2,axis=0))
     s = E.dot(m.conj())
+    print('Finished computation of matrix E! Took %g seconds' % (time() - t0))
 
     # Look at how incoherent the sampling matrix is (we want it to be eye)
     plt.imshow(np.abs(E.conj().T.dot(E)))
