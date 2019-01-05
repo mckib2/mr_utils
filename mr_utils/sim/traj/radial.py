@@ -2,7 +2,7 @@ import numpy as np
 from skimage.morphology import skeletonize
 from skimage.transform import rotate
 
-def radial(shape,num_spokes,theta=None,skinny=True,extend=True):
+def radial(shape,num_spokes,theta=None,skinny=True,extend=False):
     '''Create 2d binary radial sampling pattern.
 
     shape -- x,y dimensions of sampling pattern.
