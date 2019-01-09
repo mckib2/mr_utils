@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from skimage.measure import compare_mse
 
 def IT(eta,y,shape,mu=1,x=0,tol=1e-8,maxiter=200):
 
@@ -45,7 +46,8 @@ if __name__ == '__main__':
     N = 1000
     x = binary_smiley(N)
     k = np.sum(np.abs(np.diff(x)) > 0)
-    samp = cartesian_pe(x.shape,undersample=.1,reflines=5)
+    np.random.seed(5)
+    samp = cartesian_pe(x.shape,undersample=.3,reflines=5)
 
     # find perfect reordering
     if do_reordering:
@@ -56,10 +58,17 @@ if __name__ == '__main__':
 
         # Find new sparsity measure
         k = np.sum(np.abs(np.diff(x.flatten()[reordering])) > 0)
-        # plt.imshow((x.flatten()[reordering])[inverse_reordering].reshape(x.shape))
+
+        # # Make sure we did the right thing
+        # plt.imshow((x.flatten()[reordering])[inverse_reordering].reshape(x.shape),cmap='gray')
         # plt.show()
 
-    plt.imshow(samp)
+        # plt.plot(np.diff(x.flatten()),label='No reordering')
+        # plt.plot(np.diff(x.flatten()[reordering]),label='True reordering')
+        # plt.legend()
+        # plt.show()
+
+    plt.imshow(samp,cmap='gray')
     plt.title('Sampling Pattern')
     plt.show()
 
@@ -90,15 +99,14 @@ if __name__ == '__main__':
             # Inverse finite differences transformation
             res = np.hstack((first_samp,fd)).cumsum()
             if do_reordering:
-                res = res[inverse_reordering].reshape(x_hat.shape)
-            else:
-                res = res.reshape(x_hat.shape)
-            return(res)
+                res = res[inverse_reordering]
+
+            return(res.reshape(x_hat.shape))
 
     # Simulate acquisiton
     y = eta(x_hat=x)
 
-    plt.imshow(np.abs(np.fft.ifft2(y)))
+    plt.imshow(np.abs(np.fft.ifft2(y)),cmap='gray')
     plt.title('Acquired')
     plt.show()
 
@@ -106,6 +114,6 @@ if __name__ == '__main__':
     x_hat = IT(eta,y,x.shape,mu=1,x=x,maxiter=100)
 
     # Check it out
-    plt.imshow(np.abs(x_hat))
-    plt.title('IHT Recon')
+    plt.imshow(np.abs(x_hat),cmap='gray')
+    plt.title('IHT Recon, MSE: %g' % compare_mse(x_hat,x))
     plt.show()
