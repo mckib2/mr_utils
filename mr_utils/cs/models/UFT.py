@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class UFT(object):
     '''Undersampled Fourier Transform (UFT) data acquisiton model.
@@ -13,8 +14,10 @@ class UFT(object):
         self.conjugated = False
         self.transposed = False
         self.imshape = samp.shape
+        self.samp = samp
 
         # Determine normalization factors using a 2d delta
+        N = samp.shape[0]
         im = np.zeros((N**2,N**2))
         # im = np.zeros((N,N))
         im[0,0] = 1
@@ -36,19 +39,19 @@ class UFT(object):
         # Either forward or inverse transformation
         if self.conjugated and self.transposed:
             print('INVERSE')
-            imspace = np.fft.fftshift(np.fft.fft2(samp*m.conj()))
-            res = imspace/self.norm
+            imspace = np.fft.fft2(m.conj()*self.samp)
+            res = imspace
         else:
             print('FORWARD')
             kspace = np.fft.fftshift(np.fft.fft2(m))
-            res = kspace*samp/self.norm
+            res = self.samp*kspace
 
         # Reset hermitian flags
         self.conjugated = False
         self.transposed = False
 
         # Send back the undersampled kpsace as a column vector
-        return(res.flatten())
+        return(res.flatten()/self.norm)
 
     def conj(self):
         self.conjugated = True
