@@ -39,12 +39,29 @@ def IT(eta,y,shape,mu=1,x=0,tol=1e-8,maxiter=200):
 if __name__ == '__main__':
 
     from mr_utils.test_data.phantom import binary_smiley
-    from mr_utils.sim.traj import cartesian
+    from mr_utils.sim.traj import cartesian_pe
 
-    N = 500
+    do_reordering = True
+    N = 1000
     x = binary_smiley(N)
     k = np.sum(np.abs(np.diff(x)) > 0)
-    samp = cartesian(x.shape,undersample=.5,reflines=5)
+    samp = cartesian_pe(x.shape,undersample=.1,reflines=5)
+
+    # find perfect reordering
+    if do_reordering:
+        reordering = np.argsort(x.flatten())
+        inverse_reordering = [0]*len(reordering)
+        for send_from,send_to in enumerate(reordering):
+            inverse_reordering[send_to] = send_from
+
+        # Find new sparsity measure
+        k = np.sum(np.abs(np.diff(x.flatten()[reordering])) > 0)
+        # plt.imshow((x.flatten()[reordering])[inverse_reordering].reshape(x.shape))
+        # plt.show()
+
+    plt.imshow(samp)
+    plt.title('Sampling Pattern')
+    plt.show()
 
     def eta(x_hat=None,r=None,mu=1):
         if x_hat is not None and r is None:
@@ -59,6 +76,10 @@ if __name__ == '__main__':
             # Take step
             val = (x_hat + mu*np.abs(np.fft.ifft2(r))).flatten()
 
+            # Do the reordering
+            if do_reordering:
+                val = val[reordering]
+
             # Finite differences transformation
             first_samp = val[0] # save the first sample for inverse transform
             fd = np.diff(val)
@@ -67,15 +88,24 @@ if __name__ == '__main__':
             fd[np.argsort(np.abs(fd))[:-k]] = 0
 
             # Inverse finite differences transformation
-            res = np.hstack((first_samp,fd)).cumsum().reshape(x_hat.shape)
+            res = np.hstack((first_samp,fd)).cumsum()
+            if do_reordering:
+                res = res[inverse_reordering].reshape(x_hat.shape)
+            else:
+                res = res.reshape(x_hat.shape)
             return(res)
 
     # Simulate acquisiton
     y = eta(x_hat=x)
+
+    plt.imshow(np.abs(np.fft.ifft2(y)))
+    plt.title('Acquired')
+    plt.show()
 
     # Do IHT, enforcing sparsity in finite differences domain
     x_hat = IT(eta,y,x.shape,mu=1,x=x,maxiter=100)
 
     # Check it out
     plt.imshow(np.abs(x_hat))
+    plt.title('IHT Recon')
     plt.show()
