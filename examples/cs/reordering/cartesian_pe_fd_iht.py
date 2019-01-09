@@ -47,7 +47,7 @@ if __name__ == '__main__':
     x = binary_smiley(N)
     k = np.sum(np.abs(np.diff(x)) > 0)
     np.random.seed(5)
-    samp = cartesian_pe(x.shape,undersample=.3,reflines=5)
+    samp = cartesian_pe(x.shape,undersample=.2,reflines=5)
 
     # find perfect reordering
     if do_reordering:
