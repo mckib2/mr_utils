@@ -1,4 +1,32 @@
-## Installation
+# mr_utils
+
+mr_utils: magnetic resonance utilities. This repo is a collection of my
+implementations of algorithms and tools for MR image reconstruction, mostly
+in python.
+
+## Orientation
+There are few different things going on here.  There are algorithms, like the [geometric solution to the elliptical signal model](../master/mr_utils/recon/ssfp/gs_recon.py), as well as simulations, like [simulated bSSFP contrast](../master/mr_utils/sim/ssfp/ssfp.py).
+
+There's also some python functions and objects that interact with more polished tools such as [Gadgetron](../master/mr_utils/gadgetron/client.py) and [BART](../master/mr_utils/bart/bartholomew.py). You can use these python interfaces to easily write in Gadgetron, MATLAB, or BART functionality into your python scripts. These functions are written with the assumption of Gadgetron, MATLAB, etc. being run on some processing server (not necessarily on your local machine). If you use these, you'll want to create a [config file](../master/mr_utils/config) file.
+
+## Documentation and Tests
+
+Documentation is almost exclusively found in the docstrings of modules, functions, and classes.  This README file contains the output of help() for all the modules in the project.  README files can also be found in subdirectories containing only the help() output specific to that module.
+
+Another great way to learn how things are used is by looking in the [examples](../master/examples).
+Run examples from the root directory (same directory as setup.py) like this:
+
+```bash
+python3 examples/cs/reordering/cartesian_pe_fd_iht.py
+```
+
+If there's not an example, there might be some [tests](../master/mr_utils/tests). Individual tests can be run like this from the root directory (I recomment that you run tests from the home directory - imports will get messed up otherwise):
+
+```bash
+python3 -m unittest mr_utils/tests/recon/test_gs_recon.py
+```
+
+# Installation
 
 Say you want to use this package in one of your python scripts.  You can install it using pip like so:
 
@@ -8,9 +36,9 @@ cd mr_utils
 pip3 install -e ./
 ```
 
-You'll need to manually install the ismrmrd-python-tools as it's currently not available on pypi.
-You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
+You'll need to manually install the ismrmrd-python-tools as it's currently not available on pypi. You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
 
+# MAKE_README
 ## make_readme
 
 [Source](../master/make_readme.py)
@@ -26,6 +54,7 @@ DESCRIPTION
 ```
 
 
+# BART
 ## mr_utils.bart.bart
 
 [Source](../master/mr_utils/bart/bart.py)
@@ -122,17 +151,40 @@ FUNCTIONS
 ```
 
 
+# CONFIG
 ## mr_utils.config.config
 
 [Source](../master/mr_utils/config/config.py)
 
 ```
 NAME
-    mr_utils.config.config
+    mr_utils.config.config - Provide an easy way to set things like gadgetron host, port, etc.
 
 DESCRIPTION
-    ## IDEA:
-    # Provide an interface to set things like gadgetron host, port, etc.
+    The ProfileConfig object will create (if it's not already created) a file
+    called 'profiles.config' in the top level of the project (same directory as
+    setup.py).  This file contains one or more profiles, one and only one of which
+    must be set as active.  A profile contains ports and hostnames and other
+    parameters to use for the gadgetron, MATLAB, siemens_to_ismrmrd, etc. clients.
+    
+    The config files use python's configparser format.  See implementation for
+    details.
+    
+    Example profiles.config file:
+    
+        [default]
+        gadgetron.host = localhost
+        gadgetron.port = 9002
+    
+        [workcomp]
+        gadgetron.host = 10.8.1.12
+        gadgetron.port = 9002
+        matlab.host = 10.8.1.12
+        matlab.port = 9999
+        matlab.bufsize = 1024
+    
+        [config]
+        active = workcomp
 
 CLASSES
     builtins.object
@@ -174,6 +226,7 @@ CLASSES
 ```
 
 
+# CS
 ## mr_utils.cs.linear_programming
 
 [Source](../master/mr_utils/cs/linear_programming.py)
@@ -230,6 +283,7 @@ CLASSES
 ```
 
 
+# DEFINITIONS
 ## mr_utils.definitions
 
 [Source](../master/mr_utils/definitions.py)
@@ -241,6 +295,7 @@ NAME
 ```
 
 
+# GADGETRON
 ## mr_utils.gadgetron.client
 
 [Source](../master/mr_utils/gadgetron/client.py)
@@ -254,7 +309,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 21:12:37.165902', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 22:12:03.842438', config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -608,6 +663,7 @@ NAME
 ```
 
 
+# GRIDDING
 ## mr_utils.gridding.scgrog.get_gx_gy
 
 [Source](../master/mr_utils/gridding/scgrog/get_gx_gy.py)
@@ -647,6 +703,7 @@ FUNCTIONS
 ```
 
 
+# LOAD_DATA
 ## mr_utils.load_data.hdf5
 
 [Source](../master/mr_utils/load_data/hdf5.py)
@@ -2506,6 +2563,7 @@ FUNCTIONS
 ```
 
 
+# MATLAB
 ## mr_utils.matlab.client
 
 [Source](../master/mr_utils/matlab/client.py)
@@ -2719,6 +2777,7 @@ FUNCTIONS
 ```
 
 
+# OPTIMIZATION
 ## mr_utils.optimization.gd
 
 [Source](../master/mr_utils/optimization/gd.py)
@@ -2807,6 +2866,7 @@ FUNCTIONS
 ```
 
 
+# RECON
 ## mr_utils.recon.espirit.espirit
 
 [Source](../master/mr_utils/recon/espirit/espirit.py)
@@ -3368,6 +3428,7 @@ FUNCTIONS
 ```
 
 
+# SIM
 ## mr_utils.sim.bloch.bloch
 
 [Source](../master/mr_utils/sim/bloch/bloch.py)
@@ -3897,6 +3958,7 @@ FUNCTIONS
 ```
 
 
+# TEST_DATA
 ## mr_utils.test_data.coils.csm
 
 [Source](../master/mr_utils/test_data/coils/csm.py)
@@ -4452,6 +4514,7 @@ CLASSES
 ```
 
 
+# UTILS
 ## mr_utils.utils.find_nearest
 
 [Source](../master/mr_utils/utils/find_nearest.py)
@@ -4631,6 +4694,7 @@ FUNCTIONS
 ```
 
 
+# VIEW
 ## mr_utils.view.view
 
 [Source](../master/mr_utils/view/view.py)

@@ -1,5 +1,30 @@
-## IDEA:
-# Provide an interface to set things like gadgetron host, port, etc.
+'''Provide an easy way to set things like gadgetron host, port, etc.
+
+The ProfileConfig object will create (if it's not already created) a file
+called 'profiles.config' in the top level of the project (same directory as
+setup.py).  This file contains one or more profiles, one and only one of which
+must be set as active.  A profile contains ports and hostnames and other
+parameters to use for the gadgetron, MATLAB, siemens_to_ismrmrd, etc. clients.
+
+The config files use python's configparser format.  See implementation for
+details.
+
+Example profiles.config file:
+
+    [default]
+    gadgetron.host = localhost
+    gadgetron.port = 9002
+
+    [workcomp]
+    gadgetron.host = 10.8.1.12
+    gadgetron.port = 9002
+    matlab.host = 10.8.1.12
+    matlab.port = 9999
+    matlab.bufsize = 1024
+
+    [config]
+    active = workcomp
+'''
 
 from configparser import ConfigParser,ExtendedInterpolation,NoOptionError
 import os
