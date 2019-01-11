@@ -2,7 +2,7 @@
 # GRIDDING
 ## mr_utils.gridding.scgrog.get_gx_gy
 
-[Source](../master/mr_utils/gridding/scgrog/get_gx_gy.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gridding/scgrog/get_gx_gy.py)
 
 ```
 NAME
@@ -18,7 +18,7 @@ FUNCTIONS
 
 ## mr_utils.gridding.scgrog.scgrog
 
-[Source](../master/mr_utils/gridding/scgrog/scgrog.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gridding/scgrog/scgrog.py)
 
 ```
 NAME

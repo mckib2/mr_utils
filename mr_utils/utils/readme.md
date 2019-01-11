@@ -2,7 +2,7 @@
 # UTILS
 ## mr_utils.utils.find_nearest
 
-[Source](../master/mr_utils/utils/find_nearest.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
 
 ```
 NAME
@@ -21,7 +21,7 @@ FUNCTIONS
 
 ## mr_utils.utils.grad_tv
 
-[Source](../master/mr_utils/utils/grad_tv.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/grad_tv.py)
 
 ```
 NAME
@@ -45,7 +45,7 @@ FUNCTIONS
 
 ## mr_utils.utils.mi_ssfp
 
-[Source](../master/mr_utils/utils/mi_ssfp.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/mi_ssfp.py)
 
 ```
 NAME
@@ -70,7 +70,7 @@ FUNCTIONS
 
 ## mr_utils.utils.percent_ripple
 
-[Source](../master/mr_utils/utils/percent_ripple.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/percent_ripple.py)
 
 ```
 NAME
@@ -97,7 +97,7 @@ FUNCTIONS
 
 ## mr_utils.utils.printtable
 
-[Source](../master/mr_utils/utils/printtable.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/printtable.py)
 
 ```
 NAME
@@ -146,7 +146,7 @@ CLASSES
 
 ## mr_utils.utils.rot
 
-[Source](../master/mr_utils/utils/rot.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/rot.py)
 
 ```
 NAME
@@ -162,7 +162,7 @@ FUNCTIONS
 
 ## mr_utils.utils.sos
 
-[Source](../master/mr_utils/utils/sos.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/sos.py)
 
 ```
 NAME

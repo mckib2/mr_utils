@@ -1,7 +1,7 @@
 
 ## mr_utils.sim.ssfp.param_mapping
 
-[Source](../master/mr_utils/sim/ssfp/param_mapping.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/param_mapping.py)
 
 ```
 NAME
@@ -18,7 +18,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.quantitative_field_mapping
 
-[Source](../master/mr_utils/sim/ssfp/quantitative_field_mapping.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/quantitative_field_mapping.py)
 
 ```
 NAME
@@ -48,7 +48,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.ssfp
 
-[Source](../master/mr_utils/sim/ssfp/ssfp.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/ssfp.py)
 
 ```
 NAME
@@ -174,7 +174,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.ssfp_dictionary
 
-[Source](../master/mr_utils/sim/ssfp/ssfp_dictionary.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/ssfp_dictionary.py)
 
 ```
 NAME

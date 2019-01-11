@@ -1,7 +1,7 @@
 
 ## mr_utils.test_data.test_data
 
-[Source](../master/mr_utils/test_data/test_data.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/test_data.py)
 
 ```
 NAME

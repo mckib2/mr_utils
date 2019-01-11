@@ -85,7 +85,7 @@ You'll need to manually install the ismrmrd-python-tools as it's currently not a
         cur_module_docs += '\n## %s\n' % m[1]
 
         # Add a link to the module directory
-        cur_module_docs += '\n[Source](../master/%s.py)\n\n' % '/'.join(m[1].split('.'))
+        cur_module_docs += '\n[Source](https://github.com/mckib2/mr_utils/blob/master/%s.py)\n\n' % '/'.join(m[1].split('.'))
 
         # Import the module so we can call help on it
         mod = importlib.import_module(m[1])

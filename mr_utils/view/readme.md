@@ -2,7 +2,7 @@
 # VIEW
 ## mr_utils.view.view
 
-[Source](../master/mr_utils/view/view.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/view/view.py)
 
 ```
 NAME

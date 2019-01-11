@@ -2,7 +2,7 @@
 # DEFINITIONS
 ## mr_utils.definitions
 
-[Source](../master/mr_utils/definitions.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/definitions.py)
 
 ```
 NAME

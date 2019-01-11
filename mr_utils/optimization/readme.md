@@ -2,7 +2,7 @@
 # OPTIMIZATION
 ## mr_utils.optimization.gd
 
-[Source](../master/mr_utils/optimization/gd.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/optimization/gd.py)
 
 ```
 NAME
@@ -25,7 +25,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.gradient
 
-[Source](../master/mr_utils/optimization/gradient.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/optimization/gradient.py)
 
 ```
 NAME
@@ -73,7 +73,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.linesearch
 
-[Source](../master/mr_utils/optimization/linesearch.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/optimization/linesearch.py)
 
 ```
 NAME

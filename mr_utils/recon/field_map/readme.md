@@ -1,7 +1,7 @@
 
 ## mr_utils.recon.field_map.dual_echo_gre
 
-[Source](../master/mr_utils/recon/field_map/dual_echo_gre.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/field_map/dual_echo_gre.py)
 
 ```
 NAME
@@ -24,7 +24,7 @@ FUNCTIONS
 
 ## mr_utils.recon.field_map.gs_field_map
 
-[Source](../master/mr_utils/recon/field_map/gs_field_map.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/field_map/gs_field_map.py)
 
 ```
 NAME

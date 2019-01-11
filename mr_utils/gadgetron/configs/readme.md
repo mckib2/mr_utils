@@ -1,7 +1,7 @@
 
 ## mr_utils.gadgetron.configs.default
 
-[Source](../master/mr_utils/gadgetron/configs/default.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/default.py)
 
 ```
 NAME
@@ -16,7 +16,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.distributed
 
-[Source](../master/mr_utils/gadgetron/configs/distributed.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/distributed.py)
 
 ```
 NAME
@@ -33,7 +33,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.epi
 
-[Source](../master/mr_utils/gadgetron/configs/epi.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/epi.py)
 
 ```
 NAME
@@ -51,7 +51,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.generic
 
-[Source](../master/mr_utils/gadgetron/configs/generic.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/generic.py)
 
 ```
 NAME
@@ -66,7 +66,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.grappa
 
-[Source](../master/mr_utils/gadgetron/configs/grappa.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/grappa.py)
 
 ```
 NAME

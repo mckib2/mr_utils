@@ -2,7 +2,7 @@
 # LOAD_DATA
 ## mr_utils.load_data.hdf5
 
-[Source](../master/mr_utils/load_data/hdf5.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/hdf5.py)
 
 ```
 NAME
@@ -17,7 +17,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.mat
 
-[Source](../master/mr_utils/load_data/mat.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/mat.py)
 
 ```
 NAME
@@ -34,7 +34,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.npy
 
-[Source](../master/mr_utils/load_data/npy.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/npy.py)
 
 ```
 NAME
@@ -49,7 +49,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.pyport
 
-[Source](../master/mr_utils/load_data/pyport.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/pyport.py)
 
 ```
 NAME
@@ -192,7 +192,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.raw
 
-[Source](../master/mr_utils/load_data/raw.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/raw.py)
 
 ```
 NAME
@@ -206,7 +206,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.siemens_to_ismrmd_client
 
-[Source](../master/mr_utils/load_data/siemens_to_ismrmd_client.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/siemens_to_ismrmd_client.py)
 
 ```
 NAME
@@ -1501,7 +1501,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.xprot
 
-[Source](../master/mr_utils/load_data/xprot.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/xprot.py)
 
 ```
 NAME
@@ -1690,7 +1690,7 @@ CLASSES
 
 ## mr_utils.load_data.xprot_parser
 
-[Source](../master/mr_utils/load_data/xprot_parser.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/xprot_parser.py)
 
 ```
 NAME

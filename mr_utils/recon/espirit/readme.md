@@ -2,7 +2,7 @@
 # RECON
 ## mr_utils.recon.espirit.espirit
 
-[Source](../master/mr_utils/recon/espirit/espirit.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/espirit/espirit.py)
 
 ```
 NAME

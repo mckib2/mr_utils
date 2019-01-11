@@ -2,7 +2,7 @@
 # BART
 ## mr_utils.bart.bart
 
-[Source](../master/mr_utils/bart/bart.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/bart/bart.py)
 
 ```
 NAME
@@ -17,7 +17,7 @@ FUNCTIONS
 
 ## mr_utils.bart.bartholomew
 
-[Source](../master/mr_utils/bart/bartholomew.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/bart/bartholomew.py)
 
 ```
 NAME
@@ -83,7 +83,7 @@ CLASSES
 
 ## mr_utils.bart.client
 
-[Source](../master/mr_utils/bart/client.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/bart/client.py)
 
 ```
 NAME

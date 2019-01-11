@@ -1,7 +1,7 @@
 
 ## mr_utils.recon.reordering.bart
 
-[Source](../master/mr_utils/recon/reordering/bart.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/bart.py)
 
 ```
 NAME
@@ -12,7 +12,7 @@ NAME
 
 ## mr_utils.recon.reordering.lcurve
 
-[Source](../master/mr_utils/recon/reordering/lcurve.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/lcurve.py)
 
 ```
 NAME
@@ -27,7 +27,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.patch_reordering
 
-[Source](../master/mr_utils/recon/reordering/patch_reordering.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/patch_reordering.py)
 
 ```
 NAME
@@ -42,7 +42,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.rudin_osher_fatemi
 
-[Source](../master/mr_utils/recon/reordering/rudin_osher_fatemi.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/rudin_osher_fatemi.py)
 
 ```
 NAME
@@ -65,7 +65,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.scr_reordering_adluru
 
-[Source](../master/mr_utils/recon/reordering/scr_reordering_adluru.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/scr_reordering_adluru.py)
 
 ```
 NAME
@@ -113,7 +113,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.sort2d
 
-[Source](../master/mr_utils/recon/reordering/sort2d.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/sort2d.py)
 
 ```
 NAME
@@ -137,7 +137,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.tsp
 
-[Source](../master/mr_utils/recon/reordering/tsp.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/tsp.py)
 
 ```
 NAME

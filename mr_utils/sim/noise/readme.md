@@ -1,7 +1,7 @@
 
 ## mr_utils.sim.noise.rayleigh
 
-[Source](../master/mr_utils/sim/noise/rayleigh.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/noise/rayleigh.py)
 
 ```
 NAME
@@ -45,7 +45,7 @@ FUNCTIONS
 
 ## mr_utils.sim.noise.rician
 
-[Source](../master/mr_utils/sim/noise/rician.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/noise/rician.py)
 
 ```
 NAME

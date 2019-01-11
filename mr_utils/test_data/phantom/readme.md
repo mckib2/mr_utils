@@ -1,7 +1,7 @@
 
 ## mr_utils.test_data.phantom.binary_smiley
 
-[Source](../master/mr_utils/test_data/phantom/binary_smiley.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/phantom/binary_smiley.py)
 
 ```
 NAME
@@ -19,7 +19,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.cylinder_2d
 
-[Source](../master/mr_utils/test_data/phantom/cylinder_2d.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/phantom/cylinder_2d.py)
 
 ```
 NAME
@@ -61,7 +61,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.phantom
 
-[Source](../master/mr_utils/test_data/phantom/phantom.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/phantom/phantom.py)
 
 ```
 NAME

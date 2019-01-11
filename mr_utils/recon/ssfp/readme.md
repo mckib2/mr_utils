@@ -1,7 +1,7 @@
 
 ## mr_utils.recon.ssfp.dixon
 
-[Source](../master/mr_utils/recon/ssfp/dixon.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/dixon.py)
 
 ```
 NAME
@@ -131,7 +131,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.gs_recon
 
-[Source](../master/mr_utils/recon/ssfp/gs_recon.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/gs_recon.py)
 
 ```
 NAME
@@ -214,7 +214,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.multiphase
 
-[Source](../master/mr_utils/recon/ssfp/multiphase.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/multiphase.py)
 
 ```
 NAME

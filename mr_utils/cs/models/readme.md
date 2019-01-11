@@ -1,7 +1,7 @@
 
 ## mr_utils.cs.models.UFT
 
-[Source](../master/mr_utils/cs/models/UFT.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/models/UFT.py)
 
 ```
 NAME

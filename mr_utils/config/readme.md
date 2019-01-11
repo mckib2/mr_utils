@@ -2,7 +2,7 @@
 # CONFIG
 ## mr_utils.config.config
 
-[Source](../master/mr_utils/config/config.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/config/config.py)
 
 ```
 NAME

@@ -2,7 +2,7 @@
 # TEST_DATA
 ## mr_utils.test_data.coils.csm
 
-[Source](../master/mr_utils/test_data/coils/csm.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/coils/csm.py)
 
 ```
 NAME

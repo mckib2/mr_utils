@@ -1,7 +1,7 @@
 
 ## mr_utils.sim.motion.motion
 
-[Source](../master/mr_utils/sim/motion/motion.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/motion/motion.py)
 
 ```
 NAME

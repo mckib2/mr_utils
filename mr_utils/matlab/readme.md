@@ -2,7 +2,7 @@
 # MATLAB
 ## mr_utils.matlab.client
 
-[Source](../master/mr_utils/matlab/client.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/client.py)
 
 ```
 NAME
@@ -44,7 +44,7 @@ FUNCTIONS
 
 ## mr_utils.matlab.client_old
 
-[Source](../master/mr_utils/matlab/client_old.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/client_old.py)
 
 ```
 NAME
@@ -103,7 +103,7 @@ CLASSES
 
 ## mr_utils.matlab.contract
 
-[Source](../master/mr_utils/matlab/contract.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/contract.py)
 
 ```
 NAME
@@ -114,7 +114,7 @@ NAME
 
 ## mr_utils.matlab.server
 
-[Source](../master/mr_utils/matlab/server.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/server.py)
 
 ```
 NAME

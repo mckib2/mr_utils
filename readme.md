@@ -2,7 +2,7 @@
 # MAKE_README
 ## make_readme
 
-[Source](../master/make_readme.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/make_readme.py)
 
 ```
 NAME

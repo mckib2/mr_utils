@@ -2,7 +2,7 @@
 # SIM
 ## mr_utils.sim.bloch.bloch
 
-[Source](../master/mr_utils/sim/bloch/bloch.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/bloch/bloch.py)
 
 ```
 NAME

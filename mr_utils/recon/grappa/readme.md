@@ -1,7 +1,7 @@
 
 ## mr_utils.recon.grappa.grappa
 
-[Source](../master/mr_utils/recon/grappa/grappa.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/grappa/grappa.py)
 
 ```
 NAME

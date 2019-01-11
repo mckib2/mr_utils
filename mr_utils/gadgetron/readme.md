@@ -2,7 +2,7 @@
 # GADGETRON
 ## mr_utils.gadgetron.client
 
-[Source](../master/mr_utils/gadgetron/client.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/client.py)
 
 ```
 NAME
@@ -13,7 +13,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 22:12:03.842438', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 22:16:01.451707', config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -34,7 +34,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.gadgetron_config
 
-[Source](../master/mr_utils/gadgetron/gadgetron_config.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/gadgetron_config.py)
 
 ```
 NAME
@@ -100,7 +100,7 @@ CLASSES
 
 ## mr_utils.gadgetron.gtconnector
 
-[Source](../master/mr_utils/gadgetron/gtconnector.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/gtconnector.py)
 
 ```
 NAME
@@ -271,7 +271,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.ssh_tunnel
 
-[Source](../master/mr_utils/gadgetron/ssh_tunnel.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/ssh_tunnel.py)
 
 ```
 NAME

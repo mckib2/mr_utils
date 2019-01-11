@@ -1,7 +1,7 @@
 
 ## mr_utils.sim.traj.cartesian
 
-[Source](../master/mr_utils/sim/traj/cartesian.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/traj/cartesian.py)
 
 ```
 NAME
@@ -18,7 +18,7 @@ FUNCTIONS
 
 ## mr_utils.sim.traj.radial
 
-[Source](../master/mr_utils/sim/traj/radial.py)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/traj/radial.py)
 
 ```
 NAME
