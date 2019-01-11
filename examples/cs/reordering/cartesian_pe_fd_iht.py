@@ -1,46 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.measure import compare_mse
-
-def IT(eta,y,shape,mu=1,x=0,tol=1e-8,maxiter=200):
-
-    # Initial estimate of x is zero
-    x_hat = np.zeros(shape)
-
-    # Get initial residue
-    r = y.copy()
-
-    # Run until tol reached or maxiter reached
-    prev_stop_criteria = np.inf
-    for tt in range(int(maxiter)):
-
-        # Take a step and threshold, all in one!
-        x_hat = eta(x_hat=x_hat,r=r,mu=mu)
-
-        stop_criteria = np.linalg.norm(r)/np.linalg.norm(y)
-
-        # If the stop_criteria gets worse, get out of dodge
-        if stop_criteria > prev_stop_criteria:
-            break
-        prev_stop_criteria = stop_criteria
-
-        # # Show MSE at current iteration if we wanted it
-        # if disp:
-        print([ tt,stop_criteria,np.mean((np.abs(x - x_hat)**2)) ])
-
-        # update the residual
-        r = y - eta(x_hat=x_hat)
-
-        # Check stopping criteria
-        if stop_criteria < tol:
-            break
-
-    return(x_hat)
+from mr_utils.cs import IHT_FE_TV
+from mr_utils.test_data.phantom import binary_smiley
+from mr_utils.sim.traj import cartesian_pe
 
 if __name__ == '__main__':
-
-    from mr_utils.test_data.phantom import binary_smiley
-    from mr_utils.sim.traj import cartesian_pe
 
     do_reordering = True
     N = 1000
@@ -49,71 +14,25 @@ if __name__ == '__main__':
     np.random.seed(5)
     samp = cartesian_pe(x.shape,undersample=.2,reflines=5)
 
-    # find perfect reordering
-    if do_reordering:
-        reordering = np.argsort(x.flatten())
-        inverse_reordering = [0]*len(reordering)
-        for send_from,send_to in enumerate(reordering):
-            inverse_reordering[send_to] = send_from
-
-        # Find new sparsity measure
-        k = np.sum(np.abs(np.diff(x.flatten()[reordering])) > 0)
-
-        # # Make sure we did the right thing
-        # plt.imshow((x.flatten()[reordering])[inverse_reordering].reshape(x.shape),cmap='gray')
-        # plt.show()
-
-        # plt.plot(np.diff(x.flatten()),label='No reordering')
-        # plt.plot(np.diff(x.flatten()[reordering]),label='True reordering')
-        # plt.legend()
-        # plt.show()
-
+    # Show sampling pattern
     plt.imshow(samp,cmap='gray')
     plt.title('Sampling Pattern')
     plt.show()
 
-    def eta(x_hat=None,r=None,mu=1):
-        if x_hat is not None and r is None:
-            kspace = np.fft.fftshift(np.fft.fft2(x_hat))
-            kspace_u = kspace*samp
-            return(kspace_u)
-        else:
-
-            # Density compensation!!!!
-            #
-
-            # Take step
-            val = (x_hat + mu*np.abs(np.fft.ifft2(r))).flatten()
-
-            # Do the reordering
-            if do_reordering:
-                val = val[reordering]
-
-            # Finite differences transformation
-            first_samp = val[0] # save the first sample for inverse transform
-            fd = np.diff(val)
-
-            # Hard thresholding
-            fd[np.argsort(np.abs(fd))[:-k]] = 0
-
-            # Inverse finite differences transformation
-            res = np.hstack((first_samp,fd)).cumsum()
-            if do_reordering:
-                res = res[inverse_reordering]
-
-            return(res.reshape(x_hat.shape))
-
     # Simulate acquisiton
-    y = eta(x_hat=x)
+    kspace = np.fft.fftshift(np.fft.fft2(x))
+    kspace_u = kspace*samp
+    imspace_u = np.fft.ifft2(kspace_u)
 
-    plt.imshow(np.abs(np.fft.ifft2(y)),cmap='gray')
+    # Look at the aliased acquired signal
+    plt.imshow(np.abs(imspace_u),cmap='gray')
     plt.title('Acquired')
     plt.show()
 
     # Do IHT, enforcing sparsity in finite differences domain
-    x_hat = IT(eta,y,x.shape,mu=1,x=x,maxiter=100)
+    x_hat = IHT_FE_TV(kspace_u,samp,k,mu=1,tol=1e-8,do_reordering=do_reordering,x=x,ignore_residual=False,disp=True,maxiter=500)
 
     # Check it out
-    plt.imshow(np.abs(x_hat),cmap='gray')
+    plt.imshow(x_hat,cmap='gray')
     plt.title('IHT Recon, MSE: %g' % compare_mse(x_hat,x))
     plt.show()

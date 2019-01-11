@@ -42,6 +42,7 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,im_true=None,ignore_residual=False,dis
     m_hat = np.zeros(kspace.shape,dtype=kspace.dtype)
     r = -kspace.copy()
     prev_stop_criteria = np.inf
+    norm_kspace = np.linalg.norm(kspace)
 
     # Do the thing
     for ii in range(int(maxiter)):
@@ -53,7 +54,7 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,im_true=None,ignore_residual=False,dis
         second_term = dTV(m_hat)
 
         # Compute stop criteria
-        stop_criteria = np.linalg.norm(r)
+        stop_criteria = np.linalg.norm(r)/norm_kspace
         if not ignore_residual and stop_criteria > prev_stop_criteria:
             logging.warning('Breaking out of loop after %d iterations. Norm of residual increased!' % ii)
             break
