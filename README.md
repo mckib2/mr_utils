@@ -13,7 +13,7 @@ You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
 
 ## make_readme
 
-[Source](../master/make_readme)
+[Source](../master/make_readme.py)
 
 ```
 NAME
@@ -28,7 +28,7 @@ DESCRIPTION
 
 ## mr_utils.bart.bart
 
-[Source](../master/mr_utils/bart/bart)
+[Source](../master/mr_utils/bart/bart.py)
 
 ```
 NAME
@@ -43,7 +43,7 @@ FUNCTIONS
 
 ## mr_utils.bart.bartholomew
 
-[Source](../master/mr_utils/bart/bartholomew)
+[Source](../master/mr_utils/bart/bartholomew.py)
 
 ```
 NAME
@@ -109,7 +109,7 @@ CLASSES
 
 ## mr_utils.bart.client
 
-[Source](../master/mr_utils/bart/client)
+[Source](../master/mr_utils/bart/client.py)
 
 ```
 NAME
@@ -124,7 +124,7 @@ FUNCTIONS
 
 ## mr_utils.config.config
 
-[Source](../master/mr_utils/config/config)
+[Source](../master/mr_utils/config/config.py)
 
 ```
 NAME
@@ -176,7 +176,7 @@ CLASSES
 
 ## mr_utils.cs.linear_programming
 
-[Source](../master/mr_utils/cs/linear_programming)
+[Source](../master/mr_utils/cs/linear_programming.py)
 
 ```
 NAME
@@ -188,7 +188,7 @@ NAME
 
 ## mr_utils.cs.models.UFT
 
-[Source](../master/mr_utils/cs/models/UFT)
+[Source](../master/mr_utils/cs/models/UFT.py)
 
 ```
 NAME
@@ -232,7 +232,7 @@ CLASSES
 
 ## mr_utils.definitions
 
-[Source](../master/mr_utils/definitions)
+[Source](../master/mr_utils/definitions.py)
 
 ```
 NAME
@@ -243,7 +243,7 @@ NAME
 
 ## mr_utils.gadgetron.client
 
-[Source](../master/mr_utils/gadgetron/client)
+[Source](../master/mr_utils/gadgetron/client.py)
 
 ```
 NAME
@@ -254,7 +254,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 19:21:33.348653', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 21:12:37.165902', config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -275,7 +275,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.default
 
-[Source](../master/mr_utils/gadgetron/configs/default)
+[Source](../master/mr_utils/gadgetron/configs/default.py)
 
 ```
 NAME
@@ -290,7 +290,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.distributed
 
-[Source](../master/mr_utils/gadgetron/configs/distributed)
+[Source](../master/mr_utils/gadgetron/configs/distributed.py)
 
 ```
 NAME
@@ -307,7 +307,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.epi
 
-[Source](../master/mr_utils/gadgetron/configs/epi)
+[Source](../master/mr_utils/gadgetron/configs/epi.py)
 
 ```
 NAME
@@ -325,7 +325,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.generic
 
-[Source](../master/mr_utils/gadgetron/configs/generic)
+[Source](../master/mr_utils/gadgetron/configs/generic.py)
 
 ```
 NAME
@@ -340,7 +340,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.grappa
 
-[Source](../master/mr_utils/gadgetron/configs/grappa)
+[Source](../master/mr_utils/gadgetron/configs/grappa.py)
 
 ```
 NAME
@@ -361,7 +361,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.gadgetron_config
 
-[Source](../master/mr_utils/gadgetron/gadgetron_config)
+[Source](../master/mr_utils/gadgetron/gadgetron_config.py)
 
 ```
 NAME
@@ -427,7 +427,7 @@ CLASSES
 
 ## mr_utils.gadgetron.gtconnector
 
-[Source](../master/mr_utils/gadgetron/gtconnector)
+[Source](../master/mr_utils/gadgetron/gtconnector.py)
 
 ```
 NAME
@@ -598,7 +598,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.ssh_tunnel
 
-[Source](../master/mr_utils/gadgetron/ssh_tunnel)
+[Source](../master/mr_utils/gadgetron/ssh_tunnel.py)
 
 ```
 NAME
@@ -610,7 +610,7 @@ NAME
 
 ## mr_utils.gridding.scgrog.get_gx_gy
 
-[Source](../master/mr_utils/gridding/scgrog/get_gx_gy)
+[Source](../master/mr_utils/gridding/scgrog/get_gx_gy.py)
 
 ```
 NAME
@@ -626,7 +626,7 @@ FUNCTIONS
 
 ## mr_utils.gridding.scgrog.scgrog
 
-[Source](../master/mr_utils/gridding/scgrog/scgrog)
+[Source](../master/mr_utils/gridding/scgrog/scgrog.py)
 
 ```
 NAME
@@ -649,7 +649,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.hdf5
 
-[Source](../master/mr_utils/load_data/hdf5)
+[Source](../master/mr_utils/load_data/hdf5.py)
 
 ```
 NAME
@@ -664,7 +664,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.mat
 
-[Source](../master/mr_utils/load_data/mat)
+[Source](../master/mr_utils/load_data/mat.py)
 
 ```
 NAME
@@ -681,7 +681,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.npy
 
-[Source](../master/mr_utils/load_data/npy)
+[Source](../master/mr_utils/load_data/npy.py)
 
 ```
 NAME
@@ -696,7 +696,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.pyport
 
-[Source](../master/mr_utils/load_data/pyport)
+[Source](../master/mr_utils/load_data/pyport.py)
 
 ```
 NAME
@@ -839,7 +839,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.raw
 
-[Source](../master/mr_utils/load_data/raw)
+[Source](../master/mr_utils/load_data/raw.py)
 
 ```
 NAME
@@ -853,7 +853,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.siemens_to_ismrmd_client
 
-[Source](../master/mr_utils/load_data/siemens_to_ismrmd_client)
+[Source](../master/mr_utils/load_data/siemens_to_ismrmd_client.py)
 
 ```
 NAME
@@ -2148,7 +2148,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.xprot
 
-[Source](../master/mr_utils/load_data/xprot)
+[Source](../master/mr_utils/load_data/xprot.py)
 
 ```
 NAME
@@ -2337,7 +2337,7 @@ CLASSES
 
 ## mr_utils.load_data.xprot_parser
 
-[Source](../master/mr_utils/load_data/xprot_parser)
+[Source](../master/mr_utils/load_data/xprot_parser.py)
 
 ```
 NAME
@@ -2508,7 +2508,7 @@ FUNCTIONS
 
 ## mr_utils.matlab.client
 
-[Source](../master/mr_utils/matlab/client)
+[Source](../master/mr_utils/matlab/client.py)
 
 ```
 NAME
@@ -2550,7 +2550,7 @@ FUNCTIONS
 
 ## mr_utils.matlab.client_old
 
-[Source](../master/mr_utils/matlab/client_old)
+[Source](../master/mr_utils/matlab/client_old.py)
 
 ```
 NAME
@@ -2609,7 +2609,7 @@ CLASSES
 
 ## mr_utils.matlab.contract
 
-[Source](../master/mr_utils/matlab/contract)
+[Source](../master/mr_utils/matlab/contract.py)
 
 ```
 NAME
@@ -2620,7 +2620,7 @@ NAME
 
 ## mr_utils.matlab.server
 
-[Source](../master/mr_utils/matlab/server)
+[Source](../master/mr_utils/matlab/server.py)
 
 ```
 NAME
@@ -2721,7 +2721,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.gd
 
-[Source](../master/mr_utils/optimization/gd)
+[Source](../master/mr_utils/optimization/gd.py)
 
 ```
 NAME
@@ -2744,7 +2744,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.gradient
 
-[Source](../master/mr_utils/optimization/gradient)
+[Source](../master/mr_utils/optimization/gradient.py)
 
 ```
 NAME
@@ -2792,7 +2792,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.linesearch
 
-[Source](../master/mr_utils/optimization/linesearch)
+[Source](../master/mr_utils/optimization/linesearch.py)
 
 ```
 NAME
@@ -2809,7 +2809,7 @@ FUNCTIONS
 
 ## mr_utils.recon.espirit.espirit
 
-[Source](../master/mr_utils/recon/espirit/espirit)
+[Source](../master/mr_utils/recon/espirit/espirit.py)
 
 ```
 NAME
@@ -2875,7 +2875,7 @@ FUNCTIONS
 
 ## mr_utils.recon.field_map.dual_echo_gre
 
-[Source](../master/mr_utils/recon/field_map/dual_echo_gre)
+[Source](../master/mr_utils/recon/field_map/dual_echo_gre.py)
 
 ```
 NAME
@@ -2898,7 +2898,7 @@ FUNCTIONS
 
 ## mr_utils.recon.field_map.gs_field_map
 
-[Source](../master/mr_utils/recon/field_map/gs_field_map)
+[Source](../master/mr_utils/recon/field_map/gs_field_map.py)
 
 ```
 NAME
@@ -2925,7 +2925,7 @@ FUNCTIONS
 
 ## mr_utils.recon.grappa.grappa
 
-[Source](../master/mr_utils/recon/grappa/grappa)
+[Source](../master/mr_utils/recon/grappa/grappa.py)
 
 ```
 NAME
@@ -2940,7 +2940,7 @@ FUNCTIONS
 
 ## mr_utils.recon.partial_fourier.partial_fourier_pocs
 
-[Source](../master/mr_utils/recon/partial_fourier/partial_fourier_pocs)
+[Source](../master/mr_utils/recon/partial_fourier/partial_fourier_pocs.py)
 
 ```
 NAME
@@ -2970,7 +2970,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.bart
 
-[Source](../master/mr_utils/recon/reordering/bart)
+[Source](../master/mr_utils/recon/reordering/bart.py)
 
 ```
 NAME
@@ -2981,7 +2981,7 @@ NAME
 
 ## mr_utils.recon.reordering.lcurve
 
-[Source](../master/mr_utils/recon/reordering/lcurve)
+[Source](../master/mr_utils/recon/reordering/lcurve.py)
 
 ```
 NAME
@@ -2996,7 +2996,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.patch_reordering
 
-[Source](../master/mr_utils/recon/reordering/patch_reordering)
+[Source](../master/mr_utils/recon/reordering/patch_reordering.py)
 
 ```
 NAME
@@ -3011,7 +3011,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.rudin_osher_fatemi
 
-[Source](../master/mr_utils/recon/reordering/rudin_osher_fatemi)
+[Source](../master/mr_utils/recon/reordering/rudin_osher_fatemi.py)
 
 ```
 NAME
@@ -3034,7 +3034,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.scr_reordering_adluru
 
-[Source](../master/mr_utils/recon/reordering/scr_reordering_adluru)
+[Source](../master/mr_utils/recon/reordering/scr_reordering_adluru.py)
 
 ```
 NAME
@@ -3082,7 +3082,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.sort2d
 
-[Source](../master/mr_utils/recon/reordering/sort2d)
+[Source](../master/mr_utils/recon/reordering/sort2d.py)
 
 ```
 NAME
@@ -3106,7 +3106,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.tsp
 
-[Source](../master/mr_utils/recon/reordering/tsp)
+[Source](../master/mr_utils/recon/reordering/tsp.py)
 
 ```
 NAME
@@ -3134,7 +3134,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.dixon
 
-[Source](../master/mr_utils/recon/ssfp/dixon)
+[Source](../master/mr_utils/recon/ssfp/dixon.py)
 
 ```
 NAME
@@ -3264,7 +3264,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.gs_recon
 
-[Source](../master/mr_utils/recon/ssfp/gs_recon)
+[Source](../master/mr_utils/recon/ssfp/gs_recon.py)
 
 ```
 NAME
@@ -3347,7 +3347,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.multiphase
 
-[Source](../master/mr_utils/recon/ssfp/multiphase)
+[Source](../master/mr_utils/recon/ssfp/multiphase.py)
 
 ```
 NAME
@@ -3370,7 +3370,7 @@ FUNCTIONS
 
 ## mr_utils.sim.bloch.bloch
 
-[Source](../master/mr_utils/sim/bloch/bloch)
+[Source](../master/mr_utils/sim/bloch/bloch.py)
 
 ```
 NAME
@@ -3424,7 +3424,7 @@ FUNCTIONS
 
 ## mr_utils.sim.gre.gre
 
-[Source](../master/mr_utils/sim/gre/gre)
+[Source](../master/mr_utils/sim/gre/gre.py)
 
 ```
 NAME
@@ -3525,7 +3525,7 @@ FUNCTIONS
 
 ## mr_utils.sim.motion.motion
 
-[Source](../master/mr_utils/sim/motion/motion)
+[Source](../master/mr_utils/sim/motion/motion.py)
 
 ```
 NAME
@@ -3546,7 +3546,7 @@ FUNCTIONS
 
 ## mr_utils.sim.noise.rayleigh
 
-[Source](../master/mr_utils/sim/noise/rayleigh)
+[Source](../master/mr_utils/sim/noise/rayleigh.py)
 
 ```
 NAME
@@ -3590,7 +3590,7 @@ FUNCTIONS
 
 ## mr_utils.sim.noise.rician
 
-[Source](../master/mr_utils/sim/noise/rician)
+[Source](../master/mr_utils/sim/noise/rician.py)
 
 ```
 NAME
@@ -3619,7 +3619,7 @@ FUNCTIONS
 
 ## mr_utils.sim.single_voxel.single_voxel
 
-[Source](../master/mr_utils/sim/single_voxel/single_voxel)
+[Source](../master/mr_utils/sim/single_voxel/single_voxel.py)
 
 ```
 NAME
@@ -3636,7 +3636,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.param_mapping
 
-[Source](../master/mr_utils/sim/ssfp/param_mapping)
+[Source](../master/mr_utils/sim/ssfp/param_mapping.py)
 
 ```
 NAME
@@ -3653,7 +3653,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.quantitative_field_mapping
 
-[Source](../master/mr_utils/sim/ssfp/quantitative_field_mapping)
+[Source](../master/mr_utils/sim/ssfp/quantitative_field_mapping.py)
 
 ```
 NAME
@@ -3683,7 +3683,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.ssfp
 
-[Source](../master/mr_utils/sim/ssfp/ssfp)
+[Source](../master/mr_utils/sim/ssfp/ssfp.py)
 
 ```
 NAME
@@ -3809,7 +3809,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.ssfp_dictionary
 
-[Source](../master/mr_utils/sim/ssfp/ssfp_dictionary)
+[Source](../master/mr_utils/sim/ssfp/ssfp_dictionary.py)
 
 ```
 NAME
@@ -3847,7 +3847,7 @@ FUNCTIONS
 
 ## mr_utils.sim.traj.cartesian
 
-[Source](../master/mr_utils/sim/traj/cartesian)
+[Source](../master/mr_utils/sim/traj/cartesian.py)
 
 ```
 NAME
@@ -3864,7 +3864,7 @@ FUNCTIONS
 
 ## mr_utils.sim.traj.radial
 
-[Source](../master/mr_utils/sim/traj/radial)
+[Source](../master/mr_utils/sim/traj/radial.py)
 
 ```
 NAME
@@ -3899,7 +3899,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.coils.csm
 
-[Source](../master/mr_utils/test_data/coils/csm)
+[Source](../master/mr_utils/test_data/coils/csm.py)
 
 ```
 NAME
@@ -3927,7 +3927,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.optimization_functions.functions
 
-[Source](../master/mr_utils/test_data/optimization_functions/functions)
+[Source](../master/mr_utils/test_data/optimization_functions/functions.py)
 
 ```
 NAME
@@ -3989,7 +3989,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.binary_smiley
 
-[Source](../master/mr_utils/test_data/phantom/binary_smiley)
+[Source](../master/mr_utils/test_data/phantom/binary_smiley.py)
 
 ```
 NAME
@@ -4007,7 +4007,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.cylinder_2d
 
-[Source](../master/mr_utils/test_data/phantom/cylinder_2d)
+[Source](../master/mr_utils/test_data/phantom/cylinder_2d.py)
 
 ```
 NAME
@@ -4049,7 +4049,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.phantom
 
-[Source](../master/mr_utils/test_data/phantom/phantom)
+[Source](../master/mr_utils/test_data/phantom/phantom.py)
 
 ```
 NAME
@@ -4127,7 +4127,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.test_data
 
-[Source](../master/mr_utils/test_data/test_data)
+[Source](../master/mr_utils/test_data/test_data.py)
 
 ```
 NAME
@@ -4454,7 +4454,7 @@ CLASSES
 
 ## mr_utils.utils.find_nearest
 
-[Source](../master/mr_utils/utils/find_nearest)
+[Source](../master/mr_utils/utils/find_nearest.py)
 
 ```
 NAME
@@ -4473,7 +4473,7 @@ FUNCTIONS
 
 ## mr_utils.utils.grad_tv
 
-[Source](../master/mr_utils/utils/grad_tv)
+[Source](../master/mr_utils/utils/grad_tv.py)
 
 ```
 NAME
@@ -4497,7 +4497,7 @@ FUNCTIONS
 
 ## mr_utils.utils.mi_ssfp
 
-[Source](../master/mr_utils/utils/mi_ssfp)
+[Source](../master/mr_utils/utils/mi_ssfp.py)
 
 ```
 NAME
@@ -4522,7 +4522,7 @@ FUNCTIONS
 
 ## mr_utils.utils.percent_ripple
 
-[Source](../master/mr_utils/utils/percent_ripple)
+[Source](../master/mr_utils/utils/percent_ripple.py)
 
 ```
 NAME
@@ -4549,7 +4549,7 @@ FUNCTIONS
 
 ## mr_utils.utils.printtable
 
-[Source](../master/mr_utils/utils/printtable)
+[Source](../master/mr_utils/utils/printtable.py)
 
 ```
 NAME
@@ -4598,7 +4598,7 @@ CLASSES
 
 ## mr_utils.utils.rot
 
-[Source](../master/mr_utils/utils/rot)
+[Source](../master/mr_utils/utils/rot.py)
 
 ```
 NAME
@@ -4614,7 +4614,7 @@ FUNCTIONS
 
 ## mr_utils.utils.sos
 
-[Source](../master/mr_utils/utils/sos)
+[Source](../master/mr_utils/utils/sos.py)
 
 ```
 NAME
@@ -4633,7 +4633,7 @@ FUNCTIONS
 
 ## mr_utils.view.view
 
-[Source](../master/mr_utils/view/view)
+[Source](../master/mr_utils/view/view.py)
 
 ```
 NAME

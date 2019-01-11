@@ -44,7 +44,7 @@ You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
         docs += '\n## %s\n' % m[1]
 
         # Add a link to the module directory
-        docs += '\n[Source](../master/%s)\n\n' % '/'.join(m[1].split('.'))
+        docs += '\n[Source](../master/%s.py)\n\n' % '/'.join(m[1].split('.'))
 
         # Import the module so we can call help on it
         mod = importlib.import_module(m[1])
