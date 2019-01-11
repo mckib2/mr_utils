@@ -30,9 +30,9 @@ implementations of algorithms and tools for MR image reconstruction, mostly
 in python.
 
 ## Orientation
-There are few different things going on here.  There are algorithms, like the [geometric solution to the elliptical signal model](../master/mr_utils/recon/ssfp/gs_recon.py), as well as simulations, like [simulated bSSFP contrast](../master/mr_utils/sim/ssfp/ssfp.py).
+There are few different things going on here.  There are algorithms, like the [geometric solution to the elliptical signal model](../master/mr_utils/recon/ssfp), as well as simulations, like [simulated bSSFP contrast](../master/mr_utils/sim/ssfp).
 
-There's also some python functions and objects that interact with more polished tools such as [Gadgetron](../master/mr_utils/gadgetron/client.py) and [BART](../master/mr_utils/bart/bartholomew.py). You can use these python interfaces to easily write in Gadgetron, MATLAB, or BART functionality into your python scripts. These functions are written with the assumption of Gadgetron, MATLAB, etc. being run on some processing server (not necessarily on your local machine). If you use these, you'll want to create a [config file](../master/mr_utils/config) file.
+There's also some python functions and objects that interact with more polished tools such as [Gadgetron](../master/mr_utils/gadgetron) and [BART](../master/mr_utils/bart). You can use these python interfaces to easily write in Gadgetron, MATLAB, or BART functionality into your python scripts. These functions are written with the assumption of Gadgetron, MATLAB, etc. being run on some processing server (not necessarily on your local machine). If you use these, you'll want to create a [config file](../master/mr_utils/config) file.
 
 ## Documentation and Tests
 
