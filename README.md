@@ -309,7 +309,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 22:16:01.451707', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 22:19:11.544756', config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
