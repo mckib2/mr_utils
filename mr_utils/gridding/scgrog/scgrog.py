@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import fractional_matrix_power
-from time import time
+import time
 from .get_gx_gy import get_gx_gy
 
 def grog_interp(kspace,Gx,Gy,traj,cartdims):
@@ -33,13 +33,13 @@ def grog_interp(kspace,Gx,Gy,traj,cartdims):
     # Precompute fractional matrix powers - this is the part that takes a long time
     Gxf = np.zeros((dkxs.shape[0],dkxs.shape[1],Gx.shape[0],Gx.shape[1]),dtype='complex')
     Gyf = np.zeros((dkys.shape[0],dkys.shape[1],Gy.shape[0],Gy.shape[1]),dtype='complex')
-    t0 = time()
+    t0 = time.time()
     for ii in range(sx):
         for jj in range(nor):
             Gxf[ii,jj,:,:] = fractional_matrix_power(Gx,dkxs[ii,jj])
             Gyf[ii,jj,:,:] = fractional_matrix_power(Gy,dkys[ii,jj])
         print('Precomp loop status: [%d%%]\r' % int(ii/sx*100),end='')
-    print('Time for precomp: %g sec' % (time()-t0))
+    print('Time for precomp: %g sec' % (time.time()-t0))
 
     # Do the thing
     for ii in range(sx):

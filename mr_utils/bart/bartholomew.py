@@ -32,7 +32,8 @@ class BartholomewObject(object):
 
     def __init__(self):
         if BART_PATH is None:
-            raise SystemError("BART's TOOLBOX_PATH environment variable not found!")
+            # raise SystemError("BART's TOOLBOX_PATH environment variable not found!")
+            print('BART\'s TOOLBOX_PATH environment variable not found!')
 
         # Make a list of  supported bart functions
         result = subprocess.run(['bart'],stdout=subprocess.PIPE)

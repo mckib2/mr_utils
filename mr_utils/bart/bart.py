@@ -4,6 +4,8 @@ if BART_PATH is not None:
     import sys
     sys.path.insert(0,BART_PATH)
     from bart import bart as real_bart
+else:
+    real_bart = None
 
 def bart(*args):
     '''Wrapper that passes arguments to BART installation.'''
