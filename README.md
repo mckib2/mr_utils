@@ -1,4 +1,32 @@
-## Installation
+# mr_utils
+
+mr_utils: magnetic resonance utilities. This repo is a collection of my
+implementations of algorithms and tools for MR image reconstruction, mostly
+in python.
+
+## Orientation
+There are few different things going on here.  There are algorithms, like the [geometric solution to the elliptical signal model](../master/mr_utils/recon/ssfp), as well as simulations, like [simulated bSSFP contrast](../master/mr_utils/sim/ssfp).
+
+There's also some python functions and objects that interact with more polished tools such as [Gadgetron](../master/mr_utils/gadgetron) and [BART](../master/mr_utils/bart). You can use these python interfaces to easily write in Gadgetron, MATLAB, or BART functionality into your python scripts. These functions are written with the assumption of Gadgetron, MATLAB, etc. being run on some processing server (not necessarily on your local machine). If you use these, you'll want to create a [config file](../master/mr_utils/config) file.
+
+## Documentation and Tests
+
+Documentation is almost exclusively found in the docstrings of modules, functions, and classes.  This README file contains the output of help() for all the modules in the project.  README files can also be found in subdirectories containing only the help() output specific to that module.
+
+Another great way to learn how things are used is by looking in the [examples](../master/examples).
+Run examples from the root directory (same directory as setup.py) like this:
+
+```bash
+python3 examples/cs/reordering/cartesian_pe_fd_iht.py
+```
+
+If there's not an example, there might be some [tests](../master/mr_utils/tests). Individual tests can be run like this from the root directory (I recomment that you run tests from the home directory - imports will get messed up otherwise):
+
+```bash
+python3 -m unittest mr_utils/tests/recon/test_gs_recon.py
+```
+
+# Installation
 
 Say you want to use this package in one of your python scripts.  You can install it using pip like so:
 
@@ -8,12 +36,12 @@ cd mr_utils
 pip3 install -e ./
 ```
 
-You'll need to manually install the ismrmrd-python-tools as it's currently not available on pypi.
-You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
+You'll need to manually install the ismrmrd-python-tools as it's currently not available on pypi. You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
 
+# MAKE_README
 ## make_readme
 
-[Source](../blob/master/make_readme)
+[Source](https://github.com/mckib2/mr_utils/blob/master/make_readme.py)
 
 ```
 NAME
@@ -26,9 +54,10 @@ DESCRIPTION
 ```
 
 
+# BART
 ## mr_utils.bart.bart
 
-[Source](../blob/master/mr_utils/bart/bart)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/bart/bart.py)
 
 ```
 NAME
@@ -43,7 +72,7 @@ FUNCTIONS
 
 ## mr_utils.bart.bartholomew
 
-[Source](../blob/master/mr_utils/bart/bartholomew)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/bart/bartholomew.py)
 
 ```
 NAME
@@ -109,7 +138,7 @@ CLASSES
 
 ## mr_utils.bart.client
 
-[Source](../blob/master/mr_utils/bart/client)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/bart/client.py)
 
 ```
 NAME
@@ -122,17 +151,40 @@ FUNCTIONS
 ```
 
 
+# CONFIG
 ## mr_utils.config.config
 
-[Source](../blob/master/mr_utils/config/config)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/config/config.py)
 
 ```
 NAME
-    mr_utils.config.config
+    mr_utils.config.config - Provide an easy way to set things like gadgetron host, port, etc.
 
 DESCRIPTION
-    ## IDEA:
-    # Provide an interface to set things like gadgetron host, port, etc.
+    The ProfileConfig object will create (if it's not already created) a file
+    called 'profiles.config' in the top level of the project (same directory as
+    setup.py).  This file contains one or more profiles, one and only one of which
+    must be set as active.  A profile contains ports and hostnames and other
+    parameters to use for the gadgetron, MATLAB, siemens_to_ismrmrd, etc. clients.
+    
+    The config files use python's configparser format.  See implementation for
+    details.
+    
+    Example profiles.config file:
+    
+        [default]
+        gadgetron.host = localhost
+        gadgetron.port = 9002
+    
+        [workcomp]
+        gadgetron.host = 10.8.1.12
+        gadgetron.port = 9002
+        matlab.host = 10.8.1.12
+        matlab.port = 9999
+        matlab.bufsize = 1024
+    
+        [config]
+        active = workcomp
 
 CLASSES
     builtins.object
@@ -174,9 +226,10 @@ CLASSES
 ```
 
 
+# CS
 ## mr_utils.cs.linear_programming
 
-[Source](../blob/master/mr_utils/cs/linear_programming)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/linear_programming.py)
 
 ```
 NAME
@@ -188,7 +241,7 @@ NAME
 
 ## mr_utils.cs.models.UFT
 
-[Source](../blob/master/mr_utils/cs/models/UFT)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/models/UFT.py)
 
 ```
 NAME
@@ -230,9 +283,10 @@ CLASSES
 ```
 
 
+# DEFINITIONS
 ## mr_utils.definitions
 
-[Source](../blob/master/mr_utils/definitions)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/definitions.py)
 
 ```
 NAME
@@ -241,9 +295,10 @@ NAME
 ```
 
 
+# GADGETRON
 ## mr_utils.gadgetron.client
 
-[Source](../blob/master/mr_utils/gadgetron/client)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/client.py)
 
 ```
 NAME
@@ -254,7 +309,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 19:17:56.108118', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 22:21:29.044712', config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -275,7 +330,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.default
 
-[Source](../blob/master/mr_utils/gadgetron/configs/default)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/default.py)
 
 ```
 NAME
@@ -290,7 +345,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.distributed
 
-[Source](../blob/master/mr_utils/gadgetron/configs/distributed)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/distributed.py)
 
 ```
 NAME
@@ -307,7 +362,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.epi
 
-[Source](../blob/master/mr_utils/gadgetron/configs/epi)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/epi.py)
 
 ```
 NAME
@@ -325,7 +380,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.generic
 
-[Source](../blob/master/mr_utils/gadgetron/configs/generic)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/generic.py)
 
 ```
 NAME
@@ -340,7 +395,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.configs.grappa
 
-[Source](../blob/master/mr_utils/gadgetron/configs/grappa)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/grappa.py)
 
 ```
 NAME
@@ -361,7 +416,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.gadgetron_config
 
-[Source](../blob/master/mr_utils/gadgetron/gadgetron_config)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/gadgetron_config.py)
 
 ```
 NAME
@@ -427,7 +482,7 @@ CLASSES
 
 ## mr_utils.gadgetron.gtconnector
 
-[Source](../blob/master/mr_utils/gadgetron/gtconnector)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/gtconnector.py)
 
 ```
 NAME
@@ -598,7 +653,7 @@ FUNCTIONS
 
 ## mr_utils.gadgetron.ssh_tunnel
 
-[Source](../blob/master/mr_utils/gadgetron/ssh_tunnel)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/ssh_tunnel.py)
 
 ```
 NAME
@@ -608,9 +663,10 @@ NAME
 ```
 
 
+# GRIDDING
 ## mr_utils.gridding.scgrog.get_gx_gy
 
-[Source](../blob/master/mr_utils/gridding/scgrog/get_gx_gy)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gridding/scgrog/get_gx_gy.py)
 
 ```
 NAME
@@ -626,7 +682,7 @@ FUNCTIONS
 
 ## mr_utils.gridding.scgrog.scgrog
 
-[Source](../blob/master/mr_utils/gridding/scgrog/scgrog)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gridding/scgrog/scgrog.py)
 
 ```
 NAME
@@ -647,9 +703,10 @@ FUNCTIONS
 ```
 
 
+# LOAD_DATA
 ## mr_utils.load_data.hdf5
 
-[Source](../blob/master/mr_utils/load_data/hdf5)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/hdf5.py)
 
 ```
 NAME
@@ -664,7 +721,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.mat
 
-[Source](../blob/master/mr_utils/load_data/mat)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/mat.py)
 
 ```
 NAME
@@ -681,7 +738,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.npy
 
-[Source](../blob/master/mr_utils/load_data/npy)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/npy.py)
 
 ```
 NAME
@@ -696,7 +753,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.pyport
 
-[Source](../blob/master/mr_utils/load_data/pyport)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/pyport.py)
 
 ```
 NAME
@@ -839,7 +896,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.raw
 
-[Source](../blob/master/mr_utils/load_data/raw)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/raw.py)
 
 ```
 NAME
@@ -853,7 +910,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.siemens_to_ismrmd_client
 
-[Source](../blob/master/mr_utils/load_data/siemens_to_ismrmd_client)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/siemens_to_ismrmd_client.py)
 
 ```
 NAME
@@ -2148,7 +2205,7 @@ FUNCTIONS
 
 ## mr_utils.load_data.xprot
 
-[Source](../blob/master/mr_utils/load_data/xprot)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/xprot.py)
 
 ```
 NAME
@@ -2337,7 +2394,7 @@ CLASSES
 
 ## mr_utils.load_data.xprot_parser
 
-[Source](../blob/master/mr_utils/load_data/xprot_parser)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/xprot_parser.py)
 
 ```
 NAME
@@ -2506,9 +2563,10 @@ FUNCTIONS
 ```
 
 
+# MATLAB
 ## mr_utils.matlab.client
 
-[Source](../blob/master/mr_utils/matlab/client)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/client.py)
 
 ```
 NAME
@@ -2550,7 +2608,7 @@ FUNCTIONS
 
 ## mr_utils.matlab.client_old
 
-[Source](../blob/master/mr_utils/matlab/client_old)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/client_old.py)
 
 ```
 NAME
@@ -2609,7 +2667,7 @@ CLASSES
 
 ## mr_utils.matlab.contract
 
-[Source](../blob/master/mr_utils/matlab/contract)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/contract.py)
 
 ```
 NAME
@@ -2620,7 +2678,7 @@ NAME
 
 ## mr_utils.matlab.server
 
-[Source](../blob/master/mr_utils/matlab/server)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/matlab/server.py)
 
 ```
 NAME
@@ -2719,9 +2777,10 @@ FUNCTIONS
 ```
 
 
+# OPTIMIZATION
 ## mr_utils.optimization.gd
 
-[Source](../blob/master/mr_utils/optimization/gd)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/optimization/gd.py)
 
 ```
 NAME
@@ -2744,7 +2803,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.gradient
 
-[Source](../blob/master/mr_utils/optimization/gradient)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/optimization/gradient.py)
 
 ```
 NAME
@@ -2792,7 +2851,7 @@ FUNCTIONS
 
 ## mr_utils.optimization.linesearch
 
-[Source](../blob/master/mr_utils/optimization/linesearch)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/optimization/linesearch.py)
 
 ```
 NAME
@@ -2807,9 +2866,10 @@ FUNCTIONS
 ```
 
 
+# RECON
 ## mr_utils.recon.espirit.espirit
 
-[Source](../blob/master/mr_utils/recon/espirit/espirit)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/espirit/espirit.py)
 
 ```
 NAME
@@ -2875,7 +2935,7 @@ FUNCTIONS
 
 ## mr_utils.recon.field_map.dual_echo_gre
 
-[Source](../blob/master/mr_utils/recon/field_map/dual_echo_gre)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/field_map/dual_echo_gre.py)
 
 ```
 NAME
@@ -2898,7 +2958,7 @@ FUNCTIONS
 
 ## mr_utils.recon.field_map.gs_field_map
 
-[Source](../blob/master/mr_utils/recon/field_map/gs_field_map)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/field_map/gs_field_map.py)
 
 ```
 NAME
@@ -2925,7 +2985,7 @@ FUNCTIONS
 
 ## mr_utils.recon.grappa.grappa
 
-[Source](../blob/master/mr_utils/recon/grappa/grappa)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/grappa/grappa.py)
 
 ```
 NAME
@@ -2940,7 +3000,7 @@ FUNCTIONS
 
 ## mr_utils.recon.partial_fourier.partial_fourier_pocs
 
-[Source](../blob/master/mr_utils/recon/partial_fourier/partial_fourier_pocs)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/partial_fourier/partial_fourier_pocs.py)
 
 ```
 NAME
@@ -2970,7 +3030,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.bart
 
-[Source](../blob/master/mr_utils/recon/reordering/bart)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/bart.py)
 
 ```
 NAME
@@ -2981,7 +3041,7 @@ NAME
 
 ## mr_utils.recon.reordering.lcurve
 
-[Source](../blob/master/mr_utils/recon/reordering/lcurve)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/lcurve.py)
 
 ```
 NAME
@@ -2996,7 +3056,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.patch_reordering
 
-[Source](../blob/master/mr_utils/recon/reordering/patch_reordering)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/patch_reordering.py)
 
 ```
 NAME
@@ -3011,7 +3071,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.rudin_osher_fatemi
 
-[Source](../blob/master/mr_utils/recon/reordering/rudin_osher_fatemi)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/rudin_osher_fatemi.py)
 
 ```
 NAME
@@ -3034,7 +3094,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.scr_reordering_adluru
 
-[Source](../blob/master/mr_utils/recon/reordering/scr_reordering_adluru)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/scr_reordering_adluru.py)
 
 ```
 NAME
@@ -3082,7 +3142,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.sort2d
 
-[Source](../blob/master/mr_utils/recon/reordering/sort2d)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/sort2d.py)
 
 ```
 NAME
@@ -3106,7 +3166,7 @@ FUNCTIONS
 
 ## mr_utils.recon.reordering.tsp
 
-[Source](../blob/master/mr_utils/recon/reordering/tsp)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/tsp.py)
 
 ```
 NAME
@@ -3134,7 +3194,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.dixon
 
-[Source](../blob/master/mr_utils/recon/ssfp/dixon)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/dixon.py)
 
 ```
 NAME
@@ -3264,7 +3324,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.gs_recon
 
-[Source](../blob/master/mr_utils/recon/ssfp/gs_recon)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/gs_recon.py)
 
 ```
 NAME
@@ -3347,7 +3407,7 @@ FUNCTIONS
 
 ## mr_utils.recon.ssfp.multiphase
 
-[Source](../blob/master/mr_utils/recon/ssfp/multiphase)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/multiphase.py)
 
 ```
 NAME
@@ -3368,9 +3428,10 @@ FUNCTIONS
 ```
 
 
+# SIM
 ## mr_utils.sim.bloch.bloch
 
-[Source](../blob/master/mr_utils/sim/bloch/bloch)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/bloch/bloch.py)
 
 ```
 NAME
@@ -3378,7 +3439,7 @@ NAME
 
 FUNCTIONS
     gre(T1, T2, M0, Nt, h, alpha, beta, gamma, TR, TE, Bx=0, By=0, Bz=3)
-        Finite different Bloch simulation of spoiled GRE pulse sequence.
+        Finite difference Bloch simulation of spoiled GRE pulse sequence.
         
         T1 -- longitudinal relaxation constant.
         T2 -- transverse relaxation constant.
@@ -3424,7 +3485,7 @@ FUNCTIONS
 
 ## mr_utils.sim.gre.gre
 
-[Source](../blob/master/mr_utils/sim/gre/gre)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/gre/gre.py)
 
 ```
 NAME
@@ -3525,7 +3586,7 @@ FUNCTIONS
 
 ## mr_utils.sim.motion.motion
 
-[Source](../blob/master/mr_utils/sim/motion/motion)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/motion/motion.py)
 
 ```
 NAME
@@ -3546,7 +3607,7 @@ FUNCTIONS
 
 ## mr_utils.sim.noise.rayleigh
 
-[Source](../blob/master/mr_utils/sim/noise/rayleigh)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/noise/rayleigh.py)
 
 ```
 NAME
@@ -3590,7 +3651,7 @@ FUNCTIONS
 
 ## mr_utils.sim.noise.rician
 
-[Source](../blob/master/mr_utils/sim/noise/rician)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/noise/rician.py)
 
 ```
 NAME
@@ -3619,7 +3680,7 @@ FUNCTIONS
 
 ## mr_utils.sim.single_voxel.single_voxel
 
-[Source](../blob/master/mr_utils/sim/single_voxel/single_voxel)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/single_voxel/single_voxel.py)
 
 ```
 NAME
@@ -3636,7 +3697,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.param_mapping
 
-[Source](../blob/master/mr_utils/sim/ssfp/param_mapping)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/param_mapping.py)
 
 ```
 NAME
@@ -3653,7 +3714,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.quantitative_field_mapping
 
-[Source](../blob/master/mr_utils/sim/ssfp/quantitative_field_mapping)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/quantitative_field_mapping.py)
 
 ```
 NAME
@@ -3683,7 +3744,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.ssfp
 
-[Source](../blob/master/mr_utils/sim/ssfp/ssfp)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/ssfp.py)
 
 ```
 NAME
@@ -3809,7 +3870,7 @@ FUNCTIONS
 
 ## mr_utils.sim.ssfp.ssfp_dictionary
 
-[Source](../blob/master/mr_utils/sim/ssfp/ssfp_dictionary)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/ssfp/ssfp_dictionary.py)
 
 ```
 NAME
@@ -3847,7 +3908,7 @@ FUNCTIONS
 
 ## mr_utils.sim.traj.cartesian
 
-[Source](../blob/master/mr_utils/sim/traj/cartesian)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/traj/cartesian.py)
 
 ```
 NAME
@@ -3864,7 +3925,7 @@ FUNCTIONS
 
 ## mr_utils.sim.traj.radial
 
-[Source](../blob/master/mr_utils/sim/traj/radial)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/sim/traj/radial.py)
 
 ```
 NAME
@@ -3897,9 +3958,10 @@ FUNCTIONS
 ```
 
 
+# TEST_DATA
 ## mr_utils.test_data.coils.csm
 
-[Source](../blob/master/mr_utils/test_data/coils/csm)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/coils/csm.py)
 
 ```
 NAME
@@ -3927,7 +3989,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.optimization_functions.functions
 
-[Source](../blob/master/mr_utils/test_data/optimization_functions/functions)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/optimization_functions/functions.py)
 
 ```
 NAME
@@ -3989,7 +4051,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.binary_smiley
 
-[Source](../blob/master/mr_utils/test_data/phantom/binary_smiley)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/phantom/binary_smiley.py)
 
 ```
 NAME
@@ -4007,7 +4069,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.cylinder_2d
 
-[Source](../blob/master/mr_utils/test_data/phantom/cylinder_2d)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/phantom/cylinder_2d.py)
 
 ```
 NAME
@@ -4049,7 +4111,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.phantom.phantom
 
-[Source](../blob/master/mr_utils/test_data/phantom/phantom)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/phantom/phantom.py)
 
 ```
 NAME
@@ -4127,7 +4189,7 @@ FUNCTIONS
 
 ## mr_utils.test_data.test_data
 
-[Source](../blob/master/mr_utils/test_data/test_data)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/test_data/test_data.py)
 
 ```
 NAME
@@ -4452,9 +4514,10 @@ CLASSES
 ```
 
 
+# UTILS
 ## mr_utils.utils.find_nearest
 
-[Source](../blob/master/mr_utils/utils/find_nearest)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
 
 ```
 NAME
@@ -4473,7 +4536,7 @@ FUNCTIONS
 
 ## mr_utils.utils.grad_tv
 
-[Source](../blob/master/mr_utils/utils/grad_tv)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/grad_tv.py)
 
 ```
 NAME
@@ -4497,7 +4560,7 @@ FUNCTIONS
 
 ## mr_utils.utils.mi_ssfp
 
-[Source](../blob/master/mr_utils/utils/mi_ssfp)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/mi_ssfp.py)
 
 ```
 NAME
@@ -4522,7 +4585,7 @@ FUNCTIONS
 
 ## mr_utils.utils.percent_ripple
 
-[Source](../blob/master/mr_utils/utils/percent_ripple)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/percent_ripple.py)
 
 ```
 NAME
@@ -4549,7 +4612,7 @@ FUNCTIONS
 
 ## mr_utils.utils.printtable
 
-[Source](../blob/master/mr_utils/utils/printtable)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/printtable.py)
 
 ```
 NAME
@@ -4598,7 +4661,7 @@ CLASSES
 
 ## mr_utils.utils.rot
 
-[Source](../blob/master/mr_utils/utils/rot)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/rot.py)
 
 ```
 NAME
@@ -4614,7 +4677,7 @@ FUNCTIONS
 
 ## mr_utils.utils.sos
 
-[Source](../blob/master/mr_utils/utils/sos)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/sos.py)
 
 ```
 NAME
@@ -4631,9 +4694,10 @@ FUNCTIONS
 ```
 
 
+# VIEW
 ## mr_utils.view.view
 
-[Source](../blob/master/mr_utils/view/view)
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/view/view.py)
 
 ```
 NAME

@@ -107,7 +107,7 @@ def sim(T1,T2,M0,Nt,h,alpha,beta,gamma,Bx=0,By=0,Bz=3):
     return(spins)
 
 def gre(T1,T2,M0,Nt,h,alpha,beta,gamma,TR,TE,Bx=0,By=0,Bz=3):
-    '''Finite different Bloch simulation of spoiled GRE pulse sequence.
+    '''Finite difference Bloch simulation of spoiled GRE pulse sequence.
 
     T1 -- longitudinal relaxation constant.
     T2 -- transverse relaxation constant.
