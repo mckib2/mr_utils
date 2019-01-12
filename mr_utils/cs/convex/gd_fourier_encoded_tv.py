@@ -4,13 +4,14 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,im_true=None,ignore_residual=False,disp=False,maxiter=200):
+def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,do_reordering=False,im_true=None,ignore_residual=False,disp=False,maxiter=200):
     '''Gradient descent for Fourier encoding model and TV constraint.
 
     kspace -- Measured image.
     samp -- Sampling mask.
     alpha -- Step size.
     lam -- TV constraint weight.
+    do_reordering -- Whether or not to reorder for sparsity constraint.
     im_true -- The true image we are trying to reconstruct.
     ignore_residual -- Whether or not to break out of loop if resid increases.
     disp -- Whether or not to display iteration info.
