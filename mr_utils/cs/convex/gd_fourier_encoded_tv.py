@@ -35,7 +35,6 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,do_reordering=False,im_true=None,ignor
         if do_reordering:
             from mr_utils.utils.sort2d import sort2d
             from mr_utils.utils.orderings import inverse_permutation
-            from mr_utils import view
             _,reordering = sort2d(im_true)
             inverse_reordering = inverse_permutation(reordering)
 
