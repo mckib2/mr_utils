@@ -236,13 +236,14 @@ NAME
     mr_utils.cs.convex.gd_fourier_encoded_tv
 
 FUNCTIONS
-    GD_FE_TV(kspace, samp, alpha=0.5, lam=0.01, im_true=None, ignore_residual=False, disp=False, maxiter=200)
+    GD_FE_TV(kspace, samp, alpha=0.5, lam=0.01, do_reordering=False, im_true=None, ignore_residual=False, disp=False, maxiter=200)
         Gradient descent for Fourier encoding model and TV constraint.
         
         kspace -- Measured image.
         samp -- Sampling mask.
         alpha -- Step size.
         lam -- TV constraint weight.
+        do_reordering -- Whether or not to reorder for sparsity constraint.
         im_true -- The true image we are trying to reconstruct.
         ignore_residual -- Whether or not to break out of loop if resid increases.
         disp -- Whether or not to display iteration info.
@@ -510,7 +511,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 23:28:30.085669', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -525,6 +526,8 @@ FUNCTIONS
         config_local -- Local configuration file.
         loops -- Number of loops.
         verbose -- Verbose mode.
+        
+        out_group=None will use the current date as the group name.
 
 ```
 
@@ -1120,7 +1123,7 @@ NAME
 CLASSES
     paramiko.transport.Transport(threading.Thread, paramiko.util.ClosingContextManager)
         FastTransport
-    tqdm._tqdm.tqdm(tqdm._utils.Comparable)
+    tqdm._tqdm.tqdm(builtins.object)
         TqdmWrap
     
     class FastTransport(paramiko.transport.Transport)
@@ -1976,7 +1979,6 @@ CLASSES
      |  Method resolution order:
      |      TqdmWrap
      |      tqdm._tqdm.tqdm
-     |      tqdm._utils.Comparable
      |      builtins.object
      |  
      |  Methods defined here:
@@ -1991,7 +1993,16 @@ CLASSES
      |  
      |  __enter__(self)
      |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
      |  __exit__(self, *exc)
+     |  
+     |  __ge__(self, other)
+     |      Return self>=value.
+     |  
+     |  __gt__(self, other)
+     |      Return self>value.
      |  
      |  __hash__(self)
      |      Return hash(self).
@@ -2025,9 +2036,9 @@ CLASSES
      |          fallback is a meter width of 10 and no limit for the counter and
      |          statistics. If 0, will not print any meter (only stats).
      |      mininterval  : float, optional
-     |          Minimum progress display update interval [default: 0.1] seconds.
+     |          Minimum progress display update interval, in seconds [default: 0.1].
      |      maxinterval  : float, optional
-     |          Maximum progress display update interval [default: 10] seconds.
+     |          Maximum progress display update interval, in seconds [default: 10].
      |          Automatically adjusts `miniters` to correspond to `mininterval`
      |          after long display update lag. Only works if `dynamic_miniters`
      |          or monitor thread is enabled.
@@ -2063,13 +2074,11 @@ CLASSES
      |          (current/instantaneous speed) [default: 0.3].
      |      bar_format  : str, optional
      |          Specify a custom bar string formatting. May impact performance.
-     |          [default: '{l_bar}{bar}{r_bar}'], where
-     |          l_bar='{desc}: {percentage:3.0f}%|' and
-     |          r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
-     |            '{rate_fmt}{postfix}]'
-     |          Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
-     |            percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
-     |            rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
+     |          If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
+     |          '{desc}: {percentage:3.0f}%|' and r_bar is
+     |          '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
+     |          Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
+     |          rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
      |          Note that a trailing ": " is automatically removed after {desc}
      |          if the latter is empty.
      |      initial  : int, optional
@@ -2079,9 +2088,10 @@ CLASSES
      |          Specify the line offset to print this bar (starting from 0)
      |          Automatic if unspecified.
      |          Useful to manage multiple bars at once (eg, from threads).
-     |      postfix  : dict or *, optional
+     |      postfix  : dict, optional
      |          Specify additional stats to display at the end of the bar.
-     |          Calls `set_postfix(**postfix)` if possible (dict).
+     |          Note: postfix is a dict ({'key': value} pairs) for this method,
+     |          not a string.
      |      unit_divisor  : float, optional
      |          [default: 1000], ignored unless `unit_scale` is True.
      |      gui  : bool, optional
@@ -2096,7 +2106,16 @@ CLASSES
      |  __iter__(self)
      |      Backward-compatibility to use: for x in tqdm(iterable)
      |  
+     |  __le__(self, other)
+     |      Return self<=value.
+     |  
      |  __len__(self)
+     |  
+     |  __lt__(self, other)
+     |      Return self<value.
+     |  
+     |  __ne__(self, other)
+     |      Return self!=value.
      |  
      |  __repr__(self, elapsed=None)
      |      Return repr(self).
@@ -2212,21 +2231,6 @@ CLASSES
      |  __new__(cls, *args, **kwargs)
      |      Create and return a new object.  See help(type) for accurate signature.
      |  
-     |  ema(x, mu=None, alpha=0.3)
-     |              Exponential moving average: smoothing to give progressively lower
-     |              weights to older values.
-     |      
-     |      Parameters
-     |      ----------
-     |      x  : float
-     |          New value to include in EMA.
-     |      mu  : float, optional
-     |          Previous EMA value.
-     |      alpha  : float, optional
-     |          Smoothing factor in range [0, 1], [default: 0.3].
-     |          Increase to give more weight to recent values.
-     |                      Ranges from 0 (yields mu) to 1 (yields x).
-     |  
      |  format_interval(t)
      |      Formats a number of seconds as a clock time, [H:]MM:SS
      |      
@@ -2234,7 +2238,6 @@ CLASSES
      |      ----------
      |      t  : int
      |          Number of seconds.
-     |      
      |      Returns
      |      -------
      |      out  : str
@@ -2286,31 +2289,16 @@ CLASSES
      |            rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
      |          Note that a trailing ": " is automatically removed after {desc}
      |          if the latter is empty.
-     |      postfix  : *, optional
+     |      postfix  : str, optional
      |          Similar to `prefix`, but placed at the end
      |          (e.g. for additional stats).
-     |          Note: postfix is usually a string (not a dict) for this method,
-     |          and will if possible be set to postfix = ', ' + postfix.
-     |          However other types are supported (#382).
+     |          Note: postfix is a string for this method. Not a dict.
      |      unit_divisor  : float, optional
      |          [default: 1000], ignored unless `unit_scale` is True.
      |      
      |      Returns
      |      -------
      |      out  : Formatted meter and stats, ready to display.
-     |  
-     |  format_num(n)
-     |      Intelligent scientific notation (.3g).
-     |      
-     |      Parameters
-     |      ----------
-     |      n  : int or float or Numeric
-     |          A Number.
-     |      
-     |      Returns
-     |      -------
-     |      out  : str
-     |          Formatted number.
      |  
      |  format_sizeof(num, suffix='', divisor=1000)
      |      Formats a number (greater than unity) with SI Order of Magnitude
@@ -2336,41 +2324,20 @@ CLASSES
      |      updating may not work (it will print a new line at each refresh).
      |  
      |  ----------------------------------------------------------------------
-     |  Data and other attributes inherited from tqdm._tqdm.tqdm:
-     |  
-     |  monitor = None
-     |  
-     |  monitor_interval = 10
-     |  
-     |  ----------------------------------------------------------------------
-     |  Methods inherited from tqdm._utils.Comparable:
-     |  
-     |  __eq__(self, other)
-     |      Return self==value.
-     |  
-     |  __ge__(self, other)
-     |      Return self>=value.
-     |  
-     |  __gt__(self, other)
-     |      Return self>value.
-     |  
-     |  __le__(self, other)
-     |      Return self<=value.
-     |  
-     |  __lt__(self, other)
-     |      Return self<value.
-     |  
-     |  __ne__(self, other)
-     |      Return self!=value.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors inherited from tqdm._utils.Comparable:
+     |  Data descriptors inherited from tqdm._tqdm.tqdm:
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from tqdm._tqdm.tqdm:
+     |  
+     |  monitor = None
+     |  
+     |  monitor_interval = 10
 
 FUNCTIONS
     s2i_client(filename, put_file=True, get_file=True, cleanup_raw=True, cleanup_processed=True, remote_dir='/tmp', host=None, port=22, username=None, ssh_key=None, password=None, debug_level=20)
@@ -3225,170 +3192,6 @@ FUNCTIONS
         # thres: iteration threshold
     
     partial_fourier_reset_kspace(src, dst, startRO, endRO, startE1, endE1)
-
-```
-
-
-## mr_utils.recon.reordering.bart
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/bart.py)
-
-```
-NAME
-    mr_utils.recon.reordering.bart
-
-```
-
-
-## mr_utils.recon.reordering.lcurve
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/lcurve.py)
-
-```
-NAME
-    mr_utils.recon.reordering.lcurve
-
-FUNCTIONS
-    lcurve(norm0, norm1)
-
-
-```
-
-
-## mr_utils.recon.reordering.patch_reordering
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/patch_reordering.py)
-
-```
-NAME
-    mr_utils.recon.reordering.patch_reordering
-
-FUNCTIONS
-    get_patches(imspace, patch_size)
-
-
-```
-
-
-## mr_utils.recon.reordering.rudin_osher_fatemi
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/rudin_osher_fatemi.py)
-
-```
-NAME
-    mr_utils.recon.reordering.rudin_osher_fatemi
-
-FUNCTIONS
-    check_stability(dt, h, c=300000000.0)
-        Check stepsize restriction, imposed for for stability.
-    
-    getbounds(ii, jj, u0)
-    
-    minmod(a, b)
-        Flux limiter to make FD solutions total variation diminishing.
-    
-    update_all_for_loop(u0, dt, h, sigma, niters)
-
-
-```
-
-
-## mr_utils.recon.reordering.scr_reordering_adluru
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/scr_reordering_adluru.py)
-
-```
-NAME
-    mr_utils.recon.reordering.scr_reordering_adluru
-
-FUNCTIONS
-    TVG(out_img, beta_sqrd)
-    
-    TVG_re_order(out_img, beta_sqrd, sort_order_real_x, sort_order_real_y)
-    
-    intshft(m, sh)
-        Shift image m by coordinates specified by sh
-    
-    scr_reordering_adluru(kspace, mask, prior=None, alpha0=1, alpha1=0.002, beta2=1e-08, reorder=True, reorder_every_iter=False, enforce_consistency=False, niters=5000)
-        Reconstruct undersampled data with spatial TV constraint and reordering.
-        
-        kspace -- Undersampled k-space data
-        mask -- Undersampling mask
-        prior -- Prior image estimate, what to base reordering on
-        alpha0 -- Weight of the fidelity term in cost function
-        alpha1 -- Weight of the TV term, regularization parameter
-        beta2 -- beta squared, small constant to keep sqrt defined
-        reorder -- Whether or not to reorder data
-        reorder_every_iter -- Reorder each iteration based on current estimate
-        enforce_consistency -- Fill in known values of kspace each iteration
-        niters -- Number of iterations
-        
-        Ref: G.Adluru, E.V.R. DiBella. "Reordering for improved constrained
-        reconstruction from undersampled k-space data". International Journal of
-        Biomedical Imaging vol. 2008, Article ID 341684, 12 pages, 2008.
-        doi:10.1155/2008/341684.
-    
-    sort_real_imag_parts_space(full_data_recon_complex)
-        Determines the sort order for real and imag components.
-    
-    time(...)
-        time() -> floating point number
-        
-        Return the current time in seconds since the Epoch.
-        Fractions of a second may be present if the system clock provides them.
-
-
-```
-
-
-## mr_utils.recon.reordering.sort2d
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/sort2d.py)
-
-```
-NAME
-    mr_utils.recon.reordering.sort2d
-
-FUNCTIONS
-    sort2d(A)
-    
-    sort2d_loop(A)
-        An efficient selection sorting algorithm for two-dimensional arrays.
-        
-        Implementation of algorithm from:
-            Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
-            algorithm for two-dimensional arrays. In Genetic and Evolutionary
-            Computing (ICGEC), 2010 Fourth International Conference on
-            (pp. 853-855). IEEE.
-
-
-```
-
-
-## mr_utils.recon.reordering.tsp
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/tsp.py)
-
-```
-NAME
-    mr_utils.recon.reordering.tsp
-
-FUNCTIONS
-    create_distance_callback(dist_matrix)
-        # Distance callback
-    
-    generate_orderings(im=None)
-    
-    get_dist_matrix()
-    
-    get_slice(lpf=True, lpf_factor=6)
-    
-    get_time_series(im, x=100, y=100, real_part=True, patch=False, patch_pad=(1, 1))
-    
-    normalize_time_series(time_series0)
-    
-    ortools_tsp_solver()
-
 
 ```
 
@@ -4784,6 +4587,31 @@ FUNCTIONS
 ```
 
 
+## mr_utils.utils.orderings
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/orderings.py)
+
+```
+NAME
+    mr_utils.utils.orderings
+
+FUNCTIONS
+    col_stacked_order(x)
+        Find ordering of monotonically varying flattened array, x.
+        
+        x -- Array to find ordering of.
+        
+        Note that you might want to provide abs(x) if x is a complex array.
+    
+    inverse_permutation(ordering)
+        Given some permutation, find the inverse permutation.
+        
+        ordering -- Flattened indicies, such as output of np.argsort.
+
+
+```
+
+
 ## mr_utils.utils.percent_ripple
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/percent_ripple.py)
@@ -4871,6 +4699,44 @@ NAME
 FUNCTIONS
     rot(theta)
         2D rotation matrix through angle theta (rad).
+
+
+```
+
+
+## mr_utils.utils.sort2d
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/sort2d.py)
+
+```
+NAME
+    mr_utils.utils.sort2d
+
+FUNCTIONS
+    sort2d(A)
+        Sorting algorithm for two-dimensional arrays.
+        
+        A -- Array to be sorted.
+        
+        Note: if A is complex, you may want to provide abs(A).  Returns sorted
+        array and flattened indices.
+        
+        Numpy implementation of algorithm from:
+            Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
+            algorithm for two-dimensional arrays. In Genetic and Evolutionary
+            Computing (ICGEC), 2010 Fourth International Conference on
+            (pp. 853-855). IEEE.
+    
+    sort2d_loop(A)
+        An efficient selection sorting algorithm for two-dimensional arrays.
+        
+        A -- 2d array to be sorted.
+        
+        Implementation of algorithm from:
+            Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
+            algorithm for two-dimensional arrays. In Genetic and Evolutionary
+            Computing (ICGEC), 2010 Fourth International Conference on
+            (pp. 853-855). IEEE.
 
 
 ```

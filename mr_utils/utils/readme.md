@@ -68,6 +68,31 @@ FUNCTIONS
 ```
 
 
+## mr_utils.utils.orderings
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/orderings.py)
+
+```
+NAME
+    mr_utils.utils.orderings
+
+FUNCTIONS
+    col_stacked_order(x)
+        Find ordering of monotonically varying flattened array, x.
+        
+        x -- Array to find ordering of.
+        
+        Note that you might want to provide abs(x) if x is a complex array.
+    
+    inverse_permutation(ordering)
+        Given some permutation, find the inverse permutation.
+        
+        ordering -- Flattened indicies, such as output of np.argsort.
+
+
+```
+
+
 ## mr_utils.utils.percent_ripple
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/percent_ripple.py)
@@ -155,6 +180,44 @@ NAME
 FUNCTIONS
     rot(theta)
         2D rotation matrix through angle theta (rad).
+
+
+```
+
+
+## mr_utils.utils.sort2d
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/sort2d.py)
+
+```
+NAME
+    mr_utils.utils.sort2d
+
+FUNCTIONS
+    sort2d(A)
+        Sorting algorithm for two-dimensional arrays.
+        
+        A -- Array to be sorted.
+        
+        Note: if A is complex, you may want to provide abs(A).  Returns sorted
+        array and flattened indices.
+        
+        Numpy implementation of algorithm from:
+            Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
+            algorithm for two-dimensional arrays. In Genetic and Evolutionary
+            Computing (ICGEC), 2010 Fourth International Conference on
+            (pp. 853-855). IEEE.
+    
+    sort2d_loop(A)
+        An efficient selection sorting algorithm for two-dimensional arrays.
+        
+        A -- 2d array to be sorted.
+        
+        Implementation of algorithm from:
+            Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
+            algorithm for two-dimensional arrays. In Genetic and Evolutionary
+            Computing (ICGEC), 2010 Fourth International Conference on
+            (pp. 853-855). IEEE.
 
 
 ```
