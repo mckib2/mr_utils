@@ -31,6 +31,15 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,do_reordering=False,im_true=None,ignor
         from skimage.measure import compare_mse
         im_true = np.abs(im_true)
 
+        # Get the reordering indicies ready
+        if do_reordering:
+            from mr_utils.utils.sort2d import sort2d
+            from mr_utils.utils.orderings import inverse_permutation
+            from mr_utils import view
+            _,reordering = sort2d(im_true)
+            inverse_reordering = inverse_permutation(reordering)
+
+
     # Get some display stuff happening
     if disp:
         from mr_utils.utils.printtable import Table
@@ -51,8 +60,16 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,do_reordering=False,im_true=None,ignor
         # Fidelity term
         fidelity = np.fft.ifft2(r)
 
+        # Let's reorder if we said that was going to be a thing
+        if do_reordering:
+            m_hat = m_hat.flatten()[reordering].reshape(im_true.shape)
+
         # Sparsity term
         second_term = dTV(m_hat)
+
+        if do_reordering:
+            m_hat = m_hat.flatten()[inverse_reordering].reshape(im_true.shape)
+            second_term = second_term.flatten()[inverse_reordering].reshape(im_true.shape)
 
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_kspace
