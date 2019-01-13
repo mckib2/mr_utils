@@ -4,13 +4,14 @@ import logging
 
 logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
 
-def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,im_true=None,ignore_residual=False,disp=False,maxiter=200):
+def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,do_reordering=False,im_true=None,ignore_residual=False,disp=False,maxiter=200):
     '''Gradient descent for Fourier encoding model and TV constraint.
 
     kspace -- Measured image.
     samp -- Sampling mask.
     alpha -- Step size.
     lam -- TV constraint weight.
+    do_reordering -- Whether or not to reorder for sparsity constraint.
     im_true -- The true image we are trying to reconstruct.
     ignore_residual -- Whether or not to break out of loop if resid increases.
     disp -- Whether or not to display iteration info.
@@ -29,6 +30,14 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,im_true=None,ignore_residual=False,dis
     else:
         from skimage.measure import compare_mse
         im_true = np.abs(im_true)
+
+        # Get the reordering indicies ready
+        if do_reordering:
+            from mr_utils.utils.sort2d import sort2d
+            from mr_utils.utils.orderings import inverse_permutation
+            _,reordering = sort2d(im_true)
+            inverse_reordering = inverse_permutation(reordering)
+
 
     # Get some display stuff happening
     if disp:
@@ -50,8 +59,16 @@ def GD_FE_TV(kspace,samp,alpha=.5,lam=.01,im_true=None,ignore_residual=False,dis
         # Fidelity term
         fidelity = np.fft.ifft2(r)
 
+        # Let's reorder if we said that was going to be a thing
+        if do_reordering:
+            m_hat = m_hat.flatten()[reordering].reshape(im_true.shape)
+
         # Sparsity term
         second_term = dTV(m_hat)
+
+        if do_reordering:
+            m_hat = m_hat.flatten()[inverse_reordering].reshape(im_true.shape)
+            second_term = second_term.flatten()[inverse_reordering].reshape(im_true.shape)
 
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_kspace

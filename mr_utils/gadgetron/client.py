@@ -23,7 +23,7 @@ def client(
     port=None,
     outfile=None,
     in_group='/dataset',
-    out_group=str(datetime.datetime.now()),
+    out_group=None,
     config='default.xml',
     config_local=None,
     loops=1,
@@ -42,7 +42,13 @@ def client(
     config_local -- Local configuration file.
     loops -- Number of loops.
     verbose -- Verbose mode.
+
+    out_group=None will use the current date as the group name.
     '''
+
+    # Make sure we have an out_group label
+    if out_group is None:
+        out_group = str(datetime.datetime.now())
 
     # Initialize logging
     console = logging.StreamHandler()

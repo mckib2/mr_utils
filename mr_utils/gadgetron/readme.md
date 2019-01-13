@@ -13,7 +13,7 @@ DESCRIPTION
     # Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group='2019-01-10 23:28:30.085669', config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, loops=1, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -28,6 +28,8 @@ FUNCTIONS
         config_local -- Local configuration file.
         loops -- Number of loops.
         verbose -- Verbose mode.
+        
+        out_group=None will use the current date as the group name.
 
 ```
 

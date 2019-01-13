@@ -48,10 +48,9 @@ def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_resi
 
     # Find perfect reordering (column-stacked-wise)
     if do_reordering:
-        reordering = np.argsort(x.flatten())
-        inverse_reordering = [0]*len(reordering)
-        for send_from,send_to in enumerate(reordering):
-            inverse_reordering[send_to] = send_from
+        from mr_utils.utils.orderings import col_stacked_order,inverse_permutation
+        reordering = col_stacked_order(x)
+        inverse_reordering = inverse_permutation(reordering)
 
         # Find new sparsity measure
         if x is not None:
