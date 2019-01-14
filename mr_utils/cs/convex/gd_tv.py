@@ -30,14 +30,16 @@ def GD_TV(y,forward_fun,inverse_fun,alpha=.5,lam=.01,do_reordering=False,x=None,
         logging.info('No true x provided, MSE will not be calculated.')
     else:
         from skimage.measure import compare_mse
-        x = np.abs(x)
+        xabs = np.abs(x) # Precompute absolute value of true image
 
-        # Get the reordering indicies ready
+        # Get the reordering indicies ready, both for real and imag parts
         if do_reordering:
             from mr_utils.utils.sort2d import sort2d
             from mr_utils.utils.orderings import inverse_permutation
-            _,reordering = sort2d(x)
-            inverse_reordering = inverse_permutation(reordering)
+            _,reordering_r = sort2d(x.real)
+            _,reordering_i = sort2d(x.imag)
+            inverse_reordering_r = inverse_permutation(reordering_r)
+            inverse_reordering_i = inverse_permutation(reordering_i)
 
     # Get some display stuff happening
     if disp:
@@ -61,15 +63,19 @@ def GD_TV(y,forward_fun,inverse_fun,alpha=.5,lam=.01,do_reordering=False,x=None,
 
         # Let's reorder if we said that was going to be a thing
         if do_reordering:
-            x_hat = x_hat.flatten()[reordering].reshape(x.shape)
+            # real part
+            xr = x_hat.real.flatten()[reordering_r].reshape(x.shape)
+            second_term_r = dTV(xr).flatten()[inverse_reordering_r].reshape(x.shape)
 
-        # Sparsity term
-        second_term = dTV(x_hat)
+            # imag part
+            xi = x_hat.imag.flatten()[reordering_i].reshape(x.shape)
+            second_term_i = dTV(xi).flatten()[inverse_reordering_i].reshape(x.shape)
 
-        # Put the pixels back where they belong
-        if do_reordering:
-            x_hat = x_hat.flatten()[inverse_reordering].reshape(x.shape)
-            second_term = second_term.flatten()[inverse_reordering].reshape(x.shape)
+            # put it all together...
+            second_term = second_term_r + 1j*second_term_i
+        else:
+            # Sparsity term
+            second_term = dTV(x_hat)
 
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
@@ -83,7 +89,7 @@ def GD_TV(y,forward_fun,inverse_fun,alpha=.5,lam=.01,do_reordering=False,x=None,
 
         # Tell the user what happened
         if disp:
-            logging.info(table.row([ ii,stop_criteria,compare_mse(np.abs(x_hat),x) ]))
+            logging.info(table.row([ ii,stop_criteria,compare_mse(np.abs(x_hat),xabs) ]))
 
         # Compute residual
         r = forward_fun(x_hat) - y
