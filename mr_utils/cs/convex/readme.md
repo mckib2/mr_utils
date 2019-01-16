@@ -30,3 +30,35 @@ FUNCTIONS
 
 ```
 
+
+## mr_utils.cs.convex.gd_tv
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/convex/gd_tv.py)
+
+```
+NAME
+    mr_utils.cs.convex.gd_tv
+
+FUNCTIONS
+    GD_TV(y, forward_fun, inverse_fun, alpha=0.5, lam=0.01, do_reordering=False, x=None, ignore_residual=False, disp=False, maxiter=200)
+        Gradient descent for a generic encoding model and TV constraint.
+        
+        y -- Measured data (i.e., y = Ax).
+        forward_fun -- A, the forward transformation function.
+        inverse_fun -- A^H, the inverse transformation function.
+        alpha -- Step size.
+        lam -- TV constraint weight.
+        do_reordering -- Whether or not to reorder for sparsity constraint.
+        x -- The true image we are trying to reconstruct.
+        ignore_residual -- Whether or not to break out of loop if resid increases.
+        disp -- Whether or not to display iteration info.
+        maxiter -- Maximum number of iterations.
+        
+        Solves the problem:
+            min_x || y - Ax ||^2_2  + lam*TV(x)
+        
+        If x=None, then MSE will not be calculated.
+
+
+```
+
