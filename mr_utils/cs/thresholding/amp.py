@@ -12,7 +12,7 @@ def amp2d(y,forward_fun,inverse_fun,sigmaType=2,randshift=False,tol=1e-8,x=None,
     y -- Measurements, i.e., y = Ax.
     forward_fun -- A, the forward transformation function.
     inverse_fun -- A^H, the inverse transformation function.
-    sigmaType --
+    sigmaType -- Method for determining threshold.
     randshift -- Whether or not to randomly circular shift every iteration.
     tol -- Stop when stopping criteria meets this threshold.
     x -- The true image we are trying to reconstruct.
