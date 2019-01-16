@@ -190,6 +190,34 @@ class BARTReordering(object):
         return(data)
 
 ## MAT FILES
+# For AMP:
+class AMPData(object):
+
+    @staticmethod
+    def x0():
+        path = str(Path('mr_utils/test_data/tests/cs/thresholding/amp/x0.mat').resolve())
+        data = load_mat(path,key='x0')
+        return(data)
+
+    @staticmethod
+    def y():
+        path = str(Path('mr_utils/test_data/tests/cs/thresholding/amp/y.mat').resolve())
+        data = load_mat(path,key='y')
+        return(data)
+
+    @staticmethod
+    def mask():
+        path = str(Path('mr_utils/test_data/tests/cs/thresholding/amp/mask.mat').resolve())
+        data = load_mat(path,key='mask')
+        return(data)
+
+    @staticmethod
+    def cdf97():
+        path = str(Path('mr_utils/test_data/tests/cs/thresholding/amp/cdf97.mat').resolve())
+        data = load_mat(path,key='a')
+        level = 5
+        return(data,level)
+
 # For SC-GROG:
 class SCGROG(object):
 
