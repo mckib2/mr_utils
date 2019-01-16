@@ -21,7 +21,7 @@ def amp2d(y,forward_fun,inverse_fun,sigmaType=2,randshift=False,tol=1e-8,x=None,
     maxiter -- Maximum number of iterations.
 
     Solves the problem:
-        min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon
+        min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon^2
 
     If x=None, then MSE will not be calculated.
 
@@ -64,6 +64,7 @@ def amp2d(y,forward_fun,inverse_fun,sigmaType=2,randshift=False,tol=1e-8,x=None,
     wn  = np.zeros(y.shape,dtype=y.dtype)
     zn  = y - forward_fun(wn)
     abc = 0
+    nx,ny = y.shape[:]
 
     res_norm = np.zeros(maxiter+1)
     nn = np.zeros(maxiter+1)
@@ -80,7 +81,6 @@ def amp2d(y,forward_fun,inverse_fun,sigmaType=2,randshift=False,tol=1e-8,x=None,
 
         # Randomly shift left, right if we asked for it
         if randshift:
-            nx,ny = y.shape[:]
             rand_shift_x = np.random.randint(0,nx)
             rand_shift_y = np.random.randint(0,ny)
             temp_z = np.roll(temp_z,(rand_shift_x,rand_shift_y))
