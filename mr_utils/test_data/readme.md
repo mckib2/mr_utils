@@ -9,6 +9,7 @@ NAME
 
 CLASSES
     builtins.object
+        AMPData
         BARTReordering
         BSSFPGrappa
         EllipticalSignal
@@ -20,6 +21,29 @@ CLASSES
         SSFPMultiphase
         ViewTestData
         XProtParserTest
+    
+    class AMPData(builtins.object)
+     |  ## MAT FILES
+     |  # For AMP:
+     |  
+     |  Static methods defined here:
+     |  
+     |  cdf97()
+     |  
+     |  mask()
+     |  
+     |  x0()
+     |  
+     |  y()
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
     
     class BARTReordering(builtins.object)
      |  # For BART reordering recon
@@ -200,7 +224,6 @@ CLASSES
      |      list of weak references to the object (if defined)
     
     class SCGROG(builtins.object)
-     |  ## MAT FILES
      |  # For SC-GROG:
      |  
      |  Static methods defined here:

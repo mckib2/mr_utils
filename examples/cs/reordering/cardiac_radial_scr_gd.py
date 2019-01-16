@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
     # We need a mask
     mask = np.fft.fftshift(SCRReordering.mask())
-    
+
     # Get the encoding model
     uft = UFT(mask)
 

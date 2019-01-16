@@ -14,24 +14,36 @@ CLASSES
     class UFT(builtins.object)
      |  Undersampled Fourier Transform (UFT) data acquisiton model.
      |  
-     |  Developed for use with iterative thresholding algorithms. Implements
-     |  functions to look like a numpy array:
-     |      .dot() -- Forward transform.
-     |      .conj().T -- Inverse transform.
-     |  
      |  Methods defined here:
      |  
      |  __init__(self, samp)
-     |      Initialize self.  See help(type(self)) for accurate signature.
+     |      Initialize with binary sampling pattern.
      |  
-     |  conj(self)
+     |  forward(self, x)
+     |      Fourier encoding with binary undersampling pattern applied.
+     |      
+     |      This forward transform has no fftshift applied.
      |  
-     |  dot(self, m)
+     |  forward_ortho(self, x)
+     |      Normalized Fourier encoding with binary undersampling.
+     |      
+     |      This forward transform applied fftshift before FFT and after.
+     |  
+     |  forward_s(self, x)
+     |      Fourier encoding with binary undersampling pattern applied.
+     |      
+     |      This forward transform applies fftshift before masking.
+     |  
+     |  inverse(self, x)
+     |      Inverse fourier encoding.
+     |  
+     |  inverse_ortho(self, x)
+     |      Inverse Normalized Fourier encoding.
+     |      
+     |      This transform applied ifftshift before and after ifft2.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
-     |  
-     |  T
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)

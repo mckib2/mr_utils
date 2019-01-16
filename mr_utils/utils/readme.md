@@ -1,5 +1,10 @@
 
 # UTILS
+## mr_utils.utils.cdf
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf.py)
+
+
 ## mr_utils.utils.find_nearest
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
@@ -11,7 +16,7 @@ NAME
 FUNCTIONS
     find_nearest(array, value)
         Given straws and needle, find the closest straw to the needle.
-        
+
         array -- hay stack.
         value -- needle.
 
@@ -30,10 +35,10 @@ NAME
 FUNCTIONS
     dTV(A, eps=1e-08)
         Compute derivative of the TV with respect to the matrix A.
-        
+
         A -- 2d matrix (can be complex).
         eps -- small positive constant used to avoid a divide by zero.
-        
+
         Implements Equation [13] from:
             Zhang, Yan, Yuanyuan Wang, and Chen Zhang. "Total variation based
             gradient descent algorithm for sparse-view photoacoustic image
@@ -54,10 +59,10 @@ NAME
 FUNCTIONS
     mi_ssfp(images, pc_axis=0)
         Compute maximum intensity SSFP.
-        
+
         images -- Array of phase-cycled images.
         pc_axis -- Which dimension is the phase-cycle dimension.
-        
+
         Implements Equation [5] from:
             Bangerter, Neal K., et al. "Analysis of multiple‐acquisition SSFP."
             Magnetic Resonance in Medicine: An Official Journal of the
@@ -79,14 +84,14 @@ NAME
 FUNCTIONS
     col_stacked_order(x)
         Find ordering of monotonically varying flattened array, x.
-        
+
         x -- Array to find ordering of.
-        
+
         Note that you might want to provide abs(x) if x is a complex array.
-    
+
     inverse_permutation(ordering)
         Given some permutation, find the inverse permutation.
-        
+
         ordering -- Flattened indicies, such as output of np.argsort.
 
 
@@ -104,12 +109,12 @@ NAME
 FUNCTIONS
     percent_ripple(profile)
         Calculate percent ripple of the bSSFP spectral profile.
-        
+
         profile -- The off-resonance profile as a function of theta.
-        
+
         The residual ripple can be predicted by examining the variations in the
         expected signal profile with free-precession angle, theta.
-        
+
         Implements percent ripple, Equation [11], from:
             Bangerter, Neal K., et al. "Analysis of multiple‐acquisition SSFP."
             Magnetic Resonance in Medicine: An Official Journal of the
@@ -131,7 +136,7 @@ NAME
 CLASSES
     builtins.object
         Table
-    
+
     class Table(builtins.object)
      |  Methods defined here:
      |  
@@ -196,23 +201,23 @@ NAME
 FUNCTIONS
     sort2d(A)
         Sorting algorithm for two-dimensional arrays.
-        
+
         A -- Array to be sorted.
-        
+
         Note: if A is complex, you may want to provide abs(A).  Returns sorted
         array and flattened indices.
-        
+
         Numpy implementation of algorithm from:
             Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
             algorithm for two-dimensional arrays. In Genetic and Evolutionary
             Computing (ICGEC), 2010 Fourth International Conference on
             (pp. 853-855). IEEE.
-    
+
     sort2d_loop(A)
         An efficient selection sorting algorithm for two-dimensional arrays.
-        
+
         A -- 2d array to be sorted.
-        
+
         Implementation of algorithm from:
             Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
             algorithm for two-dimensional arrays. In Genetic and Evolutionary
@@ -234,10 +239,40 @@ NAME
 FUNCTIONS
     sos(im, axes=0)
         Root sum of squares combination along given axes.
-        
+
         im -- Input image.
         axes -- Dimensions to sum across.
 
 
 ```
 
+
+## mr_utils.utils.wavelet
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/wavelet.py)
+
+```
+NAME
+    mr_utils.utils.wavelet
+
+FUNCTIONS
+    cdf97_2d_forward(x, level)
+        Forward 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
+
+        x -- 2D signal.
+        level -- Decomposition level.
+
+        Returns transform, same shape as input, with locations.  Locations is a
+        list of indices instructing cdf97_2d_inverse where the coefficients for
+        each block are located.
+
+        Biorthogonal 4/4 is the same as CDF 9/7 according to wikipedia:
+            see https://en.wikipedia.org/wiki/Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
+
+    cdf97_2d_inverse(coeffs, locations)
+        Inverse 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
+
+        coeffs,locations -- Output of cdf97_2d_forward().
+
+
+```
