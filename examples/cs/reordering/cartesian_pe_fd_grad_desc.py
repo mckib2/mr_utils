@@ -18,10 +18,10 @@ if __name__ == '__main__':
 
     # Make the complex measurement in kspace
     # Note this is different than uft.forward, as fftshift must be performed
-    y = np.fft.fftshift(np.fft.fft2(x))*samp
+    y = uft.forward_ortho(x)
 
     # Solve inverse problem using gradient descent with TV sparsity constraint
-    x_hat = GD_TV(y,forward_fun=uft.forward,inverse_fun=uft.inverse,alpha=.5,lam=.022,do_reordering=do_reordering,x=x,ignore_residual=True,disp=True,maxiter=50)
+    x_hat = GD_TV(y,forward_fun=uft.forward_ortho,inverse_fun=uft.inverse_ortho,alpha=.5,lam=.022,do_reordering=do_reordering,x=x,ignore_residual=True,disp=True,maxiter=50)
 
     # Look at the before/after shots
-    view(np.stack((uft.inverse(y),x_hat)))
+    view(np.stack((uft.inverse_ortho(y),x_hat)))
