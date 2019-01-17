@@ -34,6 +34,7 @@ def cosamp(A,y,k,lstsq='exact',tol=1e-8,maxiter=500,x=None,disp=False):
     # Initializations
     x_hat = np.zeros(N,dtype=y.dtype)
     r = y.copy()
+    ynorm = np.linalg.norm(y)
 
     if x is None:
         x = np.zeros(x_hat.shape,dtype=y.dtype)
@@ -55,7 +56,7 @@ def cosamp(A,y,k,lstsq='exact',tol=1e-8,maxiter=500,x=None,disp=False):
 
     # Start up a table
     if disp:
-        table = Table([ 'iter','residual','MSE' ],[ len(repr(maxiter)),8,8 ],[ 'd','e','e' ])
+        table = Table([ 'iter','norm','MSE' ],[ len(repr(maxiter)),8,8 ],[ 'd','e','e' ])
         hdr = table.header()
         for line in hdr.split('\n'):
             logging.info(line)
@@ -79,7 +80,7 @@ def cosamp(A,y,k,lstsq='exact',tol=1e-8,maxiter=500,x=None,disp=False):
         r = y - np.dot(A,x_hat)
 
         # Compute stopping criteria
-        stop_criteria = np.linalg.norm(r)/np.linalg.norm(y)
+        stop_criteria = np.linalg.norm(r)/ynorm
 
         # Show MSE at current iteration if we wanted it
         if disp:

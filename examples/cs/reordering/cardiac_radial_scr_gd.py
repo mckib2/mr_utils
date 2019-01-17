@@ -3,7 +3,6 @@ from mr_utils.test_data import SCRReordering
 from mr_utils import view
 from mr_utils.cs import GD_TV
 from mr_utils.cs.models import UFT
-from mr_utils.sim.traj import radial
 
 if __name__ == '__main__':
 
