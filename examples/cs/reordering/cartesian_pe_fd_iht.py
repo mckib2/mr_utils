@@ -22,8 +22,8 @@ if __name__ == '__main__':
     plt.show()
 
     # Simulate acquisiton
-    kspace_u = uft.forward_s(x)
-    imspace_u = uft.inverse(kspace_u)
+    kspace_u = uft.forward_ortho(x)
+    imspace_u = uft.inverse_ortho(kspace_u)
 
     # Look at the aliased acquired signal
     plt.imshow(np.abs(imspace_u),cmap='gray')
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     plt.show()
 
     # Do IHT, enforcing sparsity in finite differences domain
-    x_hat = IHT_TV(kspace_u,forward_fun=uft.forward_s,inverse_fun=lambda x: np.abs(uft.inverse(x)),k=k,mu=1,tol=1e-8,do_reordering=do_reordering,x=x,ignore_residual=False,disp=True,maxiter=500)
+    x_hat = IHT_TV(kspace_u,forward_fun=uft.forward_ortho,inverse_fun=lambda x: np.abs(uft.inverse_ortho(x)),k=k,mu=1,tol=1e-8,do_reordering=do_reordering,x=x,ignore_residual=False,disp=True,maxiter=500)
 
     # Check it out
     plt.imshow(x_hat,cmap='gray')
