@@ -258,6 +258,38 @@ FUNCTIONS
 ```
 
 
+## mr_utils.cs.convex.gd_tv
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/convex/gd_tv.py)
+
+```
+NAME
+    mr_utils.cs.convex.gd_tv
+
+FUNCTIONS
+    GD_TV(y, forward_fun, inverse_fun, alpha=0.5, lam=0.01, do_reordering=False, x=None, ignore_residual=False, disp=False, maxiter=200)
+        Gradient descent for a generic encoding model and TV constraint.
+        
+        y -- Measured data (i.e., y = Ax).
+        forward_fun -- A, the forward transformation function.
+        inverse_fun -- A^H, the inverse transformation function.
+        alpha -- Step size.
+        lam -- TV constraint weight.
+        do_reordering -- Whether or not to reorder for sparsity constraint.
+        x -- The true image we are trying to reconstruct.
+        ignore_residual -- Whether or not to break out of loop if resid increases.
+        disp -- Whether or not to display iteration info.
+        maxiter -- Maximum number of iterations.
+        
+        Solves the problem:
+            min_x || y - Ax ||^2_2  + lam*TV(x)
+        
+        If x=None, then MSE will not be calculated.
+
+
+```
+
+
 ## mr_utils.cs.greedy.cosamp
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/greedy/cosamp.py)
@@ -321,30 +353,80 @@ CLASSES
     class UFT(builtins.object)
      |  Undersampled Fourier Transform (UFT) data acquisiton model.
      |  
-     |  Developed for use with iterative thresholding algorithms. Implements
-     |  functions to look like a numpy array:
-     |      .dot() -- Forward transform.
-     |      .conj().T -- Inverse transform.
-     |  
      |  Methods defined here:
      |  
      |  __init__(self, samp)
-     |      Initialize self.  See help(type(self)) for accurate signature.
+     |      Initialize with binary sampling pattern.
      |  
-     |  conj(self)
+     |  forward(self, x)
+     |      Fourier encoding with binary undersampling pattern applied.
+     |      
+     |      This forward transform has no fftshift applied.
      |  
-     |  dot(self, m)
+     |  forward_ortho(self, x)
+     |      Normalized Fourier encoding with binary undersampling.
+     |      
+     |      This forward transform applied fftshift before FFT and after.
+     |  
+     |  forward_s(self, x)
+     |      Fourier encoding with binary undersampling pattern applied.
+     |      
+     |      This forward transform applies fftshift before masking.
+     |  
+     |  inverse(self, x)
+     |      Inverse fourier encoding.
+     |  
+     |  inverse_ortho(self, x)
+     |      Inverse Normalized Fourier encoding.
+     |      
+     |      This transform applied ifftshift before and after ifft2.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
-     |  
-     |  T
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
+
+
+```
+
+
+## mr_utils.cs.thresholding.amp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/thresholding/amp.py)
+
+```
+NAME
+    mr_utils.cs.thresholding.amp
+
+FUNCTIONS
+    amp2d(y, forward_fun, inverse_fun, sigmaType=2, randshift=False, tol=1e-08, x=None, ignore_residual=False, disp=False, maxiter=100)
+        Approximate message passing using wavelet sparsifying transform.
+        
+        y -- Measurements, i.e., y = Ax.
+        forward_fun -- A, the forward transformation function.
+        inverse_fun -- A^H, the inverse transformation function.
+        sigmaType --
+        randshift -- Whether or not to randomly circular shift every iteration.
+        tol -- Stop when stopping criteria meets this threshold.
+        x -- The true image we are trying to reconstruct.
+        ignore_residual -- Whether or not to ignore stopping criteria.
+        disp -- Whether or not to display iteration info.
+        maxiter -- Maximum number of iterations.
+        
+        Solves the problem:
+            min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon
+        
+        If x=None, then MSE will not be calculated.
+        
+        Reference:
+            "Message Passing Algorithms for CS" Donoho et al., PNAS 2009;106:18914
+        
+        Based on MATLAB implementation found here:
+            http://kyungs.bol.ucla.edu/Site/Software.html
 
 
 ```
@@ -377,6 +459,39 @@ FUNCTIONS
             min_x || kspace - FFT(x) ||^2_2  s.t.  || FD(x) ||_0 <= k
         
         If im_true=None, then MSE will not be calculated.
+
+
+```
+
+
+## mr_utils.cs.thresholding.iht_tv
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/thresholding/iht_tv.py)
+
+```
+NAME
+    mr_utils.cs.thresholding.iht_tv
+
+FUNCTIONS
+    IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-08, do_reordering=False, x=None, ignore_residual=False, disp=False, maxiter=500)
+        IHT for generic encoding model and TV constraint.
+        
+        y -- Measured data, i.e., y = Ax.
+        forward_fun -- A, the forward transformation function.
+        inverse_fun -- A^H, the inverse transformation function.
+        k -- Sparsity measure (number of nonzero coefficients expected).
+        mu -- Step size.
+        tol -- Stop when stopping criteria meets this threshold.
+        do_reordering -- Reorder column-stacked true image.
+        x -- The true image we are trying to reconstruct.
+        ignore_residual -- Whether or not to break out of loop if resid increases.
+        disp -- Whether or not to display iteration info.
+        maxiter -- Maximum number of iterations.
+        
+        Solves the problem:
+            min_x || y - Ax ||^2_2  s.t.  || FD(x) ||_0 <= k
+        
+        If x=None, then MSE will not be calculated.
 
 
 ```
@@ -1123,7 +1238,7 @@ NAME
 CLASSES
     paramiko.transport.Transport(threading.Thread, paramiko.util.ClosingContextManager)
         FastTransport
-    tqdm._tqdm.tqdm(builtins.object)
+    tqdm._tqdm.tqdm(tqdm._utils.Comparable)
         TqdmWrap
     
     class FastTransport(paramiko.transport.Transport)
@@ -1979,6 +2094,7 @@ CLASSES
      |  Method resolution order:
      |      TqdmWrap
      |      tqdm._tqdm.tqdm
+     |      tqdm._utils.Comparable
      |      builtins.object
      |  
      |  Methods defined here:
@@ -1993,16 +2109,7 @@ CLASSES
      |  
      |  __enter__(self)
      |  
-     |  __eq__(self, other)
-     |      Return self==value.
-     |  
      |  __exit__(self, *exc)
-     |  
-     |  __ge__(self, other)
-     |      Return self>=value.
-     |  
-     |  __gt__(self, other)
-     |      Return self>value.
      |  
      |  __hash__(self)
      |      Return hash(self).
@@ -2036,9 +2143,9 @@ CLASSES
      |          fallback is a meter width of 10 and no limit for the counter and
      |          statistics. If 0, will not print any meter (only stats).
      |      mininterval  : float, optional
-     |          Minimum progress display update interval, in seconds [default: 0.1].
+     |          Minimum progress display update interval [default: 0.1] seconds.
      |      maxinterval  : float, optional
-     |          Maximum progress display update interval, in seconds [default: 10].
+     |          Maximum progress display update interval [default: 10] seconds.
      |          Automatically adjusts `miniters` to correspond to `mininterval`
      |          after long display update lag. Only works if `dynamic_miniters`
      |          or monitor thread is enabled.
@@ -2074,11 +2181,13 @@ CLASSES
      |          (current/instantaneous speed) [default: 0.3].
      |      bar_format  : str, optional
      |          Specify a custom bar string formatting. May impact performance.
-     |          If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-     |          '{desc}: {percentage:3.0f}%|' and r_bar is
-     |          '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
-     |          Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-     |          rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+     |          [default: '{l_bar}{bar}{r_bar}'], where
+     |          l_bar='{desc}: {percentage:3.0f}%|' and
+     |          r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+     |            '{rate_fmt}{postfix}]'
+     |          Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+     |            percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+     |            rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
      |          Note that a trailing ": " is automatically removed after {desc}
      |          if the latter is empty.
      |      initial  : int, optional
@@ -2088,10 +2197,9 @@ CLASSES
      |          Specify the line offset to print this bar (starting from 0)
      |          Automatic if unspecified.
      |          Useful to manage multiple bars at once (eg, from threads).
-     |      postfix  : dict, optional
+     |      postfix  : dict or *, optional
      |          Specify additional stats to display at the end of the bar.
-     |          Note: postfix is a dict ({'key': value} pairs) for this method,
-     |          not a string.
+     |          Calls `set_postfix(**postfix)` if possible (dict).
      |      unit_divisor  : float, optional
      |          [default: 1000], ignored unless `unit_scale` is True.
      |      gui  : bool, optional
@@ -2106,16 +2214,7 @@ CLASSES
      |  __iter__(self)
      |      Backward-compatibility to use: for x in tqdm(iterable)
      |  
-     |  __le__(self, other)
-     |      Return self<=value.
-     |  
      |  __len__(self)
-     |  
-     |  __lt__(self, other)
-     |      Return self<value.
-     |  
-     |  __ne__(self, other)
-     |      Return self!=value.
      |  
      |  __repr__(self, elapsed=None)
      |      Return repr(self).
@@ -2231,6 +2330,21 @@ CLASSES
      |  __new__(cls, *args, **kwargs)
      |      Create and return a new object.  See help(type) for accurate signature.
      |  
+     |  ema(x, mu=None, alpha=0.3)
+     |              Exponential moving average: smoothing to give progressively lower
+     |              weights to older values.
+     |      
+     |      Parameters
+     |      ----------
+     |      x  : float
+     |          New value to include in EMA.
+     |      mu  : float, optional
+     |          Previous EMA value.
+     |      alpha  : float, optional
+     |          Smoothing factor in range [0, 1], [default: 0.3].
+     |          Increase to give more weight to recent values.
+     |                      Ranges from 0 (yields mu) to 1 (yields x).
+     |  
      |  format_interval(t)
      |      Formats a number of seconds as a clock time, [H:]MM:SS
      |      
@@ -2238,6 +2352,7 @@ CLASSES
      |      ----------
      |      t  : int
      |          Number of seconds.
+     |      
      |      Returns
      |      -------
      |      out  : str
@@ -2289,16 +2404,31 @@ CLASSES
      |            rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
      |          Note that a trailing ": " is automatically removed after {desc}
      |          if the latter is empty.
-     |      postfix  : str, optional
+     |      postfix  : *, optional
      |          Similar to `prefix`, but placed at the end
      |          (e.g. for additional stats).
-     |          Note: postfix is a string for this method. Not a dict.
+     |          Note: postfix is usually a string (not a dict) for this method,
+     |          and will if possible be set to postfix = ', ' + postfix.
+     |          However other types are supported (#382).
      |      unit_divisor  : float, optional
      |          [default: 1000], ignored unless `unit_scale` is True.
      |      
      |      Returns
      |      -------
      |      out  : Formatted meter and stats, ready to display.
+     |  
+     |  format_num(n)
+     |      Intelligent scientific notation (.3g).
+     |      
+     |      Parameters
+     |      ----------
+     |      n  : int or float or Numeric
+     |          A Number.
+     |      
+     |      Returns
+     |      -------
+     |      out  : str
+     |          Formatted number.
      |  
      |  format_sizeof(num, suffix='', divisor=1000)
      |      Formats a number (greater than unity) with SI Order of Magnitude
@@ -2324,20 +2454,41 @@ CLASSES
      |      updating may not work (it will print a new line at each refresh).
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors inherited from tqdm._tqdm.tqdm:
+     |  Data and other attributes inherited from tqdm._tqdm.tqdm:
+     |  
+     |  monitor = None
+     |  
+     |  monitor_interval = 10
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from tqdm._utils.Comparable:
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __ge__(self, other)
+     |      Return self>=value.
+     |  
+     |  __gt__(self, other)
+     |      Return self>value.
+     |  
+     |  __le__(self, other)
+     |      Return self<=value.
+     |  
+     |  __lt__(self, other)
+     |      Return self<value.
+     |  
+     |  __ne__(self, other)
+     |      Return self!=value.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from tqdm._utils.Comparable:
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data and other attributes inherited from tqdm._tqdm.tqdm:
-     |  
-     |  monitor = None
-     |  
-     |  monitor_interval = 10
 
 FUNCTIONS
     s2i_client(filename, put_file=True, get_file=True, cleanup_raw=True, cleanup_processed=True, remote_dir='/tmp', host=None, port=22, username=None, ssh_key=None, password=None, debug_level=20)
@@ -4201,6 +4352,7 @@ NAME
 
 CLASSES
     builtins.object
+        AMPData
         BARTReordering
         BSSFPGrappa
         EllipticalSignal
@@ -4212,6 +4364,29 @@ CLASSES
         SSFPMultiphase
         ViewTestData
         XProtParserTest
+    
+    class AMPData(builtins.object)
+     |  ## MAT FILES
+     |  # For AMP:
+     |  
+     |  Static methods defined here:
+     |  
+     |  cdf97()
+     |  
+     |  mask()
+     |  
+     |  x0()
+     |  
+     |  y()
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
     
     class BARTReordering(builtins.object)
      |  # For BART reordering recon
@@ -4392,7 +4567,6 @@ CLASSES
      |      list of weak references to the object (if defined)
     
     class SCGROG(builtins.object)
-     |  ## MAT FILES
      |  # For SC-GROG:
      |  
      |  Static methods defined here:
@@ -4519,6 +4693,75 @@ CLASSES
 
 
 # UTILS
+## mr_utils.utils.cdf
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf.py)
+
+```
+NAME
+    mr_utils.utils.cdf
+
+FUNCTIONS
+    waveletcdf97(X, Level)
+        WAVELETCDF97  Cohen-Daubechies-Feauveau 9/7 wavelet transform.
+        
+          Y = WAVELETCDF97(X, L) decomposes X with L stages of the
+          Cohen-Daubechies-Feauveau (CDF) 9/7 wavelet.  For the
+          inverse transform, WAVELETCDF97(X, -L) inverts L stages.
+          Filter boundary handling is half-sample symmetric.
+        
+          X may be of any size; it need not have size divisible by 2^L.
+          For example, if X has length 9, one stage of decomposition
+          produces a lowpass subband of length 5 and a highpass subband
+          of length 4.  Transforms of any length have perfect
+          reconstruction (exact inversion).
+        
+          If X is a matrix, WAVELETCDF97 performs a (tensor) 2D wavelet
+          transform.  If X has three dimensions, the 2D transform is
+          applied along the first two dimensions.
+        
+          Example:
+          Y = waveletcdf97(X, 5);    % Transform image X using 5 stages
+          R = waveletcdf97(Y, -5);   % Reconstruct from Y
+        
+        Pascal Getreuer 2004-2006
+
+
+```
+
+
+## mr_utils.utils.cdf97
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf97.py)
+
+```
+NAME
+    mr_utils.utils.cdf97
+
+FUNCTIONS
+    fwt97(s, width, height)
+        Forward Cohen-Daubechies-Feauveau 9 tap / 7 tap wavelet transform
+        performed on all columns of the 2D n*n matrix signal s via lifting.
+        The returned result is s, the modified input matrix.
+        The highpass and lowpass results are stored on the left half and right
+        half of s respectively, after the matrix is transposed.
+    
+    fwt97_2d(m, nlevels=1)
+        Perform the CDF 9/7 transform on a 2D matrix signal m.
+        nlevel is the desired number of times to recursively transform the
+        signal.
+    
+    iwt97(s, width, height)
+        Inverse CDF 9/7.
+    
+    iwt97_2d(m, nlevels=1)
+        Inverse CDF 9/7 transform on a 2D matrix signal m.
+        nlevels must be the same as the nlevels used to perform the fwt.
+
+
+```
+
+
 ## mr_utils.utils.find_nearest
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
@@ -4756,6 +4999,37 @@ FUNCTIONS
         
         im -- Input image.
         axes -- Dimensions to sum across.
+
+
+```
+
+
+## mr_utils.utils.wavelet
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/wavelet.py)
+
+```
+NAME
+    mr_utils.utils.wavelet
+
+FUNCTIONS
+    cdf97_2d_forward(x, level)
+        Forward 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
+        
+        x -- 2D signal.
+        level -- Decomposition level.
+        
+        Returns transform, same shape as input, with locations.  Locations is a
+        list of indices instructing cdf97_2d_inverse where the coefficients for
+        each block are located.
+        
+        Biorthogonal 4/4 is the same as CDF 9/7 according to wikipedia:
+            see https://en.wikipedia.org/wiki/Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
+    
+    cdf97_2d_inverse(coeffs, locations)
+        Inverse 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
+        
+        coeffs,locations -- Output of cdf97_2d_forward().
 
 
 ```
