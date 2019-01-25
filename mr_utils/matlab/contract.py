@@ -1,4 +1,5 @@
-# Define 'done token' for communication with MATLAB server
+'''Define communication tokens for communication with MATLAB server.'''
+
 done_token = '__mr_utils_done__'
 
 # client modes:
