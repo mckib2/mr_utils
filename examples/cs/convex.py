@@ -1,3 +1,5 @@
+# How is this different from binary_convex.py?
+
 from scipy.optimize import minimize
 import numpy as np
 import matplotlib.pyplot as plt
