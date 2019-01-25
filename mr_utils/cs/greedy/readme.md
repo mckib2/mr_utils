@@ -5,7 +5,10 @@
 
 ```
 NAME
-    mr_utils.cs.greedy.cosamp
+    mr_utils.cs.greedy.cosamp - Compressive sampling matching pursuit (CoSaMP) algorithm.
+
+DESCRIPTION
+    This implementation currently does not handle complex signals.
 
 FUNCTIONS
     cosamp(A, y, k, lstsq='exact', tol=1e-08, maxiter=500, x=None, disp=False)

@@ -6,7 +6,19 @@
 
 ```
 NAME
-    mr_utils.view.view
+    mr_utils.view.view - A simple viewer.
+
+DESCRIPTION
+    The idea is for this to be really simple to use.  It will do a lot of
+    guessing if you don't provide it with details.  For example, if a 3D dataset
+    is provided as the image and you don't say which axes are in-plane, it will
+    guess that the largest two axis are in-plane.  If the 3rd dimension is small,
+    then it will choose to view the images as a montage, if it is large it will
+    play it as a movie.  Of course there are many options if you know what you're
+    doing (and I do, since I wrote it...).
+    
+    Fourier transforms, logarithmic scale, coil combination, averaging, and
+    converting from raw data are all supported out of the box.
 
 FUNCTIONS
     mat_keys(filename, ignore_dbl_underscored=True, no_print=False)

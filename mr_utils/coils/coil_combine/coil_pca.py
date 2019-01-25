@@ -1,18 +1,30 @@
-import numpy as np
-from sklearn.decomposition import PCA
+'''Coil compression using principal component analysis.'''
+
 import logging
 
-def python_pca(X,n_components=False):
+import numpy as np
+from sklearn.decomposition import PCA
 
-    M = np.mean(X.T,axis=1)
+def python_pca(X, n_components=False):
+    '''Python implementation of principal component analysis.
+
+    To verify I know what sklearn's PCA is doing.
+    '''
+
+    M = np.mean(X.T, axis=1)
     C = X - M
     V = np.cov(C.T)
-    values,vectors = np.linalg.eig(V)
-    P = vectors.T.dot(C.T)[:n_components,:].T
+    _values, vectors = np.linalg.eig(V)
+    P = vectors.T.dot(C.T)[:n_components, :].T
 
-    return(P)
+    return P
 
-def coil_pca(coil_ims,coil_dim=-1,n_components=4,give_explained_var=False,debug_level=logging.WARNING):
+def coil_pca(
+        coil_ims,
+        coil_dim=-1,
+        n_components=4,
+        give_explained_var=False,
+        debug_level=logging.WARNING):
     '''Reduce the dimensionality of the coil dimension using PCA.
 
     coil_dim -- Coil axis, default is last axis.
@@ -31,15 +43,15 @@ def coil_pca(coil_ims,coil_dim=-1,n_components=4,give_explained_var=False,debug_
     '''
 
     # Every day I'm logging...
-    logging.basicConfig(format='%(levelname)s: %(message)s',level=debug_level)
-    logging.info('Starting coil_pca: initial size: %s' % str(coil_ims.shape))
+    logging.basicConfig(format='%(levelname)s: %(message)s', level=debug_level)
+    logging.info('Starting coil_pca: initial size: %s', str(coil_ims.shape))
 
     # Get data in form (n_samples,n_features)
-    coil_ims = np.moveaxis(coil_ims,coil_dim,-1)
+    coil_ims = np.moveaxis(coil_ims, coil_dim, -1)
     n_features = coil_ims.shape[-1]
     im_shape = coil_ims.shape[:-1]
-    coil_ims = np.reshape(coil_ims,(-1,n_features))
-    logging.info('Number of features: %d' % n_features)
+    coil_ims = np.reshape(coil_ims, (-1, n_features))
+    logging.info('Number of features: %d', n_features)
 
     # Do PCA on both real/imag parts
     logging.info('Performing PCA on real/imag parts...')
@@ -48,21 +60,28 @@ def coil_pca(coil_ims,coil_dim=-1,n_components=4,give_explained_var=False,debug_
     coil_ims_real = pca_real.fit_transform(coil_ims.real)
     coil_ims_imag = pca_imag.fit_transform(coil_ims.imag)
 
-    coil_ims_pca = (coil_ims_real + 1j*coil_ims_imag).reshape((*im_shape,n_components))
+    coil_ims_pca = (coil_ims_real + 1j*coil_ims_imag).reshape(
+        (*im_shape, n_components))
 
     # Move coil dim back to where it was
-    coil_ims_pca = np.moveaxis(coil_ims_pca,-1,coil_dim)
+    coil_ims_pca = np.moveaxis(coil_ims_pca, -1, coil_dim)
 
-    logging.info('Resulting size: %s' % str(coil_ims_pca.shape))
-    logging.info('Number of components: %d' % n_components)
+    logging.info('Resulting size: %s', str(coil_ims_pca.shape))
+    logging.info('Number of components: %d', n_components)
 
     if give_explained_var:
-        logging.info('Returning explained_variance_ratio for both real and imag PCA decompositions.')
-        logging.info('Do mr_utils.view(expl_var.real) to see the plot for the real part.')
-        expl_var = np.cumsum(pca_real.explained_variance_ratio_) + 1j*np.cumsum(pca_imag.explained_variance_ratio_)
-        return(coil_ims_pca,expl_var)
-    else:
-        return(coil_ims_pca)
+        logging.info((
+            'Returning explained_variance_ratio for both real and imag PCA'
+            ' decompositions.'))
+        logging.info((
+            'Do mr_utils.view(expl_var.real) to see the plot for the real'
+            'part.'))
+        expl_var = (np.cumsum(pca_real.explained_variance_ratio_)
+                    + 1j*np.cumsum(pca_imag.explained_variance_ratio_))
+        return(coil_ims_pca, expl_var)
+
+    # else...
+    return coil_ims_pca
 
 if __name__ == '__main__':
     pass

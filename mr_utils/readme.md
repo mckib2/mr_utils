@@ -6,7 +6,7 @@
 
 ```
 NAME
-    mr_utils.definitions
+    mr_utils.definitions - Provide definitions of paths for root andapplications if they exist.
 
 ```
 

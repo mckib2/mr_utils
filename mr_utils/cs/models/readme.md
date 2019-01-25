@@ -5,7 +5,16 @@
 
 ```
 NAME
-    mr_utils.cs.models.UFT
+    mr_utils.cs.models.UFT - Undersampled Fourier transform encoding model.
+
+DESCRIPTION
+    I'm calling "encoding model" how we encode the image domain signal to get to
+    the acquisiton domain.  In the case of MR, we measure k-space of the image we
+    want, so the encoding model is simply the Fourier transform (ignoring all the
+    other complications...).  This object provides methods to go into k-space and
+    get back out assuming we undersample according to some mask.
+    
+    forward_ortho, inverse_ortho are probably the ones you want.
 
 CLASSES
     builtins.object

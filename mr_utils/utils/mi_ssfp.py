@@ -1,6 +1,6 @@
 import numpy as np
 
-def mi_ssfp(images,pc_axis=0):
+def mi_ssfp(images, pc_axis=0):
     '''Compute maximum intensity SSFP.
 
     images -- Array of phase-cycled images.
@@ -13,4 +13,4 @@ def mi_ssfp(images,pc_axis=0):
         1038-1047.
     '''
 
-    return(np.max(np.abs(images),axis=pc_axis))
+    return np.max(np.abs(images), axis=pc_axis)

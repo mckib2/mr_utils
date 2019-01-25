@@ -1,10 +1,34 @@
-import numpy as np
-from pywt import threshold
+'''Proximal Gradient Descent.
+
+Flexible encoding model, flexible sparsity model, and flexible reordering
+model.  This is the one I would use out of all the ones I've coded up.
+Might be slower than the others as there's a little more checking to do each
+iteration.
+'''
+
 import logging
 
-logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
+import numpy as np
+from pywt import threshold
 
-def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,mode='soft',alpha=.5,selective=None,x=None,ignore_residual=False,disp=False,maxiter=200):
+from mr_utils.utils.orderings import inverse_permutation
+
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+
+def proximal_GD(
+        y,
+        forward_fun,
+        inverse_fun,
+        sparsify,
+        unsparsify,
+        reorder_fun=None,
+        mode='soft',
+        alpha=.5,
+        selective=None,
+        x=None,
+        ignore_residual=False,
+        disp=False,
+        maxiter=200):
     '''Proximal gradient descent for a generic encoding, sparsity models.
 
     y -- Measured data (i.e., y = Ax).
@@ -32,15 +56,11 @@ def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,m
 
     # Make sure compare_mse is defined
     if x is None:
-        compare_mse = lambda xx,yy: 0
+        compare_mse = lambda xx, yy: 0
         logging.info('No true x provided, MSE will not be calculated.')
     else:
         from skimage.measure import compare_mse
         xabs = np.abs(x) # Precompute absolute value of true image
-
-    # Make sure we know how to reorder things
-    if reorder_fun is not None:
-        from mr_utils.utils.orderings import inverse_permutation
 
     # Get some display stuff happening
     if disp:
@@ -48,7 +68,10 @@ def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,m
         range_fun = range
 
         from mr_utils.utils.printtable import Table
-        table = Table([ 'iter','norm','MSE' ],[ len(repr(maxiter)),8,8 ],[ 'd','e','e' ])
+        table = Table(
+            ['iter', 'norm', 'MSE'],
+            [len(repr(maxiter)), 8, 8],
+            ['d', 'e', 'e'])
         hdr = table.header()
         for line in hdr.split('\n'):
             logging.info(line)
@@ -58,7 +81,7 @@ def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,m
         range_fun = trange
 
     # Initialize
-    x_hat = np.zeros(y.shape,dtype=y.dtype)
+    x_hat = np.zeros(y.shape, dtype=y.dtype)
     r = -y.copy()
     prev_stop_criteria = np.inf
     norm_y = np.linalg.norm(y)
@@ -69,7 +92,8 @@ def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,m
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
         if not ignore_residual and stop_criteria > prev_stop_criteria:
-            logging.warning('Breaking out of loop after %d iterations. Norm of residual increased!' % ii)
+            logging.warning('Breaking out of loop after %d iterations. \
+                Norm of residual increased!', ii)
             break
         prev_stop_criteria = stop_criteria
 
@@ -83,19 +107,27 @@ def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,m
             reorder_idx_i = reorder_idx.imag.astype(int)
             unreorder_idx_r = inverse_permutation(reorder_idx_r)
             unreorder_idx_i = inverse_permutation(reorder_idx_i)
-            grad_step = (grad_step.real[np.unravel_index(reorder_idx_r,y.shape)] + 1j*grad_step.imag[np.unravel_index(reorder_idx_i,y.shape)]).reshape(y.shape)
+            grad_step = (
+                grad_step.real[np.unravel_index(reorder_idx_r, y.shape)] \
+                +1j*grad_step.imag[np.unravel_index(reorder_idx_i, y.shape)]) \
+                .reshape(y.shape)
 
-        # Take the step
-        update = unsparsify(threshold(sparsify(grad_step),value=alpha,mode=mode))
+        # Take the step, we would normally assign x_hat directly, but because
+        # we might be reordering and selectively updating, we'll store it in
+        # a temporary variable...
+        update = unsparsify(
+            threshold(sparsify(grad_step), value=alpha, mode=mode))
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
-            # update = (update.real.flatten()[unreorder_idx_r] + 1j*update.imag.flatten()[unreorder_idx_i]).reshape(y.shape)
-            update = (update.real[np.unravel_index(unreorder_idx_r,y.shape)] + 1j*update.imag[np.unravel_index(unreorder_idx_i,y.shape)]).reshape(y.shape)
+            update = (
+                update.real[np.unravel_index(unreorder_idx_r, y.shape)] \
+                + 1j*update.imag[np.unravel_index(unreorder_idx_i, y.shape)]) \
+                .reshape(y.shape)
 
         # Look at where we want to take the step - tread carefully...
         if selective is not None:
-            selective_idx = selective(x_hat,update)
+            selective_idx = selective(x_hat, update)
 
         # Update image estimae
         if selective is not None:
@@ -105,9 +137,11 @@ def proximal_GD(y,forward_fun,inverse_fun,sparsify,unsparsify,reorder_fun=None,m
 
         # Tell the user what happened
         if disp:
-            logging.info(table.row([ ii,stop_criteria,compare_mse(np.abs(x_hat),xabs) ]))
+            logging.info(
+                table.row(
+                    [ii, stop_criteria, compare_mse(np.abs(x_hat), xabs)]))
 
         # Compute residual
         r = forward_fun(x_hat) - y
 
-    return(x_hat)
+    return x_hat

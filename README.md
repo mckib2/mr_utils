@@ -61,7 +61,12 @@ DESCRIPTION
 
 ```
 NAME
-    mr_utils.bart.bart
+    mr_utils.bart.bart - Simple interface to call BART's python object from mr_utils.
+
+DESCRIPTION
+    This will verify that BART's TOOLBOX_PATH is found, if not, an exception will
+    be raised.  Consider using Bartholomew, it's meant to be a better interface
+    to command-line BART.
 
 FUNCTIONS
     bart(*args)
@@ -76,37 +81,41 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.bart.bartholomew
+    mr_utils.bart.bartholomew - More friendly python interface for BART.
+
+DESCRIPTION
+    I also want this to be able to run BART on remote computer through ssh, to
+    remove BART as a strict dependency for the local machine, much like
+    we treat Gadgetron.
+    
+    Import:
+        import Bartholomew as B
+    Usage:
+        B.[bart-func](args)
+    Example:
+        traj_rad = B.traj(x=512,y=64,r=True)
+        ksp_sim = B.phantom(k=True,s=8,t=traj_rad)
+        igrid = B.nufft(ksp_sim,i=True,t=traj_rad)
+    
+    Notice that input ndarrays are positional arguments (e.g., ksp_sim is the
+    first argument for nufft instead of the last).
+    
+    To get comma separated lists (e.g., -d x:x:x), use the List type:
+        img = B.nufft(ksp_sim,i=True,d=[24,24,1],t=traj_rad)
+    
+    To get space separated lists (e.g., resize [-c] dim1 size1 ... dimn), use
+    Tuple type:
+        ksp_zerop = B.resize(lowres_ksp,c=(0,308,1,308))
 
 CLASSES
     builtins.object
         BartholomewObject
     
     class BartholomewObject(builtins.object)
-     |  More friendly python interface for BART.
+     |  Bartholomew object - more simple Python interface for BART.
      |  
-     |  I also want this to be able to run BART on remote computer through ssh, to
-     |  remove BART as a strict dependency for the local machine, much like
-     |  we treat Gadgetron.
-     |  
-     |  Import:
-     |      import Bartholomew as B
-     |  Usage:
-     |      B.[bart-func](args)
-     |  Example:
-     |      traj_rad = B.traj(x=512,y=64,r=True)
-     |      ksp_sim = B.phantom(k=True,s=8,t=traj_rad)
-     |      igrid = B.nufft(ksp_sim,i=True,t=traj_rad)
-     |  
-     |  Notice that input ndarrays are positional arguments (e.g., ksp_sim is the
-     |  first argument for nufft instead of the last).
-     |  
-     |  To get comma separated lists (e.g., -d x:x:x), use the List type:
-     |      img = B.nufft(ksp_sim,i=True,d=[24,24,1],t=traj_rad)
-     |  
-     |  To get space separated lists (e.g., resize [-c] dim1 size1 ... dimn), use
-     |  Tuple type:
-     |      ksp_zerop = B.resize(lowres_ksp,c=(0,308,1,308))
+     |  User is meant to import instance Bartholomew, e.g.,
+     |      from mr_utils.bart import Bartholomew as B
      |  
      |  Methods defined here:
      |  
@@ -142,10 +151,25 @@ CLASSES
 
 ```
 NAME
-    mr_utils.bart.client
+    mr_utils.bart.client - Connect to BART over a network.
+
+DESCRIPTION
+    I do not believe this is working currently!
+    
+    Uses paramiko to connect to a network machine (could be your own machine),
+    opens an instance of BART and returns the result.
 
 FUNCTIONS
     client(num_out, cmd, files, host=None, username=None, password=None, root_dir=None)
+        BART client.
+        
+        num_out -- Number of expected variables returned.
+        cmd -- BART command to be run.
+        files -- Any files to be provided to BART.
+        host -- IP address of machine we want to connect to.
+        username -- username to sign in with.
+        password -- password to use for sign in (will be plain-text!)
+        root_dir --
 
 
 ```
@@ -191,16 +215,31 @@ CLASSES
         ProfileConfig
     
     class ProfileConfig(builtins.object)
+     |  ProfileConfig allows object oriented interaction with profiles.config.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self, filename=None)
      |      Initialize self.  See help(type(self)) for accurate signature.
      |  
      |  activate_profile(self, profile)
+     |      Assign a profile to be active.
+     |      
+     |      profile -- Profile label to make active.
+     |      
+     |      All other profiles will still persist, but will not be used.  Only one
+     |      profile may be active at a time.
      |  
-     |  create_profile(self, profile_name, args={})
+     |  create_profile(self, profile_name, args=None)
+     |      Create a new profile.
+     |      
+     |      profile_name -- New profile's label.
+     |      args -- key,value pairs of profile's attributes.
      |  
      |  get_config_val(self, key)
+     |      Retrieve a config value.
+     |      
+     |      key -- Key of the (key,value) pair of the value to be looked up.
      |  
      |  set_config(self, args, profile=None)
      |      Update profile configuration files.
@@ -213,6 +252,7 @@ CLASSES
      |          'gadgetron.port' -> (int) port number
      |  
      |  update_file(self)
+     |      Update profiles.config by overwriting contents.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
@@ -233,7 +273,7 @@ CLASSES
 
 ```
 NAME
-    mr_utils.cs.convex.gd_fourier_encoded_tv
+    mr_utils.cs.convex.gd_fourier_encoded_tv - Gradient descent algorithm for Fourier encoding model and TV constraint.
 
 FUNCTIONS
     GD_FE_TV(kspace, samp, alpha=0.5, lam=0.01, do_reordering=False, im_true=None, ignore_residual=False, disp=False, maxiter=200)
@@ -264,7 +304,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.cs.convex.gd_tv
+    mr_utils.cs.convex.gd_tv - Gradient descent with built in TV and flexible encoding model.
 
 FUNCTIONS
     GD_TV(y, forward_fun, inverse_fun, alpha=0.5, lam=0.01, do_reordering=False, x=None, ignore_residual=False, disp=False, maxiter=200)
@@ -296,7 +336,13 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.cs.convex.proximal_gd
+    mr_utils.cs.convex.proximal_gd - Proximal Gradient Descent.
+
+DESCRIPTION
+    Flexible encoding model, flexible sparsity model, and flexible reordering
+    model.  This is the one I would use out of all the ones I've coded up.
+    Might be slower than the others as there's a little more checking to do each
+    iteration.
 
 FUNCTIONS
     proximal_GD(y, forward_fun, inverse_fun, sparsify, unsparsify, reorder_fun=None, mode='soft', alpha=0.5, selective=None, x=None, ignore_residual=False, disp=False, maxiter=200)
@@ -334,7 +380,10 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.cs.greedy.cosamp
+    mr_utils.cs.greedy.cosamp - Compressive sampling matching pursuit (CoSaMP) algorithm.
+
+DESCRIPTION
+    This implementation currently does not handle complex signals.
 
 FUNCTIONS
     cosamp(A, y, k, lstsq='exact', tol=1e-08, maxiter=500, x=None, disp=False)
@@ -382,7 +431,16 @@ NAME
 
 ```
 NAME
-    mr_utils.cs.models.UFT
+    mr_utils.cs.models.UFT - Undersampled Fourier transform encoding model.
+
+DESCRIPTION
+    I'm calling "encoding model" how we encode the image domain signal to get to
+    the acquisiton domain.  In the case of MR, we measure k-space of the image we
+    want, so the encoding model is simply the Fourier transform (ignoring all the
+    other complications...).  This object provides methods to go into k-space and
+    get back out assuming we undersample according to some mask.
+    
+    forward_ortho, inverse_ortho are probably the ones you want.
 
 CLASSES
     builtins.object
@@ -438,7 +496,16 @@ CLASSES
 
 ```
 NAME
-    mr_utils.cs.thresholding.amp
+    mr_utils.cs.thresholding.amp - 2D implementation of Approximate message passing algorithms.
+
+DESCRIPTION
+    See docstring of amp2d for reference implementation details.  It's companion
+    is LCAMP.  What's interesting is that they circular shift in the transform
+    domain.  I'm not sure why they do that, but empirically it seems to work!
+    
+    The wavelet transform is about what they are using.  I'm trying to keep the
+    implementation as simple as possible, so I used a built in transform from
+    PyWavelets that is close, but I'm not sure why it doesn't match up completely.
 
 FUNCTIONS
     amp2d(y, forward_fun, inverse_fun, sigmaType=2, randshift=False, tol=1e-08, x=None, ignore_residual=False, disp=False, maxiter=100)
@@ -645,7 +712,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.definitions
+    mr_utils.definitions - Provide definitions of paths for root andapplications if they exist.
 
 ```
 
@@ -657,14 +724,14 @@ NAME
 
 ```
 NAME
-    mr_utils.gadgetron.client
+    mr_utils.gadgetron.client - Gadgetron client for running on network machines.
 
 DESCRIPTION
-    ## Adapted from https://github.com/gadgetron/gadgetron-python-ismrmrd-client.git
-    # Keeps same command line interface, but allows for import into scripts.
+    Adapted from https://github.com/gadgetron/gadgetron-python-ismrmrd-client.git
+    Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -677,7 +744,6 @@ FUNCTIONS
         out_group -- Output group name if file is written.
         config -- Remote configuration file.
         config_local -- Local configuration file.
-        loops -- Number of loops.
         verbose -- Verbose mode.
         
         out_group=None will use the current date as the group name.
@@ -691,10 +757,14 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.configs.default
+    mr_utils.gadgetron.configs.default - Example Gadgetron config generation.
 
 FUNCTIONS
     default()
+        Default config file, default.xml.
+        
+        Generates:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/default.xml
 
 
 ```
@@ -706,12 +776,20 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.configs.distributed
+    mr_utils.gadgetron.configs.distributed - Example generation of distributed gadget configs.
 
 FUNCTIONS
     distributed_default()
+        Generates distributed_default.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_default.xml
     
     distributed_image_default()
+        Generates distributed_image_default.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_image_default.xml
 
 
 ```
@@ -723,13 +801,20 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.configs.epi
+    mr_utils.gadgetron.configs.epi - Example EPI configurations.
 
 FUNCTIONS
     epi()
+        Generates epi.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi.xml
     
     epi_gtplus_grappa()
         GT Plus configuration file for general 2D epi reconstruction.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi_gtplus_grappa.xml
 
 
 ```
@@ -741,10 +826,14 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.configs.generic
+    mr_utils.gadgetron.configs.generic - Generic Gadgetron configuration files.
 
 FUNCTIONS
     generic_cartesian_grappa()
+        Generic_Cartesian_Grappa.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/Generic_Cartesian_Grappa.xml
 
 
 ```
@@ -756,16 +845,32 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.configs.grappa
+    mr_utils.gadgetron.configs.grappa - Gadgetron configs for GRAPPA gadgets.
 
 FUNCTIONS
     grappa_cpu()
+        Generates grappa_cpu.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_cpu.xml
     
     grappa_float_cpu()
+        Generates grappa_float_cpu.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_float_cpu.xml
     
     grappa_unoptimized_cpu()
+        Generates grappa_unoptimized_cpu.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized.xml
     
     grappa_unoptimized_float_cpu()
+        Generates grappa_unoptimized_float_cpu.xml.
+        
+        See:
+            https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized_float.xml
 
 
 ```
@@ -777,23 +882,28 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.gadgetron_config
+    mr_utils.gadgetron.gadgetron_config - Programmatically generate local configurations for Gadgetron.
 
 DESCRIPTION
-    ## IDEA: programmatically generate local configurations so reconstruction
-    # pipelines can be created in the script, modified conditionally, etc...
+    Reconstruction pipelines can be created in the script, modified conditionally,
+    etc...  Example config generation can be found in mr_utils.configs.
 
 CLASSES
     builtins.object
         GadgetronConfig
     
     class GadgetronConfig(builtins.object)
+     |  Holds config tree for Gadgetron reconstruction.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)
      |      Initialize self.  See help(type(self)) for accurate signature.
      |  
-     |  add_gadget(self, name, classname=None, dll=None, props=[])
+     |  add_gadget(self, name, classname=None, dll=None, props=None)
+     |      Add gadget to config.
+     |      
+     |      Looks like:
      |      <gadget>
      |        <name>Acc</name>
      |        <dll>gadgetroncore</dll>
@@ -801,6 +911,9 @@ CLASSES
      |      </gadget>
      |  
      |  add_reader(self, slot, classname, dll='gadgetron_mricore')
+     |      Add a reader component.
+     |      
+     |      Looks like:
      |      <reader>
      |        <slot>1008</slot>
      |        <dll>gadgetroncore</dll>
@@ -808,6 +921,9 @@ CLASSES
      |      </reader>
      |  
      |  add_writer(self, slot, classname, dll='gadgetron_mricore')
+     |      Add writer component.
+     |      
+     |      Looks like:
      |      <writer>
      |        <slot>1004</slot>
      |        <dll>gadgetroncore</dll>
@@ -815,14 +931,19 @@ CLASSES
      |      </writer>
      |  
      |  get_stream_config(self)
+     |      Get XML header information for Gadgetron config.
+     |      
+     |      Looks like:
      |      <gadgetronStreamConfiguration
      |        xsi:schemaLocation="http://gadgetron.sf.net/gadgetron gadgetron.xsd"
      |        xmlns="http://gadgetron.sf.net/gadgetron"
      |        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
      |  
      |  print(self)
+     |      Print xml string of config to console.
      |  
      |  tostring(self)
+     |      Return xml string of GadgetronConfig.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
@@ -1082,12 +1203,29 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.load_data.mat
+    mr_utils.load_data.mat - Load data from MATLAB file type.
+
+DESCRIPTION
+    Uses scipy.io.loadmat to load recent versions of .MAT files.  Version 7.3 is
+    supported.  It'll try to make some intelligent guesses if it runs into
+    trouble, meaning, 'it will die trying!'.  If you don't like that philosophy,
+    go ahead and use scipy.io.loadmat directly.
 
 FUNCTIONS
     deal_with_7_3(data)
+        Clean up data structures for MATLAB 7.3.
+        
+        Version 7.3 has a structured datatype that needs to be translated as a
+        complex number.
     
     load_mat(filename, key=None)
+        Load data from .MAT file.
+        
+        filename -- path to .mat file.
+        key -- Specific key to extract.
+        
+        If key=None, all keys will be extracted.  If there is only one key, then
+        its value will be provided directly, no dictionary will be returned.
 
 
 ```
@@ -2891,7 +3029,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.matlab.client
+    mr_utils.matlab.client - Connect to network machine running MATLAB to run scripts.
+
+DESCRIPTION
+    A way to run MATLAB scripts inside python scripts.  Meant to run things until
+    I have time to port them to Python.  It's meant to match the gadgetron client.
 
 FUNCTIONS
     client_get(varnames, host=None, port=None, bufsize=None)
@@ -2904,13 +3046,13 @@ FUNCTIONS
         
         Notice that varnames should be a list of strings.
     
-    client_put(vars, host=None, port=None, bufsize=None)
+    client_put(varnames, host=None, port=None, bufsize=None)
         Put variables from python into MATLAB workspace.
         
-        vars -- Python variables to be injected into MATLAB workspace.
+        varnames -- Python variables to be injected into MATLAB workspace.
         bufsize -- Number of bytes to transmit/recieve at a time.
         
-        Notice that vars should be a dictionary: keys are the desired names of
+        Notice that varnames should be a dictionary: keys are the desired names of
         the variables in the MATLAB workspace and values are the python
         variables.
     
@@ -2921,8 +3063,19 @@ FUNCTIONS
         host -- host/ip-address of server running MATLAB.
         port -- port of host to connect to.
         bufsize -- Number of bytes to transmit/recieve at a time.
+        
+        If values are not provided (i.e., None) the values for host,port,bufsize
+        will be taken from the active profile in profiles.config.
     
     get_socket(host, port, bufsize)
+        Open a socket to the machine running MATLAB.
+        
+        host -- IP address of machine running MATLAB.
+        port -- port to connect to.
+        bufsize -- Buffer size to use for communication.
+        
+        If values are not provided (i.e., None) the values for host,port,bufsize
+        will be taken from the active profile in profiles.config.
 
 ```
 
@@ -2992,7 +3145,7 @@ CLASSES
 
 ```
 NAME
-    mr_utils.matlab.contract - # Define 'done token' for communication with MATLAB server
+    mr_utils.matlab.contract - Define communication tokens for communication with MATLAB server.
 
 ```
 
@@ -3003,7 +3156,11 @@ NAME
 
 ```
 NAME
-    mr_utils.matlab.server
+    mr_utils.matlab.server - Server to be running on network machine.
+
+DESCRIPTION
+    Must be running for client to be able to connect.  Obviously, alongside this
+    server, MATLAB should also be running.
 
 CLASSES
     builtins.object
@@ -3012,12 +3169,15 @@ CLASSES
         MyTCPHandler
     
     class MATLAB(builtins.object)
+     |  Object on server allowing server to communicate with MATLAB instance.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)
      |      Initialize self.  See help(type(self)) for accurate signature.
      |  
      |  catch_output(self, log_func=None)
+     |      Grab the output of MATLAB on the server.
      |  
      |  exit(self)
      |      Send exit command to MATLAB.
@@ -3047,7 +3207,7 @@ CLASSES
      |      list of weak references to the object (if defined)
     
     class MyTCPHandler(socketserver.StreamRequestHandler)
-     |  Define self.rfile and self.wfile for stream sockets.
+     |  Create the server, binding to localhost on port.
      |  
      |  Method resolution order:
      |      MyTCPHandler
@@ -3094,6 +3254,7 @@ CLASSES
 
 FUNCTIONS
     start_server()
+        Start the server so the client can connect.
 
 ```
 
@@ -3105,17 +3266,20 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.optimization.gd
+    mr_utils.optimization.gd - General implementation of gradient descent algorithm.
+
+DESCRIPTION
+    More of a learning exercise for myself.
 
 FUNCTIONS
-    gd(f, grad, x0, alpha=None, iter=1000000.0, tol=1e-08)
+    gd(f, grad, x0, alpha=None, maxiter=1000000.0, tol=1e-08)
         Gradient descent algorithm.
         
         f -- Function to be optimized.
         grad -- Function that computes the gradient of f.
         x0 -- Initial point to start to start descent.
         alpha -- Either a fixed step size or a function that returns step size.
-        iter -- Do not exceed this number of iterations.
+        maxiter -- Do not exceed this number of iterations.
         tol -- Run until change in norm of gradient is within this number.
 
 
@@ -3128,7 +3292,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.optimization.gradient
+    mr_utils.optimization.gradient - Numerical derivative implementations.
 
 FUNCTIONS
     cd_gen_complex_step(f, x0, h=None, v=None)
@@ -3149,6 +3313,7 @@ FUNCTIONS
             Applied Mathematics 340 (2018): 390-403.
     
     complex_step_6th_order(f, x0, h=None, v=None)
+        6th order accurate complex step difference method.
     
     fd_complex_step(f, x0, h=2.220446049250313e-16)
         Compute forward difference complex step of function f.
@@ -4929,7 +5094,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.utils.grad_tv
+    mr_utils.utils.grad_tv - Gradient of total variation term for gradient descent update.
 
 FUNCTIONS
     dTV(A, eps=1e-08)
@@ -4978,7 +5143,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.utils.orderings
+    mr_utils.utils.orderings - Methods for orderings for signals.
+
+DESCRIPTION
+    Methods return flattened indices.
+    Hopefully these orderings make the signals more sparse in some domain.
 
 FUNCTIONS
     col_stacked_order(x)
@@ -5047,13 +5216,15 @@ CLASSES
         Table
     
     class Table(builtins.object)
+     |  Table with header and columns. Nothing fancy.
+     |  
+     |  Class meant for simple column printing, e.g., printing updates for each
+     |  iteration of an iterative algorithm.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self, headings, widths, formatters=None, pad=2, symbol='#')
-     |      Table with header and columns. Nothing fancy.
-     |      
-     |      Class meant for simple column printing, e.g., printing updates for each
-     |      iteration of an iterative algorithm.
+     |      Initialize the table object.
      |      
      |      headings -- List of strings to use as headings for columns.
      |      widths -- List of widths for each column.
@@ -5194,7 +5365,19 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.view.view
+    mr_utils.view.view - A simple viewer.
+
+DESCRIPTION
+    The idea is for this to be really simple to use.  It will do a lot of
+    guessing if you don't provide it with details.  For example, if a 3D dataset
+    is provided as the image and you don't say which axes are in-plane, it will
+    guess that the largest two axis are in-plane.  If the 3rd dimension is small,
+    then it will choose to view the images as a montage, if it is large it will
+    play it as a movie.  Of course there are many options if you know what you're
+    doing (and I do, since I wrote it...).
+    
+    Fourier transforms, logarithmic scale, coil combination, averaging, and
+    converting from raw data are all supported out of the box.
 
 FUNCTIONS
     mat_keys(filename, ignore_dbl_underscored=True, no_print=False)

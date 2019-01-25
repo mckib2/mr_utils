@@ -6,7 +6,7 @@
 
 ```
 NAME
-    mr_utils.cs.convex.gd_fourier_encoded_tv
+    mr_utils.cs.convex.gd_fourier_encoded_tv - Gradient descent algorithm for Fourier encoding model and TV constraint.
 
 FUNCTIONS
     GD_FE_TV(kspace, samp, alpha=0.5, lam=0.01, do_reordering=False, im_true=None, ignore_residual=False, disp=False, maxiter=200)
@@ -37,7 +37,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.cs.convex.gd_tv
+    mr_utils.cs.convex.gd_tv - Gradient descent with built in TV and flexible encoding model.
 
 FUNCTIONS
     GD_TV(y, forward_fun, inverse_fun, alpha=0.5, lam=0.01, do_reordering=False, x=None, ignore_residual=False, disp=False, maxiter=200)
@@ -69,7 +69,13 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.cs.convex.proximal_gd
+    mr_utils.cs.convex.proximal_gd - Proximal Gradient Descent.
+
+DESCRIPTION
+    Flexible encoding model, flexible sparsity model, and flexible reordering
+    model.  This is the one I would use out of all the ones I've coded up.
+    Might be slower than the others as there's a little more checking to do each
+    iteration.
 
 FUNCTIONS
     proximal_GD(y, forward_fun, inverse_fun, sparsify, unsparsify, reorder_fun=None, mode='soft', alpha=0.5, selective=None, x=None, ignore_residual=False, disp=False, maxiter=200)
