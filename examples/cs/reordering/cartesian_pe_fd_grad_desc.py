@@ -1,4 +1,5 @@
 import numpy as np
+
 from mr_utils import view
 from mr_utils.cs import GD_TV
 from mr_utils.cs.models import UFT
@@ -13,7 +14,7 @@ if __name__ == '__main__':
     x = binary_smiley(N)
     k = np.sum(np.abs(np.diff(x)) > 0)
     np.random.seed(5)
-    samp = cartesian_pe(x.shape,undersample=.2,reflines=5)
+    samp = cartesian_pe(x.shape, undersample=.2, reflines=5)
     uft = UFT(samp)
 
     # Make the complex measurement in kspace
