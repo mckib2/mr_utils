@@ -1,7 +1,10 @@
+# Not sure if this works...
+
 import numpy as np
+
 import matplotlib.pyplot as plt
 from mr_utils.sim.traj import radial
-from mr_utils.cs import IHT,cosamp
+from mr_utils.cs import IHT, cosamp
 
 if __name__ == '__main__':
 

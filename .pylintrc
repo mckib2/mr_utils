@@ -1,0 +1,4 @@
+[MESSAGES CONTROL]
+disable=C0103,W0621
+max-args=20
+max-line-length=79

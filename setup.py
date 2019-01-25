@@ -1,3 +1,18 @@
+'''Setup.py.
+
+Installation:
+    Say you want to use this package in one of your python scripts. You can
+    install it using pip like so:
+
+        git clone https://github.com/mckib2/mr_utils
+        cd mr_utils
+        pip3 install -e ./
+
+    You'll need to manually install the ismrmrd-python-tools as it's currently
+    not available on PyPi. You can find it here:
+        https://github.com/ismrmrd/ismrmrd-python-tools.git
+'''
+
 from distutils.core import setup
 from setuptools import find_packages
 

@@ -4,26 +4,33 @@ We rely heavily on the pydoc.render_doc() method.
 '''
 
 from pkgutil import walk_packages
-import ast,importlib,pydoc,re
+import ast
+import importlib
+import pydoc
+import re
 
 if __name__ == '__main__':
     def top_level_functions(body):
-        return (f for f in body if isinstance(f, ast.FunctionDef))
+        '''Return all function names from the syntax tree.'''
+        return(f for f in body if isinstance(f, ast.FunctionDef))
 
     def top_level_objects(body):
-        return(o for o in body if isinstance(o,ast.ClassDef))
+        '''Return all class names from the syntax tree.'''
+        return(o for o in body if isinstance(o, ast.ClassDef))
 
     def parse_ast(filename):
-        with open(filename, "rt") as file:
-            return ast.parse(file.read(), filename=filename)
+        '''Open python source file and parse the syntax tree.'''
+        with open(filename, "rt") as source:
+            return ast.parse(source.read(), filename=filename)
 
 
     # Don't include setup, because it'll try to run it...
-    all_modules = [ p for p in walk_packages('.') if not p[-1] and p[1] != 'setup' and p[1] != 'mr_utils.load_data.parsetab' ]
-    docs = ''
+    all_modules = [
+        p for p in walk_packages('.') if not p[-1] and p[1] != 'setup'
+        and p[1] != 'mr_utils.load_data.parsetab']
 
     # First of all, a little orientation
-    docs += """# mr_utils
+    docs = """# mr_utils
 
 mr_utils: magnetic resonance utilities. This repo is a collection of my
 implementations of algorithms and tools for MR image reconstruction, mostly
@@ -45,7 +52,7 @@ Run examples from the root directory (same directory as setup.py) like this:
 python3 examples/cs/reordering/cartesian_pe_fd_iht.py
 ```
 
-If there's not an example, there might be some [tests](../master/mr_utils/tests). Individual tests can be run like this from the root directory (I recomment that you run tests from the home directory - imports will get messed up otherwise):
+If there's not an example, there might be some [tests](../master/mr_utils/tests). Individual tests can be run like this from the root directory (I recommend that you run tests from the home directory - imports will get messed up otherwise):
 
 ```bash
 python3 -m unittest mr_utils/tests/recon/test_gs_recon.py
@@ -85,19 +92,24 @@ You'll need to manually install the ismrmrd-python-tools as it's currently not a
         cur_module_docs += '\n## %s\n' % m[1]
 
         # Add a link to the module directory
-        cur_module_docs += '\n[Source](https://github.com/mckib2/mr_utils/blob/master/%s.py)\n\n' % '/'.join(m[1].split('.'))
+        cur_module_docs += (
+            '\n[Source]'
+            '(https://github.com/mckib2/mr_utils/blob/master/%s.py)\n\n'
+            '' % '/'.join(m[1].split('.')))
 
         # Import the module so we can call help on it
         mod = importlib.import_module(m[1])
-        strhelp = pydoc.render_doc(mod,renderer=pydoc.plaintext)
+        strhelp = pydoc.render_doc(  # pylint: disable=E1123
+            mod, renderer=pydoc.plaintext)  # pylint: disable=E1101
 
         # Remove the first line (says autodoc, blah, blah, blah)
         ii = strhelp.index('\n')
         cur_module_docs += "```\n" + strhelp[ii+1:].lstrip() + "\n```\n\n"
 
         # Scrub string of all local file paths
-        cur_module_docs = re.sub(r'\s+FILE\s+(/\w+)+\.py','',cur_module_docs)
-        cur_module_docs = re.sub(r"\s+DATA(\s+.+ = .+\n)+",'',cur_module_docs)
+        cur_module_docs = re.sub(r'\s+FILE\s+(/\w+)+\.py', '', cur_module_docs)
+        cur_module_docs = re.sub(r"\s+DATA(\s+.+ = .+\n)+", '',
+                                 cur_module_docs)
 
         # Write the current module's doc out to the current module
         if m[0].path in readmes_already_seen:
@@ -105,7 +117,7 @@ You'll need to manually install the ismrmrd-python-tools as it's currently not a
         else:
             readmes_already_seen[m[0].path] = None
             mode = 'w'
-        with open(m[0].path + '/readme.md',mode) as f:
+        with open(m[0].path + '/readme.md', mode) as f:
             f.write(cur_module_docs)
 
         # Add the current module's doc to the full doc
@@ -113,5 +125,5 @@ You'll need to manually install the ismrmrd-python-tools as it's currently not a
         cur_module_docs = ''
 
     # Write it out!
-    with open('README.md','w') as f:
+    with open('README.md', 'w') as f:
         f.write(docs)
