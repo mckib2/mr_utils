@@ -108,7 +108,8 @@ You'll need to manually install the ismrmrd-python-tools as it's currently not a
 
         # Scrub string of all local file paths
         cur_module_docs = re.sub(r'\s+FILE\s+(/\w+)+\.py', '', cur_module_docs)
-        cur_module_docs = re.sub(r"\s+DATA(\s+.+ = .+\n)+", '', cur_module_docs)
+        cur_module_docs = re.sub(r"\s+DATA(\s+.+ = .+\n)+", '',
+                                 cur_module_docs)
 
         # Write the current module's doc out to the current module
         if m[0].path in readmes_already_seen:
