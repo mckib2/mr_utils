@@ -41,7 +41,8 @@ setup(
         "paramiko>=2.4.2",
         "ismrmrd>=1.4.0",
         "xmltodict>=0.11.0",
-        "nibabel>=2.3.1"
+        "nibabel>=2.3.1",
+        "PyWavelets>=1.0.1"
     ],
     python_requires='>=3.5',
 )
