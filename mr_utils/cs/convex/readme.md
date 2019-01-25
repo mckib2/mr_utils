@@ -62,3 +62,41 @@ FUNCTIONS
 
 ```
 
+
+## mr_utils.cs.convex.proximal_gd
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/convex/proximal_gd.py)
+
+```
+NAME
+    mr_utils.cs.convex.proximal_gd
+
+FUNCTIONS
+    proximal_GD(y, forward_fun, inverse_fun, sparsify, unsparsify, reorder_fun=None, mode='soft', alpha=0.5, selective=None, x=None, ignore_residual=False, disp=False, maxiter=200)
+        Proximal gradient descent for a generic encoding, sparsity models.
+        
+        y -- Measured data (i.e., y = Ax).
+        forward_fun -- A, the forward transformation function.
+        inverse_fun -- A^H, the inverse transformation function.
+        sparsify -- Sparsifying transform.
+        unsparsify -- Inverse sparsifying transform.
+        reorder_fun --
+        unreorder_fun --
+        mode -- Thresholding mode: {'soft','hard','garotte','greater','less'}.
+        alpha -- Step size, used for thresholding.
+        selective -- Function returning indicies of update to keep at each iter.
+        x -- The true image we are trying to reconstruct.
+        ignore_residual -- Whether or not to break out of loop if resid increases.
+        disp -- Whether or not to display iteration info.
+        maxiter -- Maximum number of iterations.
+        
+        Solves the problem:
+            min_x || y - Ax ||^2_2  + lam*TV(x)
+        
+        If x=None, then MSE will not be calculated. You probably want mode='soft'.
+        For the other options, see docs for pywt.threshold.  selective=None will
+        not throw away any updates.
+
+
+```
+

@@ -1,5 +1,74 @@
 
 # UTILS
+## mr_utils.utils.cdf
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf.py)
+
+```
+NAME
+    mr_utils.utils.cdf - ## NOT WORKING
+
+FUNCTIONS
+    waveletcdf97(X, Level)
+        WAVELETCDF97  Cohen-Daubechies-Feauveau 9/7 wavelet transform.
+        
+          Y = WAVELETCDF97(X, L) decomposes X with L stages of the
+          Cohen-Daubechies-Feauveau (CDF) 9/7 wavelet.  For the
+          inverse transform, WAVELETCDF97(X, -L) inverts L stages.
+          Filter boundary handling is half-sample symmetric.
+        
+          X may be of any size; it need not have size divisible by 2^L.
+          For example, if X has length 9, one stage of decomposition
+          produces a lowpass subband of length 5 and a highpass subband
+          of length 4.  Transforms of any length have perfect
+          reconstruction (exact inversion).
+        
+          If X is a matrix, WAVELETCDF97 performs a (tensor) 2D wavelet
+          transform.  If X has three dimensions, the 2D transform is
+          applied along the first two dimensions.
+        
+          Example:
+          Y = waveletcdf97(X, 5);    % Transform image X using 5 stages
+          R = waveletcdf97(Y, -5);   % Reconstruct from Y
+        
+        Pascal Getreuer 2004-2006
+
+
+```
+
+
+## mr_utils.utils.cdf97
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf97.py)
+
+```
+NAME
+    mr_utils.utils.cdf97 - ## NOT WORKING!
+
+FUNCTIONS
+    fwt97(s, width, height)
+        Forward Cohen-Daubechies-Feauveau 9 tap / 7 tap wavelet transform
+        performed on all columns of the 2D n*n matrix signal s via lifting.
+        The returned result is s, the modified input matrix.
+        The highpass and lowpass results are stored on the left half and right
+        half of s respectively, after the matrix is transposed.
+    
+    fwt97_2d(m, nlevels=1)
+        Perform the CDF 9/7 transform on a 2D matrix signal m.
+        nlevel is the desired number of times to recursively transform the
+        signal.
+    
+    iwt97(s, width, height)
+        Inverse CDF 9/7.
+    
+    iwt97_2d(m, nlevels=1)
+        Inverse CDF 9/7 transform on a 2D matrix signal m.
+        nlevels must be the same as the nlevels used to perform the fwt.
+
+
+```
+
+
 ## mr_utils.utils.find_nearest
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
@@ -84,10 +153,20 @@ FUNCTIONS
         
         Note that you might want to provide abs(x) if x is a complex array.
     
+    colwise(x)
+        Find ordering of monotonically varying columns.
+        
+        x -- Array to find ordering of.
+    
     inverse_permutation(ordering)
         Given some permutation, find the inverse permutation.
         
         ordering -- Flattened indicies, such as output of np.argsort.
+    
+    rowwise(x)
+        Find ordering of monotonically varying rows.
+        
+        x -- Array to find ordering of.
 
 
 ```

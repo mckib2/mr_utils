@@ -1,3 +1,9 @@
+'''Gradient descent reconstruction of undersampled binary smiley face.
+
+Smiley face is known to be sparse in finite differences domain (hence 'fd' in
+filename).  Cartesian undersampling in the phase encode direction.
+'''
+
 import numpy as np
 
 from mr_utils import view
@@ -22,7 +28,17 @@ if __name__ == '__main__':
     y = uft.forward_ortho(x)
 
     # Solve inverse problem using gradient descent with TV sparsity constraint
-    x_hat = GD_TV(y,forward_fun=uft.forward_ortho,inverse_fun=uft.inverse_ortho,alpha=.5,lam=.022,do_reordering=do_reordering,x=x,ignore_residual=True,disp=True,maxiter=50)
+    x_hat = GD_TV(
+        y,
+        forward_fun=uft.forward_ortho,
+        inverse_fun=uft.inverse_ortho,
+        alpha=.5,
+        lam=.022,
+        do_reordering=do_reordering,
+        x=x,
+        ignore_residual=True,
+        disp=True,
+        maxiter=50)
 
     # Look at the before/after shots
-    view(np.stack((uft.inverse_ortho(y),x_hat)))
+    view(np.stack((uft.inverse_ortho(y), x_hat)))
