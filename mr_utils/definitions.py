@@ -1,3 +1,5 @@
+'''Provide definitions of paths for root andapplications if they exist.'''
+
 import os
 from distutils.spawn import find_executable
 
