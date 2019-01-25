@@ -290,6 +290,44 @@ FUNCTIONS
 ```
 
 
+## mr_utils.cs.convex.proximal_gd
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/convex/proximal_gd.py)
+
+```
+NAME
+    mr_utils.cs.convex.proximal_gd
+
+FUNCTIONS
+    proximal_GD(y, forward_fun, inverse_fun, sparsify, unsparsify, reorder_fun=None, mode='soft', alpha=0.5, selective=None, x=None, ignore_residual=False, disp=False, maxiter=200)
+        Proximal gradient descent for a generic encoding, sparsity models.
+        
+        y -- Measured data (i.e., y = Ax).
+        forward_fun -- A, the forward transformation function.
+        inverse_fun -- A^H, the inverse transformation function.
+        sparsify -- Sparsifying transform.
+        unsparsify -- Inverse sparsifying transform.
+        reorder_fun --
+        unreorder_fun --
+        mode -- Thresholding mode: {'soft','hard','garotte','greater','less'}.
+        alpha -- Step size, used for thresholding.
+        selective -- Function returning indicies of update to keep at each iter.
+        x -- The true image we are trying to reconstruct.
+        ignore_residual -- Whether or not to break out of loop if resid increases.
+        disp -- Whether or not to display iteration info.
+        maxiter -- Maximum number of iterations.
+        
+        Solves the problem:
+            min_x || y - Ax ||^2_2  + lam*TV(x)
+        
+        If x=None, then MSE will not be calculated. You probably want mode='soft'.
+        For the other options, see docs for pywt.threshold.  selective=None will
+        not throw away any updates.
+
+
+```
+
+
 ## mr_utils.cs.greedy.cosamp
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/greedy/cosamp.py)
@@ -409,7 +447,7 @@ FUNCTIONS
         y -- Measurements, i.e., y = Ax.
         forward_fun -- A, the forward transformation function.
         inverse_fun -- A^H, the inverse transformation function.
-        sigmaType --
+        sigmaType -- Method for determining threshold.
         randshift -- Whether or not to randomly circular shift every iteration.
         tol -- Stop when stopping criteria meets this threshold.
         x -- The true image we are trying to reconstruct.
@@ -418,7 +456,7 @@ FUNCTIONS
         maxiter -- Maximum number of iterations.
         
         Solves the problem:
-            min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon
+            min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon^2
         
         If x=None, then MSE will not be calculated.
         
@@ -3311,6 +3349,146 @@ FUNCTIONS
 ```
 
 
+## mr_utils.recon.reordering.bart
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/bart.py)
+
+```
+NAME
+    mr_utils.recon.reordering.bart
+
+```
+
+
+## mr_utils.recon.reordering.lcurve
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/lcurve.py)
+
+```
+NAME
+    mr_utils.recon.reordering.lcurve
+
+FUNCTIONS
+    lcurve(norm0, norm1)
+
+
+```
+
+
+## mr_utils.recon.reordering.patch_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/patch_reordering.py)
+
+```
+NAME
+    mr_utils.recon.reordering.patch_reordering
+
+FUNCTIONS
+    get_patches(imspace, patch_size)
+
+
+```
+
+
+## mr_utils.recon.reordering.rudin_osher_fatemi
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/rudin_osher_fatemi.py)
+
+```
+NAME
+    mr_utils.recon.reordering.rudin_osher_fatemi
+
+FUNCTIONS
+    check_stability(dt, h, c=300000000.0)
+        Check stepsize restriction, imposed for for stability.
+    
+    getbounds(ii, jj, u0)
+    
+    minmod(a, b)
+        Flux limiter to make FD solutions total variation diminishing.
+    
+    update_all_for_loop(u0, dt, h, sigma, niters)
+
+
+```
+
+
+## mr_utils.recon.reordering.scr_reordering_adluru
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/scr_reordering_adluru.py)
+
+```
+NAME
+    mr_utils.recon.reordering.scr_reordering_adluru
+
+FUNCTIONS
+    TVG(out_img, beta_sqrd)
+    
+    TVG_re_order(out_img, beta_sqrd, sort_order_real_x, sort_order_real_y)
+    
+    intshft(m, sh)
+        Shift image m by coordinates specified by sh
+    
+    scr_reordering_adluru(kspace, mask, prior=None, alpha0=1, alpha1=0.002, beta2=1e-08, reorder=True, reorder_every_iter=False, enforce_consistency=False, niters=5000)
+        Reconstruct undersampled data with spatial TV constraint and reordering.
+        
+        kspace -- Undersampled k-space data
+        mask -- Undersampling mask
+        prior -- Prior image estimate, what to base reordering on
+        alpha0 -- Weight of the fidelity term in cost function
+        alpha1 -- Weight of the TV term, regularization parameter
+        beta2 -- beta squared, small constant to keep sqrt defined
+        reorder -- Whether or not to reorder data
+        reorder_every_iter -- Reorder each iteration based on current estimate
+        enforce_consistency -- Fill in known values of kspace each iteration
+        niters -- Number of iterations
+        
+        Ref: G.Adluru, E.V.R. DiBella. "Reordering for improved constrained
+        reconstruction from undersampled k-space data". International Journal of
+        Biomedical Imaging vol. 2008, Article ID 341684, 12 pages, 2008.
+        doi:10.1155/2008/341684.
+    
+    sort_real_imag_parts_space(full_data_recon_complex)
+        Determines the sort order for real and imag components.
+    
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+
+
+```
+
+
+## mr_utils.recon.reordering.tsp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/tsp.py)
+
+```
+NAME
+    mr_utils.recon.reordering.tsp
+
+FUNCTIONS
+    create_distance_callback(dist_matrix)
+        # Distance callback
+    
+    generate_orderings(im=None)
+    
+    get_dist_matrix()
+    
+    get_slice(lpf=True, lpf_factor=6)
+    
+    get_time_series(im, x=100, y=100, real_part=True, patch=False, patch_pad=(1, 1))
+    
+    normalize_time_series(time_series0)
+    
+    ortools_tsp_solver()
+
+
+```
+
+
 ## mr_utils.recon.ssfp.dixon
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/dixon.py)
@@ -4657,6 +4835,75 @@ CLASSES
 
 
 # UTILS
+## mr_utils.utils.cdf
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf.py)
+
+```
+NAME
+    mr_utils.utils.cdf - ## NOT WORKING
+
+FUNCTIONS
+    waveletcdf97(X, Level)
+        WAVELETCDF97  Cohen-Daubechies-Feauveau 9/7 wavelet transform.
+        
+          Y = WAVELETCDF97(X, L) decomposes X with L stages of the
+          Cohen-Daubechies-Feauveau (CDF) 9/7 wavelet.  For the
+          inverse transform, WAVELETCDF97(X, -L) inverts L stages.
+          Filter boundary handling is half-sample symmetric.
+        
+          X may be of any size; it need not have size divisible by 2^L.
+          For example, if X has length 9, one stage of decomposition
+          produces a lowpass subband of length 5 and a highpass subband
+          of length 4.  Transforms of any length have perfect
+          reconstruction (exact inversion).
+        
+          If X is a matrix, WAVELETCDF97 performs a (tensor) 2D wavelet
+          transform.  If X has three dimensions, the 2D transform is
+          applied along the first two dimensions.
+        
+          Example:
+          Y = waveletcdf97(X, 5);    % Transform image X using 5 stages
+          R = waveletcdf97(Y, -5);   % Reconstruct from Y
+        
+        Pascal Getreuer 2004-2006
+
+
+```
+
+
+## mr_utils.utils.cdf97
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/cdf97.py)
+
+```
+NAME
+    mr_utils.utils.cdf97 - ## NOT WORKING!
+
+FUNCTIONS
+    fwt97(s, width, height)
+        Forward Cohen-Daubechies-Feauveau 9 tap / 7 tap wavelet transform
+        performed on all columns of the 2D n*n matrix signal s via lifting.
+        The returned result is s, the modified input matrix.
+        The highpass and lowpass results are stored on the left half and right
+        half of s respectively, after the matrix is transposed.
+    
+    fwt97_2d(m, nlevels=1)
+        Perform the CDF 9/7 transform on a 2D matrix signal m.
+        nlevel is the desired number of times to recursively transform the
+        signal.
+    
+    iwt97(s, width, height)
+        Inverse CDF 9/7.
+    
+    iwt97_2d(m, nlevels=1)
+        Inverse CDF 9/7 transform on a 2D matrix signal m.
+        nlevels must be the same as the nlevels used to perform the fwt.
+
+
+```
+
+
 ## mr_utils.utils.find_nearest
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
@@ -4741,10 +4988,20 @@ FUNCTIONS
         
         Note that you might want to provide abs(x) if x is a complex array.
     
+    colwise(x)
+        Find ordering of monotonically varying columns.
+        
+        x -- Array to find ordering of.
+    
     inverse_permutation(ordering)
         Given some permutation, find the inverse permutation.
         
         ordering -- Flattened indicies, such as output of np.argsort.
+    
+    rowwise(x)
+        Find ordering of monotonically varying rows.
+        
+        x -- Array to find ordering of.
 
 
 ```

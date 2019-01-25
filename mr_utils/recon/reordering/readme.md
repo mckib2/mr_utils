@@ -111,30 +111,6 @@ FUNCTIONS
 ```
 
 
-## mr_utils.recon.reordering.sort2d
-
-[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/sort2d.py)
-
-```
-NAME
-    mr_utils.recon.reordering.sort2d
-
-FUNCTIONS
-    sort2d(A)
-    
-    sort2d_loop(A)
-        An efficient selection sorting algorithm for two-dimensional arrays.
-        
-        Implementation of algorithm from:
-            Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
-            algorithm for two-dimensional arrays. In Genetic and Evolutionary
-            Computing (ICGEC), 2010 Fourth International Conference on
-            (pp. 853-855). IEEE.
-
-
-```
-
-
 ## mr_utils.recon.reordering.tsp
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/reordering/tsp.py)
