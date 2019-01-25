@@ -20,7 +20,7 @@ Run examples from the root directory (same directory as setup.py) like this:
 python3 examples/cs/reordering/cartesian_pe_fd_iht.py
 ```
 
-If there's not an example, there might be some [tests](../master/mr_utils/tests). Individual tests can be run like this from the root directory (I recomment that you run tests from the home directory - imports will get messed up otherwise):
+If there's not an example, there might be some [tests](../master/mr_utils/tests). Individual tests can be run like this from the root directory (I recommend that you run tests from the home directory - imports will get messed up otherwise):
 
 ```bash
 python3 -m unittest mr_utils/tests/recon/test_gs_recon.py
