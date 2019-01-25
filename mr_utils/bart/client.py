@@ -1,8 +1,33 @@
-import paramiko
-from mr_utils.config import ProfileConfig
-from tempfile import NamedTemporaryFile
+'''Connect to BART over a network.
 
-def client(num_out,cmd,files,host=None,username=None,password=None,root_dir=None):
+I do not believe this is working currently!
+
+Uses paramiko to connect to a network machine (could be your own machine),
+opens an instance of BART and returns the result.
+'''
+
+import paramiko
+
+from mr_utils.config import ProfileConfig
+
+def client(
+        num_out,
+        cmd,
+        files,
+        host=None,
+        username=None,
+        password=None,
+        root_dir=None):
+    '''BART client.
+
+    num_out -- Number of expected variables returned.
+    cmd -- BART command to be run.
+    files -- Any files to be provided to BART.
+    host -- IP address of machine we want to connect to.
+    username -- username to sign in with.
+    password -- password to use for sign in (will be plain-text!)
+    root_dir --
+    '''
 
     # Grab credentials
     profile = ProfileConfig()
@@ -15,24 +40,19 @@ def client(num_out,cmd,files,host=None,username=None,password=None,root_dir=None
     if root_dir is None:
         root_dir = profile.get_config_val('bart.root_dir')
 
-
-    # print(cmd)
-
+    # Connect to host
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_client.connect(hostname=host,username=username,password=password)
+    ssh_client.connect(hostname=host, username=username, password=password)
 
-    # tmp_files = []
-    # for file in files:
-    #     tmp_files.append(NamedTemporaryFile().name)
-
-    # stdin,stdout,stderr = ssh_client.exec_command('%s/bart %s' % (root_dir,cmd))
-    # print("python3 -c 'import sys; sys.path.insert(0,\"%s/python\"); from bart import bart; bart(%d,\"%s\")' " % (root_dir,num_out,cmd))
-    stdin,stdout,stderr = ssh_client.exec_command("python3 -c 'import sys; sys.path.insert(0,\"%s/python\"); from bart import bart; import numpy as np; print(bart)' " % (root_dir))
+    # Send the command
+    stdin, stdout, stderr = ssh_client.exec_command((
+        "python3 -c 'import sys; sys.path.insert(0,\"%s/python\");"
+        "from bart import bart; import numpy as np;"
+        "print(bart)' " % (root_dir)))
     print(stdout.readlines())
-    # print(stderr.readlines())
     ssh_client.close()
 
 if __name__ == '__main__':
 
-    client(1,'traj -x 512 -y 64',None)
+    client(1, 'traj -x 512 -y 64', None)
