@@ -94,7 +94,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.utils.grad_tv
+    mr_utils.utils.grad_tv - Gradient of total variation term for gradient descent update.
 
 FUNCTIONS
     dTV(A, eps=1e-08)
@@ -143,7 +143,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.utils.orderings
+    mr_utils.utils.orderings - Methods for orderings for signals.
+
+DESCRIPTION
+    Methods return flattened indices.
+    Hopefully these orderings make the signals more sparse in some domain.
 
 FUNCTIONS
     col_stacked_order(x)
@@ -212,13 +216,15 @@ CLASSES
         Table
     
     class Table(builtins.object)
+     |  Table with header and columns. Nothing fancy.
+     |  
+     |  Class meant for simple column printing, e.g., printing updates for each
+     |  iteration of an iterative algorithm.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self, headings, widths, formatters=None, pad=2, symbol='#')
-     |      Table with header and columns. Nothing fancy.
-     |      
-     |      Class meant for simple column printing, e.g., printing updates for each
-     |      iteration of an iterative algorithm.
+     |      Initialize the table object.
      |      
      |      headings -- List of strings to use as headings for columns.
      |      widths -- List of widths for each column.

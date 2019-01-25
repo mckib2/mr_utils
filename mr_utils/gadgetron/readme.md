@@ -6,14 +6,14 @@
 
 ```
 NAME
-    mr_utils.gadgetron.client
+    mr_utils.gadgetron.client - Gadgetron client for running on network machines.
 
 DESCRIPTION
-    ## Adapted from https://github.com/gadgetron/gadgetron-python-ismrmrd-client.git
-    # Keeps same command line interface, but allows for import into scripts.
+    Adapted from https://github.com/gadgetron/gadgetron-python-ismrmrd-client.git
+    Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, loops=1, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -26,7 +26,6 @@ FUNCTIONS
         out_group -- Output group name if file is written.
         config -- Remote configuration file.
         config_local -- Local configuration file.
-        loops -- Number of loops.
         verbose -- Verbose mode.
         
         out_group=None will use the current date as the group name.
@@ -40,23 +39,28 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gadgetron.gadgetron_config
+    mr_utils.gadgetron.gadgetron_config - Programmatically generate local configurations for Gadgetron.
 
 DESCRIPTION
-    ## IDEA: programmatically generate local configurations so reconstruction
-    # pipelines can be created in the script, modified conditionally, etc...
+    Reconstruction pipelines can be created in the script, modified conditionally,
+    etc...  Example config generation can be found in mr_utils.configs.
 
 CLASSES
     builtins.object
         GadgetronConfig
     
     class GadgetronConfig(builtins.object)
+     |  Holds config tree for Gadgetron reconstruction.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)
      |      Initialize self.  See help(type(self)) for accurate signature.
      |  
-     |  add_gadget(self, name, classname=None, dll=None, props=[])
+     |  add_gadget(self, name, classname=None, dll=None, props=None)
+     |      Add gadget to config.
+     |      
+     |      Looks like:
      |      <gadget>
      |        <name>Acc</name>
      |        <dll>gadgetroncore</dll>
@@ -64,6 +68,9 @@ CLASSES
      |      </gadget>
      |  
      |  add_reader(self, slot, classname, dll='gadgetron_mricore')
+     |      Add a reader component.
+     |      
+     |      Looks like:
      |      <reader>
      |        <slot>1008</slot>
      |        <dll>gadgetroncore</dll>
@@ -71,6 +78,9 @@ CLASSES
      |      </reader>
      |  
      |  add_writer(self, slot, classname, dll='gadgetron_mricore')
+     |      Add writer component.
+     |      
+     |      Looks like:
      |      <writer>
      |        <slot>1004</slot>
      |        <dll>gadgetroncore</dll>
@@ -78,14 +88,19 @@ CLASSES
      |      </writer>
      |  
      |  get_stream_config(self)
+     |      Get XML header information for Gadgetron config.
+     |      
+     |      Looks like:
      |      <gadgetronStreamConfiguration
      |        xsi:schemaLocation="http://gadgetron.sf.net/gadgetron gadgetron.xsd"
      |        xmlns="http://gadgetron.sf.net/gadgetron"
      |        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
      |  
      |  print(self)
+     |      Print xml string of config to console.
      |  
      |  tostring(self)
+     |      Return xml string of GadgetronConfig.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
