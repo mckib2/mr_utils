@@ -1,18 +1,18 @@
+'''Numerical derivative implementations.'''
+
 import numpy as np
 
-
-def fd_complex_step(f,x0,h=np.finfo(float).eps):
-    '''Compute forward difference complex step of function f.
-    '''
+def fd_complex_step(f, x0, h=np.finfo(float).eps):
+    '''Compute forward difference complex step of function f.'''
 
     g = np.zeros(x0.shape)
     for ii in range(x0.size):
-        xp = np.zeros(x0.shape,dtype='complex')
+        xp = np.zeros(x0.shape, dtype='complex')
         xp[ii] = 1j*h
         g[ii] = np.imag(f(x0 + xp))/h
-    return(g)
+    return g
 
-def fd_gen_complex_step(f,x0,h=0,v=np.finfo(float).eps):
+def fd_gen_complex_step(f, x0, h=0, v=np.finfo(float).eps):
     '''Compute generalized forward difference complex step derivative of f.
 
     f -- Function to compute derivative of at x0.
@@ -28,12 +28,12 @@ def fd_gen_complex_step(f,x0,h=0,v=np.finfo(float).eps):
 
     g = np.zeros(x0.shape)
     for ii in range(x0.size):
-        xp = np.zeros(x0.shape,dtype='complex')
+        xp = np.zeros(x0.shape, dtype='complex')
         xp[ii] = h + 1j*v
         g[ii] = np.imag(f(x0 + xp))/v
-    return(g)
+    return g
 
-def cd_gen_complex_step(f,x0,h=None,v=None):
+def cd_gen_complex_step(f, x0, h=None, v=None):
     '''Compute generalized central difference complex step derivative of f.
 
     f -- Function to compute derivative of at x0.
@@ -59,20 +59,21 @@ def cd_gen_complex_step(f,x0,h=None,v=None):
 
     # Precompute constants
     xpf0 = h + 1j*v
-    xpb0 = -h + 1j*v
+    xpb0 = -1*h + 1j*v
     den = 2*v
 
     g = np.zeros(x0.shape)
     for ii in range(x0.size):
-        xpf = np.zeros(x0.shape,dtype='complex')
+        xpf = np.zeros(x0.shape, dtype='complex')
         xpb = xpf.copy()
         xpf[ii] = xpf0
         xpb[ii] = xpb0
 
         g[ii] = (np.imag(f(x0 + xpf)) + np.imag(f(x0 + xpb)))/den
-    return(g)
+    return g
 
-def complex_step_6th_order(f,x0,h=None,v=None):
+def complex_step_6th_order(f, x0, h=None, v=None):
+    '''6th order accurate complex step difference method.'''
 
     # Choose u,v to get 6th order error: 5*h**2 - 7*v**2 = 0
     if h is None and v is None:
@@ -83,21 +84,22 @@ def complex_step_6th_order(f,x0,h=None,v=None):
     # Precompute constants
     xp0 = 1j*v
     xpf0 = h + 1j*v
-    xpb0 = -h + 1j*v
+    xpb0 = -1*h + 1j*v
     c0 = (3*h**2 - v**2)/(3*h**2*v)
     c1 = v/(6*h**2)
 
     g = np.zeros(x0.shape)
     for ii in range(x0.size):
-        xp = np.zeros(x0.shape,dtype='complex')
+        xp = np.zeros(x0.shape, dtype='complex')
         xpf = xp.copy()
         xpb = xp.copy()
         xp[ii] = xp0
         xpf[ii] = xpf0
         xpb[ii] = xpb0
 
-        g[ii] = c0*np.imag(f(x0 + xp)) + c1*(np.imag(f(x0 + xpf)) + np.imag(f(x0 + xpb)))
-    return(g)
+        g[ii] = c0*np.imag(f(x0 + xp)) + c1*(np.imag(f(x0 + xpf)) \
+            + np.imag(f(x0 + xpb)))
+    return g
 
 if __name__ == '__main__':
     pass

@@ -6,17 +6,20 @@
 
 ```
 NAME
-    mr_utils.optimization.gd
+    mr_utils.optimization.gd - General implementation of gradient descent algorithm.
+
+DESCRIPTION
+    More of a learning exercise for myself.
 
 FUNCTIONS
-    gd(f, grad, x0, alpha=None, iter=1000000.0, tol=1e-08)
+    gd(f, grad, x0, alpha=None, maxiter=1000000.0, tol=1e-08)
         Gradient descent algorithm.
         
         f -- Function to be optimized.
         grad -- Function that computes the gradient of f.
         x0 -- Initial point to start to start descent.
         alpha -- Either a fixed step size or a function that returns step size.
-        iter -- Do not exceed this number of iterations.
+        maxiter -- Do not exceed this number of iterations.
         tol -- Run until change in norm of gradient is within this number.
 
 
@@ -29,7 +32,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.optimization.gradient
+    mr_utils.optimization.gradient - Numerical derivative implementations.
 
 FUNCTIONS
     cd_gen_complex_step(f, x0, h=None, v=None)
@@ -50,6 +53,7 @@ FUNCTIONS
             Applied Mathematics 340 (2018): 390-403.
     
     complex_step_6th_order(f, x0, h=None, v=None)
+        6th order accurate complex step difference method.
     
     fd_complex_step(f, x0, h=2.220446049250313e-16)
         Compute forward difference complex step of function f.

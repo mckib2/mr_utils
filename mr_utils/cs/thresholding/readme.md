@@ -5,7 +5,16 @@
 
 ```
 NAME
-    mr_utils.cs.thresholding.amp
+    mr_utils.cs.thresholding.amp - 2D implementation of Approximate message passing algorithms.
+
+DESCRIPTION
+    See docstring of amp2d for reference implementation details.  It's companion
+    is LCAMP.  What's interesting is that they circular shift in the transform
+    domain.  I'm not sure why they do that, but empirically it seems to work!
+    
+    The wavelet transform is about what they are using.  I'm trying to keep the
+    implementation as simple as possible, so I used a built in transform from
+    PyWavelets that is close, but I'm not sure why it doesn't match up completely.
 
 FUNCTIONS
     amp2d(y, forward_fun, inverse_fun, sigmaType=2, randshift=False, tol=1e-08, x=None, ignore_residual=False, disp=False, maxiter=100)
@@ -14,7 +23,7 @@ FUNCTIONS
         y -- Measurements, i.e., y = Ax.
         forward_fun -- A, the forward transformation function.
         inverse_fun -- A^H, the inverse transformation function.
-        sigmaType --
+        sigmaType -- Method for determining threshold.
         randshift -- Whether or not to randomly circular shift every iteration.
         tol -- Stop when stopping criteria meets this threshold.
         x -- The true image we are trying to reconstruct.
@@ -23,7 +32,7 @@ FUNCTIONS
         maxiter -- Maximum number of iterations.
         
         Solves the problem:
-            min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon
+            min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon^2
         
         If x=None, then MSE will not be calculated.
         

@@ -6,7 +6,11 @@
 
 ```
 NAME
-    mr_utils.matlab.client
+    mr_utils.matlab.client - Connect to network machine running MATLAB to run scripts.
+
+DESCRIPTION
+    A way to run MATLAB scripts inside python scripts.  Meant to run things until
+    I have time to port them to Python.  It's meant to match the gadgetron client.
 
 FUNCTIONS
     client_get(varnames, host=None, port=None, bufsize=None)
@@ -19,13 +23,13 @@ FUNCTIONS
         
         Notice that varnames should be a list of strings.
     
-    client_put(vars, host=None, port=None, bufsize=None)
+    client_put(varnames, host=None, port=None, bufsize=None)
         Put variables from python into MATLAB workspace.
         
-        vars -- Python variables to be injected into MATLAB workspace.
+        varnames -- Python variables to be injected into MATLAB workspace.
         bufsize -- Number of bytes to transmit/recieve at a time.
         
-        Notice that vars should be a dictionary: keys are the desired names of
+        Notice that varnames should be a dictionary: keys are the desired names of
         the variables in the MATLAB workspace and values are the python
         variables.
     
@@ -36,8 +40,19 @@ FUNCTIONS
         host -- host/ip-address of server running MATLAB.
         port -- port of host to connect to.
         bufsize -- Number of bytes to transmit/recieve at a time.
+        
+        If values are not provided (i.e., None) the values for host,port,bufsize
+        will be taken from the active profile in profiles.config.
     
     get_socket(host, port, bufsize)
+        Open a socket to the machine running MATLAB.
+        
+        host -- IP address of machine running MATLAB.
+        port -- port to connect to.
+        bufsize -- Buffer size to use for communication.
+        
+        If values are not provided (i.e., None) the values for host,port,bufsize
+        will be taken from the active profile in profiles.config.
 
 ```
 
@@ -107,7 +122,7 @@ CLASSES
 
 ```
 NAME
-    mr_utils.matlab.contract - # Define 'done token' for communication with MATLAB server
+    mr_utils.matlab.contract - Define communication tokens for communication with MATLAB server.
 
 ```
 
@@ -118,7 +133,11 @@ NAME
 
 ```
 NAME
-    mr_utils.matlab.server
+    mr_utils.matlab.server - Server to be running on network machine.
+
+DESCRIPTION
+    Must be running for client to be able to connect.  Obviously, alongside this
+    server, MATLAB should also be running.
 
 CLASSES
     builtins.object
@@ -127,12 +146,15 @@ CLASSES
         MyTCPHandler
     
     class MATLAB(builtins.object)
+     |  Object on server allowing server to communicate with MATLAB instance.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)
      |      Initialize self.  See help(type(self)) for accurate signature.
      |  
      |  catch_output(self, log_func=None)
+     |      Grab the output of MATLAB on the server.
      |  
      |  exit(self)
      |      Send exit command to MATLAB.
@@ -162,7 +184,7 @@ CLASSES
      |      list of weak references to the object (if defined)
     
     class MyTCPHandler(socketserver.StreamRequestHandler)
-     |  Define self.rfile and self.wfile for stream sockets.
+     |  Create the server, binding to localhost on port.
      |  
      |  Method resolution order:
      |      MyTCPHandler
@@ -209,6 +231,7 @@ CLASSES
 
 FUNCTIONS
     start_server()
+        Start the server so the client can connect.
 
 ```
 

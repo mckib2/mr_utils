@@ -21,12 +21,29 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.load_data.mat
+    mr_utils.load_data.mat - Load data from MATLAB file type.
+
+DESCRIPTION
+    Uses scipy.io.loadmat to load recent versions of .MAT files.  Version 7.3 is
+    supported.  It'll try to make some intelligent guesses if it runs into
+    trouble, meaning, 'it will die trying!'.  If you don't like that philosophy,
+    go ahead and use scipy.io.loadmat directly.
 
 FUNCTIONS
     deal_with_7_3(data)
+        Clean up data structures for MATLAB 7.3.
+        
+        Version 7.3 has a structured datatype that needs to be translated as a
+        complex number.
     
     load_mat(filename, key=None)
+        Load data from .MAT file.
+        
+        filename -- path to .mat file.
+        key -- Specific key to extract.
+        
+        If key=None, all keys will be extracted.  If there is only one key, then
+        its value will be provided directly, no dictionary will be returned.
 
 
 ```

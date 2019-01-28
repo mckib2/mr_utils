@@ -39,16 +39,31 @@ CLASSES
         ProfileConfig
     
     class ProfileConfig(builtins.object)
+     |  ProfileConfig allows object oriented interaction with profiles.config.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self, filename=None)
      |      Initialize self.  See help(type(self)) for accurate signature.
      |  
      |  activate_profile(self, profile)
+     |      Assign a profile to be active.
+     |      
+     |      profile -- Profile label to make active.
+     |      
+     |      All other profiles will still persist, but will not be used.  Only one
+     |      profile may be active at a time.
      |  
-     |  create_profile(self, profile_name, args={})
+     |  create_profile(self, profile_name, args=None)
+     |      Create a new profile.
+     |      
+     |      profile_name -- New profile's label.
+     |      args -- key,value pairs of profile's attributes.
      |  
      |  get_config_val(self, key)
+     |      Retrieve a config value.
+     |      
+     |      key -- Key of the (key,value) pair of the value to be looked up.
      |  
      |  set_config(self, args, profile=None)
      |      Update profile configuration files.
@@ -61,6 +76,7 @@ CLASSES
      |          'gadgetron.port' -> (int) port number
      |  
      |  update_file(self)
+     |      Update profiles.config by overwriting contents.
      |  
      |  ----------------------------------------------------------------------
      |  Data descriptors defined here:
