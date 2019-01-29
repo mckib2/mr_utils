@@ -1,19 +1,22 @@
-import numpy as np
-from mr_utils import view
-from mr_utils.sim.ssfp import get_complex_cross_point
+'''Geometric solution to the elliptical signal model.'''
+
 import warnings # We know skimage will complain about itself importing imp...
+
+import numpy as np
 with warnings.catch_warnings():
-    warnings.filterwarnings('ignore',category=DeprecationWarning)
+    warnings.filterwarnings('ignore', category=DeprecationWarning)
     from skimage.util.shape import view_as_windows
 
-def get_max_magnitudes(I1,I2,I3,I4):
+from mr_utils.sim.ssfp import get_complex_cross_point
+
+def get_max_magnitudes(I1, I2, I3, I4):
     '''Find maximum magnitudes for each pixel over all four input images.'''
 
-    stacked = np.dstack(np.abs((I1,I2,I3,I4)))
-    I_mag = np.max(stacked,axis=-1)
-    return(I_mag)
+    stacked = np.dstack(np.abs((I1, I2, I3, I4)))
+    I_mag = np.max(stacked, axis=-1)
+    return I_mag
 
-def get_max_magnitudes_for_loop(I1,I2,I3,I4):
+def get_max_magnitudes_for_loop(I1, I2, I3, I4):
     '''Find maximum magnitudes for each pixel over all four input images.
 
     This one loops over each pixel as verification for get_max_magnitudes().
@@ -29,10 +32,11 @@ def get_max_magnitudes_for_loop(I1,I2,I3,I4):
     # Get max magnitudes pixel by pixel
     I_mag = np.zeros(I1.shape)
     for ii in range(I1.size):
-        I_mag[ii] = np.max([ I1[ii],I2[ii],I3[ii],I4[ii] ])
-    return(I_mag.reshape(shape0))
+        I_mag[ii] = np.max([I1[ii], I2[ii], I3[ii], I4[ii]])
+    return I_mag.reshape(shape0)
 
-def gs_recon_for_loop(I1,I2,I3,I4):
+def gs_recon_for_loop(I1, I2, I3, I4):
+    '''GS recon implemented using a straightfoward loop for verification.'''
 
     # Flatten all the phase cycled images
     shape0 = I1.shape
@@ -42,13 +46,16 @@ def gs_recon_for_loop(I1,I2,I3,I4):
     I4 = I4.flatten()
 
     # Demodulate bSSFP signal pixel by pixel
-    Id = np.zeros(I1.shape,dtype='complex')
+    Id = np.zeros(I1.shape, dtype='complex')
     for ii in range(I1.size):
-        Id[ii] = get_complex_cross_point(I1[ii],I2[ii],I3[ii],I4[ii])
+        Id[ii] = get_complex_cross_point(I1[ii], I2[ii], I3[ii], I4[ii])
 
         # Regularize with complex sum
-        if (np.abs(Id[ii]) > np.abs(I1[ii])) and (np.abs(Id[ii]) > np.abs(I2[ii])) and (np.abs(Id[ii]) > np.abs(I3[ii])) and (np.abs(Id[ii]) > np.abs(I4[ii])):
-            Id[ii] = complex_sum(I1[ii],I2[ii],I3[ii],I4[ii])
+        if ((np.abs(Id[ii]) > np.abs(I1[ii]))
+                and (np.abs(Id[ii]) > np.abs(I2[ii]))
+                and (np.abs(Id[ii]) > np.abs(I3[ii]))
+                and (np.abs(Id[ii]) > np.abs(I4[ii]))):
+            Id[ii] = complex_sum(I1[ii], I2[ii], I3[ii], I4[ii])
     Id = Id.reshape(shape0)
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
@@ -56,19 +63,20 @@ def gs_recon_for_loop(I1,I2,I3,I4):
     I3 = I3.reshape(shape0)
     I2 = I2.reshape(shape0)
     I4 = I4.reshape(shape0)
-    Iw13 = compute_Iw(I1,I3,Id)
-    Iw24 = compute_Iw(I2,I4,Id)
+    Iw13 = compute_Iw(I1, I3, Id)
+    Iw24 = compute_Iw(I2, I4, Id)
 
     # Final result is found by averaging the two linear solutions for reduced
     # noise
     I = (Iw13 + Iw24)/2
-    return(I)
+    return I
 
-def complex_sum(I1,I2,I3,I4):
+def complex_sum(I1, I2, I3, I4):
+    '''Complex sum image combination method.'''
     CS = (I1 + I2 + I3 + I4)/4
-    return(CS)
+    return CS
 
-def gs_recon3d(I1,I2,I3,I4,slice_axis=-1,isophase=np.pi):
+def gs_recon3d(I1, I2, I3, I4, slice_axis=-1, isophase=np.pi):
     '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1--I4 -- Phase-cycled images.
@@ -76,23 +84,29 @@ def gs_recon3d(I1,I2,I3,I4,slice_axis=-1,isophase=np.pi):
     For more info, see mr_utils.recon.ssfp.gs_recon.
     '''
 
-    num_slices = np.array([ I1.shape[slice_axis],I2.shape[slice_axis],I3.shape[slice_axis],I4.shape[slice_axis] ])
-    assert np.allclose(num_slices,np.ones(num_slices.shape)*num_slices[0]),'All images must have the same number of slices!'
+    num_slices = np.array([
+        I1.shape[slice_axis],
+        I2.shape[slice_axis],
+        I3.shape[slice_axis],
+        I4.shape[slice_axis]])
+    assert np.allclose(num_slices, np.ones(num_slices.shape)*num_slices[0]), \
+        'All images must have the same number of slices!'
     num_slices = num_slices[0]
 
     # Move the slice dimension to the end
-    I1 = np.moveaxis(I1,slice_axis,-1)
-    I2 = np.moveaxis(I2,slice_axis,-1)
-    I3 = np.moveaxis(I3,slice_axis,-1)
-    I4 = np.moveaxis(I4,slice_axis,-1)
+    I1 = np.moveaxis(I1, slice_axis, -1)
+    I2 = np.moveaxis(I2, slice_axis, -1)
+    I3 = np.moveaxis(I3, slice_axis, -1)
+    I4 = np.moveaxis(I4, slice_axis, -1)
 
     # Run gs_recon for each slice
-    recon = np.zeros(I1.shape,dtype='complex')
-    for slice in range(num_slices):
-        recon[...,slice] = gs_recon(I1[...,slice],I2[...,slice],I3[...,slice],I4[...,slice],isophase=isophase)
-    return(recon)
+    recon = np.zeros(I1.shape, dtype='complex')
+    for sl in range(num_slices):
+        recon[..., sl] = gs_recon(I1[..., sl], I2[..., sl], I3[..., sl],
+                                  I4[..., sl], isophase=isophase)
+    return recon
 
-def gs_recon(I1,I2,I3,I4,isophase=np.pi,second_pass=True):
+def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
     '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     I1,I3 -- 1st diagonal pair of images (offset 180 deg).
@@ -107,13 +121,13 @@ def gs_recon(I1,I2,I3,I4,isophase=np.pi,second_pass=True):
     '''
 
     # Get direct geometric solution for demoduled M for all pixels
-    Id = get_complex_cross_point(I1,I2,I3,I4)
+    Id = get_complex_cross_point(I1, I2, I3, I4)
 
     # Get maximum pixel magnitudes for all input images
-    I_max_mag = get_max_magnitudes(I1,I2,I3,I4)
+    I_max_mag = get_max_magnitudes(I1, I2, I3, I4)
 
     # Compute complex sum
-    CS = complex_sum(I1,I2,I3,I4)
+    CS = complex_sum(I1, I2, I3, I4)
 
     # For each pixel, if the magnitude if greater than the maximum magnitude of
     # all four input images, then replace the pixel with the CS solution.  This
@@ -124,18 +138,18 @@ def gs_recon(I1,I2,I3,I4,isophase=np.pi,second_pass=True):
 
     # Bail early if we don't want the second pass solution
     if not second_pass:
-        return(Id)
+        return Id
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
-    Iw13 = compute_Iw(I1,I3,Id,isophase=isophase)
-    Iw24 = compute_Iw(I2,I4,Id,isophase=isophase)
+    Iw13 = compute_Iw(I1, I3, Id, isophase=isophase)
+    Iw24 = compute_Iw(I2, I4, Id, isophase=isophase)
 
     # Final result is found by averaging the two linear solutions for reduced
     # noise
     I = (Iw13 + Iw24)/2
-    return(I)
+    return I
 
-def mask_isophase(numerator_patches,patch_size,isophase):
+def mask_isophase(numerator_patches, patch_size, isophase):
     '''Generate mask that chooses patch pixels that satisfy isophase.
 
     numerator_patches -- Numerator patches from second pass solution.
@@ -151,19 +165,24 @@ def mask_isophase(numerator_patches,patch_size,isophase):
     # center_x,center_y = int(patch_size[0]/2),int(patch_size[1]/2)
     # for ii in range(mask.shape[0]):
     #     for jj in range(mask.shape[1]):
-    #         mask[ii,jj,...] = np.abs(np.angle(num_patches[ii,jj,...])*np.conj(num_patches[ii,jj,center_x,center_y])) < isophase
+    #         mask[ii,jj,...] = np.abs(np.angle(
+    #            num_patches[ii,jj,...])*np.conj(
+    #                num_patches[ii,jj,center_x,center_y])) < isophase
     # # print(np.sum(mask == False))
 
     # Now try it without loops - it'll be faster...
-    center_x,center_y = [ int(p/2) for p in patch_size ]
-    ref_pixels = np.repeat(np.repeat(numerator_patches[:,:,center_x,center_y,None],patch_size[0],axis=-1)[...,None],patch_size[1],axis=-1)
-    mask_mat = np.abs(np.angle(numerator_patches)*np.conj(ref_pixels)) < isophase
+    center_x, center_y = [int(p/2) for p in patch_size]
+    ref_pixels = np.repeat(np.repeat(
+        numerator_patches[:, :, center_x, center_y, None],
+        patch_size[0], axis=-1)[..., None], patch_size[1], axis=-1)
+    mask_mat = np.abs(np.angle(
+        numerator_patches)*np.conj(ref_pixels)) < isophase
     # assert np.allclose(mask_mat,mask)
 
-    return(mask_mat)
+    return mask_mat
 
 
-def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
+def compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=np.pi):
     '''Computes weighted sum of image pair (I0,I1).
 
     I0 -- 1st of pair of diagonal images (relative phase cycle of 0).
@@ -197,29 +216,29 @@ def compute_Iw(I0,I1,Id,patch_size=(5,5),mode='constant',isophase=np.pi):
     den = np.conj(I0 - I1)*(I0 - I1)
 
     # Pad the image so we can generate patches where we need them
-    edge_pad = [ int(p/2) for p in patch_size ]
-    numerator = np.pad(numerator,pad_width=edge_pad,mode=mode)
-    den = np.pad(den,pad_width=edge_pad,mode=mode)
+    edge_pad = [int(p/2) for p in patch_size]
+    numerator = np.pad(numerator, pad_width=edge_pad, mode=mode)
+    den = np.pad(den, pad_width=edge_pad, mode=mode)
 
     # Separate out into patches of size patch_size
-    numerator_patches = view_as_windows(numerator,patch_size)
-    den_patches = view_as_windows(den,patch_size)
+    numerator_patches = view_as_windows(numerator, patch_size)
+    den_patches = view_as_windows(den, patch_size)
 
     # Make sure the phase difference is below a certan bound to include point
     # in weights
-    mask = mask_isophase(numerator_patches,patch_size,isophase)
+    mask = mask_isophase(numerator_patches, patch_size, isophase)
     numerator_patches *= mask
     den_patches *= mask
 
-    numerator_weights = np.sum(numerator_patches,axis=(-2,-1))
-    den_weights = np.sum(den_patches,axis=(-2,-1))
+    numerator_weights = np.sum(numerator_patches, axis=(-2, -1))
+    den_weights = np.sum(den_patches, axis=(-2, -1))
 
     # Equation [18]
     weights = numerator_weights/(2*den_weights + np.finfo(float).eps)
 
     # Find Iw, the weighted sum of image pair (I0,I1), equation [14]
     Iw = I0*weights + I1*(1 - weights)
-    return(Iw)
+    return Iw
 
 if __name__ == '__main__':
     pass
