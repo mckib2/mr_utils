@@ -137,6 +137,8 @@ def view(
             # If we can't help the user out, just load it as normal
             if data is None:
                 data = load_mat(image, **load_opts)
+        elif ext == '.h5':
+            raise NotImplementedError();
         else:
             raise Exception('File type %s not understood!' % ext)
 

@@ -60,18 +60,20 @@ def cosamp(
     if lstsq == 'exact':
         lstsq_fun = lambda A0, y: np.linalg.lstsq(A0, y, rcond=None)[0]
     elif lstsq == 'lm':
-        # This also doesn't work very well currently....
-        from scipy.optimize import least_squares
-        lstsq_fun = lambda A0, y: least_squares(
-            lambda x: np.linalg.norm(y - np.dot(A0, x)),
-            np.zeros(A0.shape[1], dtype=y.dtype))['x']
+        # # This also doesn't work very well currently....
+        # from scipy.optimize import least_squares
+        # lstsq_fun = lambda A0, y: least_squares(
+        #     lambda x: np.linalg.norm(y - np.dot(A0, x)),
+        #     np.zeros(A0.shape[1], dtype=y.dtype))['x']
+        raise NotImplementedError()
     elif lstsq == 'gd':
-        # This doesn't work very well...
-        from mr_utils.optimization import gd, fd_complex_step
-        lstsq_fun = lambda A0, y: gd(
-            lambda x: np.linalg.norm(y - np.dot(A0, x)),
-            fd_complex_step,
-            np.zeros(A0.shape[1], dtype=y.dtype), iter=3)[0]
+        # # This doesn't work very well...
+        # from mr_utils.optimization import gd, fd_complex_step
+        # lstsq_fun = lambda A0, y: gd(
+        #     lambda x: np.linalg.norm(y - np.dot(A0, x)),
+        #     fd_complex_step,
+        #     np.zeros(A0.shape[1], dtype=y.dtype), maxiter=3)[0]
+        raise NotImplementedError()
     else:
         raise NotImplementedError()
 
