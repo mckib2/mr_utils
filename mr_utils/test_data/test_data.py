@@ -11,10 +11,10 @@ with warnings.catch_warnings():
 ## DAT FILES
 bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
 
-# For Single Voxel Simulation
-single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_512.dat').resolve())
-single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
-single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
+# # For Single Voxel Simulation
+# single_voxel_512 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_512.dat').resolve())
+# single_voxel_256_0 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_0.dat').resolve())
+# single_voxel_256_1 = str(Path('mr_utils/test_data/tests/sim/single_voxel/single_voxel_256_1.dat').resolve())
 
 # For Gadgetron GRAPPA Examples
 class BSSFPGrappa(object):
