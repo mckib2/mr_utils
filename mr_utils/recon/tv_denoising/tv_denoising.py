@@ -111,24 +111,4 @@ def tv_l1_denoise(im, lam, disp=False, niter=100):
     return newim
 
 if __name__ == '__main__':
-
-    import matplotlib.pyplot as plt
-    from skimage.data import camera
-
-    sigma = 10
-    im = camera().astype(np.float64)
-    im += sigma*np.random.normal(0, 1, im.shape)
-    im /= np.max(im)
-
-    im0 = tv_l1_denoise(im, 1, disp=True, niter=300)
-
-    plt.subplot(1, 3, 1)
-    plt.imshow(im)
-    plt.title('Corrupted Image')
-    plt.subplot(1, 3, 2)
-    plt.imshow(im0)
-    plt.title('TV Denoised')
-    plt.subplot(1, 3, 3)
-    plt.imshow(np.abs(im - im0))
-    plt.title('Residue')
-    plt.show()
+    pass
