@@ -18,4 +18,4 @@ def percent_ripple(profile):
     Smax = np.max(profile)
     Smin = np.min(profile)
     Smean = np.mean(profile)
-    return(100*(Smax - Smin)/Smean)
+    return 100*(Smax - Smin)/Smean

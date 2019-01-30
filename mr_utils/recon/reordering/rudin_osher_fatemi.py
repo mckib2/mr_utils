@@ -42,7 +42,7 @@ def update_all_for_loop(u0,dt,h,sigma,niters):
 
     u = np.zeros((u0.shape[0],u0.shape[1],niters))
     u[:,:,0] = u0
-    for nn in range(niters-1):
+    for nn in range(niters):
         for ii in range(u0.shape[0]):
             for jj in range(u0.shape[1]):
 

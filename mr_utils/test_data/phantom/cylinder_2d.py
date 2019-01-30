@@ -13,12 +13,13 @@ def cylinder_2d_params():
     }
     return(params)
 
-def cylinder_2d(dims=(64,64),FOV=((-1,1),(-1,1)),radius=0.5):
+def cylinder_2d(dims=(64,64),FOV=((-1,1),(-1,1)),radius=0.5,params=None):
     '''Base 2d cylinder maps to feed to contrast simulations.
     '''
 
     # Grab the numerical parameters
-    params = cylinder_2d_params()
+    if params is None:
+        params = cylinder_2d_params()
 
     # Make a bottle
     x = np.linspace(FOV[0][0],FOV[0][1],dims[0])
