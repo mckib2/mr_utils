@@ -38,17 +38,17 @@ if __name__ == '__main__':
     # RO asymmetric echo handling
     config.add_gadget('AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
     config.add_gadget('RemoveROOversampling')
-    # config.add_gadget('Grappa', props=[
-    #     ('target_coils', str(num_coils)),
-    #     ('use_gpu', 'false'),
-    #     ('uncombined_channels', ','.join(str(x) for x in range(num_coils))),
-    # ])
-    # config.add_gadget('GrappaUnmixing')
-    config.add_gadget('PassthroughPython', 'PythonGadget', props=[
-        ('python_module', 'passthrough'),
-        ('python_class', 'Passthrough'),
-        ('error_ignored_mode', 'true'),
+    config.add_gadget('Grappa', props=[
+        ('target_coils', str(num_coils)),
+        ('use_gpu', 'false'),
+        ('uncombined_channels', ','.join(str(x) for x in range(num_coils))),
     ])
+    config.add_gadget('GrappaUnmixing')
+    # config.add_gadget('PassthroughPython', 'PythonGadget', props=[
+    #     ('python_module', 'passthrough'),
+    #     ('python_class', 'Passthrough'),
+    #     ('error_ignored_mode', 'true'),
+    # ])
     # config.add_gadget('GS', 'PythonGadget', props=[
     #     ('error_ignored_mode', 'true'),
     #     ('python_path', '/usr/local/share/gadgetron'),
@@ -67,5 +67,4 @@ if __name__ == '__main__':
 
     im, hdr = client(data, config_local=config.tostring(), verbose=True)
     print(im.shape)
-    # view(im[0, ...] + 1j*im[1, ...], montage_axis=0)
-    view(im[0, ...] + 1j*im[1, ...])
+    view(im[0, ...] + 1j*im[1, ...], montage_axis=0)

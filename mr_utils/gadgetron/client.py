@@ -8,6 +8,7 @@ import pathlib
 import argparse
 import datetime
 from tempfile import NamedTemporaryFile
+import socket
 import logging
 import warnings
 with warnings.catch_warnings():
@@ -151,10 +152,10 @@ def client(
         acq = dset.read_acquisition(idx)
         try:
             con.send_ismrmrd_acquisition(acq)
-        except:
+        except socket.error as msg:
             logging.error('Failed to send acquisition %d', idx)
+            print(msg)
             return None
-
 
     logging.debug('Sending close message to Gadgetron')
     con.send_gadgetron_close()
@@ -162,8 +163,11 @@ def client(
 
     # Convert the hdf5 file into something we can use and send it back
     with h5py.File(outfile, 'r') as f:
-        data = f[out_group]['image_0']['data'][:]
-        header = f[out_group]['image_0']['header'][:]
+        # Group might not be image_0
+        data = f[out_group][list(f[out_group].keys())[0]]['data'][:]
+        header = f[out_group][list(f[out_group].keys())[0]]['header'][:]
+        # data = f[out_group]['image_0']['data'][:]
+        # header = f[out_group]['image_0']['header'][:]
     return(data, header)
 
 if __name__ == '__main__':
