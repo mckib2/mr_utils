@@ -40,12 +40,10 @@ if __name__ == '__main__':
         coil_images = f['dataset']['coil_images']
         coil_images = coil_images['real'] + 1j*coil_images['imag']
 
-        aliased = np.zeros(coil_images.shape, dtype=coil_images.dtype)
-        for ii in range(coil_images.shape[1]):
-            tmp = np.fft.fft2(coil_images[0, ii, ...])
-            tmp[::2, :] = 0
-            aliased[:, ii, ...] = np.fft.ifft2(tmp)
-
+        # R = 2
+        tmp = np.fft.fft2(coil_images)
+        tmp[..., ::2, :] = 0
+        aliased = np.fft.ifft2(tmp)
         view(aliased, montage_axis=0)
 
     # Make the config
@@ -77,6 +75,4 @@ if __name__ == '__main__':
 
 
     im, hdr = client(data, config_local=config.tostring(), verbose=True)
-    print(im.shape)
-    print(im.dtype)
     view(im[0, ...] + 1j*im[1, ...], montage_axis=0)

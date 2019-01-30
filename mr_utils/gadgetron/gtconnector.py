@@ -1,48 +1,49 @@
 import warnings
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=FutureWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
     import ismrmrd
 import struct
 import socket
 import threading
-import numpy as np
 import logging
 
-logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
+import numpy as np
 
-GADGET_MESSAGE_INT_ID_MIN                             =   0
-GADGET_MESSAGE_CONFIG_FILE                            =   1
-GADGET_MESSAGE_CONFIG_SCRIPT                          =   2
-GADGET_MESSAGE_PARAMETER_SCRIPT                       =   3
-GADGET_MESSAGE_CLOSE                                  =   4
-GADGET_MESSAGE_TEXT                                   =   5
-GADGET_MESSAGE_INT_ID_MAX                             = 999
-GADGET_MESSAGE_EXT_ID_MIN                             = 1000
-GADGET_MESSAGE_ACQUISITION                            = 1001 # DEPRECATED
-GADGET_MESSAGE_NEW_MEASUREMENT                        = 1002 # DEPRECATED
-GADGET_MESSAGE_END_OF_SCAN                            = 1003 # DEPRECATED
-GADGET_MESSAGE_IMAGE_CPLX_FLOAT                       = 1004 # DEPRECATED
-GADGET_MESSAGE_IMAGE_REAL_FLOAT                       = 1005 # DEPRECATED
-GADGET_MESSAGE_IMAGE_REAL_USHORT                      = 1006 # DEPRECATED
-GADGET_MESSAGE_EMPTY                                  = 1007 # DEPRECATED
-GADGET_MESSAGE_ISMRMRD_ACQUISITION                    = 1008
-GADGET_MESSAGE_ISMRMRD_IMAGE_CPLX_FLOAT               = 1009
-GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_FLOAT               = 1010 # DEPRECATED
-GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_USHORT              = 1011 # DEPRECATED
-GADGET_MESSAGE_DICOM                                  = 1012 # DEPRECATED
-GADGET_MESSAGE_CLOUD_JOB                              = 1013
-GADGET_MESSAGE_GADGETCLOUD_JOB                        = 1014
-GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_CPLX_FLOAT     = 1015 # DEPRECATED
-GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_FLOAT     = 1016 # DEPRECATED
-GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_USHORT    = 1017 # DEPRECATED
-GADGET_MESSAGE_DICOM_WITHNAME                         = 1018
-GADGET_MESSAGE_DEPENDENCY_QUERY                       = 1019
-GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_SHORT               = 1020 # DEPRECATED
-GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_SHORT     = 1021 # DEPRECATED
-GADGET_MESSAGE_ISMRMRD_IMAGE                          = 1022
-GADGET_MESSAGE_RECONDATA                              = 1023
-GADGET_MESSAGE_ISMRMRD_WAVEFORM                       = 1026
-GADGET_MESSAGE_EXT_ID_MAX                             = 4096
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+
+GADGET_MESSAGE_INT_ID_MIN = 0
+GADGET_MESSAGE_CONFIG_FILE = 1
+GADGET_MESSAGE_CONFIG_SCRIPT = 2
+GADGET_MESSAGE_PARAMETER_SCRIPT = 3
+GADGET_MESSAGE_CLOSE = 4
+GADGET_MESSAGE_TEXT = 5
+GADGET_MESSAGE_INT_ID_MAX = 999
+GADGET_MESSAGE_EXT_ID_MIN = 1000
+GADGET_MESSAGE_ACQUISITION = 1001 # DEPRECATED
+GADGET_MESSAGE_NEW_MEASUREMENT = 1002 # DEPRECATED
+GADGET_MESSAGE_END_OF_SCAN = 1003 # DEPRECATED
+GADGET_MESSAGE_IMAGE_CPLX_FLOAT = 1004 # DEPRECATED
+GADGET_MESSAGE_IMAGE_REAL_FLOAT = 1005 # DEPRECATED
+GADGET_MESSAGE_IMAGE_REAL_USHORT = 1006 # DEPRECATED
+GADGET_MESSAGE_EMPTY = 1007 # DEPRECATED
+GADGET_MESSAGE_ISMRMRD_ACQUISITION = 1008
+GADGET_MESSAGE_ISMRMRD_IMAGE_CPLX_FLOAT = 1009
+GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_FLOAT = 1010 # DEPRECATED
+GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_USHORT = 1011 # DEPRECATED
+GADGET_MESSAGE_DICOM = 1012 # DEPRECATED
+GADGET_MESSAGE_CLOUD_JOB = 1013
+GADGET_MESSAGE_GADGETCLOUD_JOB = 1014
+GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_CPLX_FLOAT = 1015 # DEPRECATED
+GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_FLOAT = 1016 # DEPRECATED
+GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_USHORT = 1017 # DEPRECATED
+GADGET_MESSAGE_DICOM_WITHNAME = 1018
+GADGET_MESSAGE_DEPENDENCY_QUERY = 1019
+GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_SHORT = 1020 # DEPRECATED
+GADGET_MESSAGE_ISMRMRD_IMAGEWITHATTRIB_REAL_SHORT = 1021 # DEPRECATED
+GADGET_MESSAGE_ISMRMRD_IMAGE = 1022
+GADGET_MESSAGE_RECONDATA = 1023
+GADGET_MESSAGE_ISMRMRD_WAVEFORM = 1026
+GADGET_MESSAGE_EXT_ID_MAX = 4096
 
 MAX_BLOBS_LOG_10 = 6
 
@@ -83,14 +84,15 @@ class ImageMessageReader(MessageReader):
 
     def read(self, sock):
         # read image header
-        serialized_header = readsock(sock, ismrmrd.hdf5.image_header_dtype.itemsize)
+        serialized_header = readsock(
+            sock, ismrmrd.hdf5.image_header_dtype.itemsize)
         img = ismrmrd.Image(serialized_header)
 
         # now the image's data should be a valid NumPy array of zeros
         dtype = img.data.dtype
         data_bytes = len(img.data.flat) * dtype.itemsize
         serialized_data = readsock(sock, data_bytes)
-        img.data.ravel()[:] = np.frombuffer(serialized_data,dtype=dtype)
+        img.data.ravel()[:] = np.frombuffer(serialized_data, dtype=dtype)
 
         if not self.dataset:
             # open dataset
@@ -102,7 +104,8 @@ class ImageMessageReader(MessageReader):
 class ImageAttribMessageReader(ImageMessageReader):
     def read(self, sock):
         # read image header
-        serialized_header = readsock(sock, ismrmrd.hdf5.image_header_dtype.itemsize)
+        serialized_header = readsock(
+            sock, ismrmrd.hdf5.image_header_dtype.itemsize)
         # read meta attributes
         msg = readsock(self.sock, SIZEOF_GADGET_MESSAGE_ATTRIB_LENGTH)
         attrib_len = GadgetMessageAttribLength.unpack(msg)[0]
@@ -135,7 +138,7 @@ class BlobMessageReader(MessageReader):
         nbytes = GadgetMessageBlobSize.unpack(msg)[0]
         blob = readsock(self.sock, nbytes)
 
-        filename = '%s_%06d.%s' (self.prefix, self.num_calls, self.suffix)
+        filename = '%s_%06d.%s' % (self.prefix, self.num_calls, self.suffix)
         with open(filename, 'wb') as f:
             f.write(blob)
 
@@ -186,12 +189,13 @@ class Connector(object):
         self.hostname = hostname
         self.port = port
         self.sock.connect((hostname, port))
-        self.reader_thread = threading.Thread(name="GadgetronClientConnector read_task", target=self.read_task)
+        self.reader_thread = threading.Thread(
+            name="GadgetronClientConnector read_task", target=self.read_task)
         self.reader_thread.start()
 
     def read_task(self):
         while True:
-            msg = readsock(self.sock,SIZEOF_GADGET_MESSAGE_IDENTIFIER)
+            msg = readsock(self.sock, SIZEOF_GADGET_MESSAGE_IDENTIFIER)
             kind = GadgetMessageIdentifier.unpack(msg)[0]
 
             # TODO: Figure out why we're getting invalid message ids...
