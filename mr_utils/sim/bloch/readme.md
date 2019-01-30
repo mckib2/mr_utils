@@ -6,7 +6,7 @@
 
 ```
 NAME
-    mr_utils.sim.bloch.bloch
+    mr_utils.sim.bloch.bloch - Numerical bloch simulations using finite difference method.
 
 FUNCTIONS
     gre(T1, T2, M0, Nt, h, alpha, beta, gamma, TR, TE, Bx=0, By=0, Bz=3)

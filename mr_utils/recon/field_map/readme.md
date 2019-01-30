@@ -5,7 +5,7 @@
 
 ```
 NAME
-    mr_utils.recon.field_map.dual_echo_gre
+    mr_utils.recon.field_map.dual_echo_gre - Compute field map from dual echo GRE acquisitions.
 
 FUNCTIONS
     dual_echo_gre(m1, m2, TE1, TE2)
@@ -28,10 +28,10 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.field_map.gs_field_map
+    mr_utils.recon.field_map.gs_field_map - Use the geometric solution to the elliptical signal model for field map.
 
 FUNCTIONS
-    gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts={})
+    gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts=None)
         Use the elliptical signal model to estimate the field map.
         
         I0,I1 -- First phase-cycle pair, separated by 180 degrees.

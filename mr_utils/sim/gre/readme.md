@@ -5,7 +5,7 @@
 
 ```
 NAME
-    mr_utils.sim.gre.gre
+    mr_utils.sim.gre.gre - GRE simulations.
 
 FUNCTIONS
     ernst(TR, T1)
@@ -31,7 +31,7 @@ FUNCTIONS
             Notes from Bernstein, M. A., King, K. F., & Zhou, X. J. (2004).
             Handbook of MRI pulse sequences. Elsevier.
     
-    gre_sim(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, phi=0, dphi=0, M0=1, tol=1e-05, iter=None, spoil=True)
+    gre_sim(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, phi=0, dphi=0, M0=1, tol=1e-05, maxiter=None, spoil=True)
         Simulate GRE pulse sequence.
         
         T1 -- longitudinal exponential decay time constant.
@@ -44,14 +44,14 @@ FUNCTIONS
         dphi -- phase  cycling of RF pulses.
         M0 -- proton density.
         tol -- Maximum difference between voxel intensity iter to iter until stop.
-        iter -- number of excitations till steady state.
+        maxiter -- number of excitations till steady state.
         
-        iter=None will run until difference between all voxel intensities iteration
-        to iteration is within given tolerance, tol (default=1e-5).
+        maxiter=None will run until difference between all voxel intensities
+        iteration to iteration is within given tolerance, tol (default=1e-5).
         
         Returns complex transverse magnetization (Mx + 1j*My)
     
-    gre_sim_loop(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, dphi=0, M0=1, iter=200)
+    gre_sim_loop(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, dphi=0, M0=1, maxiter=200)
         Simulate GRE pulse sequence.
         
         T1 -- longitudinal exponential decay time constant.
@@ -62,7 +62,7 @@ FUNCTIONS
         field_map -- offresonance field map (in hertz).
         dphi -- phase  cycling of RF pulses.
         M0 -- proton density.
-        iter -- number of excitations till steady state.
+        maxiter -- number of excitations till steady state.
     
     spoiled_gre(T1, T2star, TR, TE, alpha=None, M0=1)
         Spoiled, steady state GRE contrast simulation.

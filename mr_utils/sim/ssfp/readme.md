@@ -22,7 +22,13 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.ssfp.quantitative_field_mapping
+    mr_utils.sim.ssfp.quantitative_field_mapping - Quantitative field mapping for bSSFP.
+
+DESCRIPTION
+    Collect quantitative MR maps (T1, T2, flip angle), then, assuming that these
+    won't change during the duration of the scan, we can use these to take a single
+    bSSFP scan each time point and solve for the off-resonance.  Thus we get a
+    field map at time point.
 
 FUNCTIONS
     get_df_responses(T1, T2, PD, TR, alpha, phase_cyc, dfs)
@@ -52,7 +58,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.ssfp.ssfp
+    mr_utils.sim.ssfp.ssfp - SSFP constrast simulation functions.
 
 FUNCTIONS
     elliptical_params(T1, T2, TR, alpha, M0=1)
@@ -77,7 +83,7 @@ FUNCTIONS
         TR -- repetition time.
         field_map -- off-resonance map (Hz).
         delta_cs -- chemical shift of species w.r.t. the water peak (Hz).
-        phi_rf -- RF phase offset, related to the combination of Tx/Rx phases (rad).
+        phi_rf -- RF phase offset, related to the combin. of Tx/Rx phases (rad).
         phi_edd -- phase errors due to eddy current effects (rad).
         phi_drift -- phase errors due to B0 drift (rad).
         
@@ -178,7 +184,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.ssfp.ssfp_dictionary
+    mr_utils.sim.ssfp.ssfp_dictionary - Dictionary lookup of NMR parameters given bSSFP signal.
 
 FUNCTIONS
     find_atom(sig, D, keys)
@@ -199,7 +205,7 @@ FUNCTIONS
         df -- (1D) off-resonance frequencies over which to simulate.
         
         T1s,T2s,alphas should all be 1D arrays.  All feasible combinations will be
-        simulated (i.e., where T1 >= T2).  The dictionary and keys will be returned.
+        simulated (i.e., where T1 >= T2).  The dictionary and keys are returned.
         Each dictionary column is the simulation over frequencies df.  The keys are
         a list of tuples: (T1,T2,alpha).
     

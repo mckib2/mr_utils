@@ -1148,7 +1148,11 @@ NAME
 
 ```
 NAME
-    mr_utils.gridding.scgrog.get_gx_gy
+    mr_utils.gridding.scgrog.get_gx_gy - Self calibrating GROG GRAPPA kernels.
+
+DESCRIPTION
+    Based on the MATLAB implementation found here:
+        https://github.com/edibella/Reconstruction/blob/master/%2BGROG/get_Gx_Gy.m
 
 FUNCTIONS
     get_gx_gy(kspace, traj=None, kxs=None, kys=None, cartdims=None)
@@ -1164,18 +1168,31 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.gridding.scgrog.scgrog
+    mr_utils.gridding.scgrog.scgrog - Self calibrating GROG implementation.
+
+DESCRIPTION
+    Based on the MATLAB GROG implementation found here:
+        https://github.com/edibella/Reconstruction
 
 FUNCTIONS
     grog_interp(kspace, Gx, Gy, traj, cartdims)
         Moves radial k-space points onto a cartesian grid via the GROG method.
         
-        kspace    -- A 3D (sx,sor,soc) slice of k-space
-        Gx,Gy     -- The unit horizontal and vertical cartesian GRAPPA kernels
-        trak      -- k-space trajectory
-        cartdims  -- (nrows,ncols), size of Cartesian grid
+        kspace -- A 3D (sx,sor,soc) slice of k-space
+        Gx,Gy -- The unit horizontal and vertical cartesian GRAPPA kernels
+        traj -- k-space trajectory
+        cartdims -- (nrows,ncols), size of Cartesian grid
     
     scgrog(kspace, traj, Gx, Gy, cartdims=None)
+        Self calibrating GROG interpolation.
+        
+        kspace -- A 4D (sx,sor,nof,soc) matrix of complex k-space data.
+        traj -- k-space trajectory.
+        Gx,Gy -- The unit horizontal and vertical cartesian GRAPPA kernels.
+        cartdims -- Size of Cartesian grid.
+        
+        If cartdims=None, we'll guess the Cartesian dimensions are
+        (kspace.shape[0], kspace.shape[0], kspace.shape[2], kspace.shape[3]).
 
 
 ```
@@ -3341,12 +3358,32 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.optimization.linesearch
+    mr_utils.optimization.linesearch - Linesearch functions.
+
+DESCRIPTION
+    Once we have a direction to step, for example, the negative gradient direction
+    in a gradient descent algorithm, then we need to know how big of a step to
+    take.  If we take too large or small a step, we may not find the minumum of
+    the object function along the line we are stepping.  A linesearch attempts to
+    find the optimal step size in a given direction with minimal gradient and
+    objective evaluations.
 
 FUNCTIONS
     linesearch(obj, x0, a0, s)
+        More sophisticated linesearch.
+        
+        obj -- Objective function.
+        x0 -- Current location.
+        a0 -- Current guess at stepsize.
+        s -- Search direction.
     
     linesearch_quad(f, x, a, s)
+        Simple quadratic linesearch.
+        
+        f -- Objective function.
+        x -- Current location.
+        a -- Guess for stepsize.
+        s -- Search direction.
 
 
 ```
@@ -3425,7 +3462,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.field_map.dual_echo_gre
+    mr_utils.recon.field_map.dual_echo_gre - Compute field map from dual echo GRE acquisitions.
 
 FUNCTIONS
     dual_echo_gre(m1, m2, TE1, TE2)
@@ -3448,10 +3485,10 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.field_map.gs_field_map
+    mr_utils.recon.field_map.gs_field_map - Use the geometric solution to the elliptical signal model for field map.
 
 FUNCTIONS
-    gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts={})
+    gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts=None)
         Use the elliptical signal model to estimate the field map.
         
         I0,I1 -- First phase-cycle pair, separated by 180 degrees.
@@ -3660,7 +3697,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.ssfp.dixon
+    mr_utils.recon.ssfp.dixon - Collection of Dixon fat/water separation methods.
+
+DESCRIPTION
+    Implementations of methods described in Berstein (see function docstrings for
+    references).
 
 FUNCTIONS
     dixon_2pt(IP, OP)
@@ -3790,10 +3831,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.ssfp.gs_recon
+    mr_utils.recon.ssfp.gs_recon - Geometric solution to the elliptical signal model.
 
 FUNCTIONS
     complex_sum(I1, I2, I3, I4)
+        Complex sum image combination method.
     
     compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=3.141592653589793)
         Computes weighted sum of image pair (I0,I1).
@@ -3852,6 +3894,7 @@ FUNCTIONS
         For more info, see mr_utils.recon.ssfp.gs_recon.
     
     gs_recon_for_loop(I1, I2, I3, I4)
+        GS recon implemented using a straightfoward loop for verification.
     
     mask_isophase(numerator_patches, patch_size, isophase)
         Generate mask that chooses patch pixels that satisfy isophase.
@@ -3890,6 +3933,33 @@ FUNCTIONS
 ```
 
 
+## mr_utils.recon.tv_denoising.tv_denoising
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/tv_denoising/tv_denoising.py)
+
+```
+NAME
+    mr_utils.recon.tv_denoising.tv_denoising - Port of TVL1denoise - TV-L1 image denoising with the primal-dual algorithm.
+
+DESCRIPTION
+    See:
+    https://www.mathworks.com/matlabcentral/fileexchange/57604-tv-l1-image-denoising-algorithm
+
+FUNCTIONS
+    tv_l1_denoise(im, lam, disp=False, niter=100)
+        TV-L1 image denoising with the primal-dual algorithm.
+        
+        im -- image to be processed
+        lam -- regularization parameter controlling the amount of denoising;
+               smaller values imply more aggressive denoising which tends to
+               produce more smoothed results
+        disp -- print energy being minimized each iteration
+        niter -- number of iterations
+
+
+```
+
+
 # SIM
 ## mr_utils.sim.bloch.bloch
 
@@ -3897,7 +3967,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.bloch.bloch
+    mr_utils.sim.bloch.bloch - Numerical bloch simulations using finite difference method.
 
 FUNCTIONS
     gre(T1, T2, M0, Nt, h, alpha, beta, gamma, TR, TE, Bx=0, By=0, Bz=3)
@@ -3951,7 +4021,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.gre.gre
+    mr_utils.sim.gre.gre - GRE simulations.
 
 FUNCTIONS
     ernst(TR, T1)
@@ -3977,7 +4047,7 @@ FUNCTIONS
             Notes from Bernstein, M. A., King, K. F., & Zhou, X. J. (2004).
             Handbook of MRI pulse sequences. Elsevier.
     
-    gre_sim(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, phi=0, dphi=0, M0=1, tol=1e-05, iter=None, spoil=True)
+    gre_sim(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, phi=0, dphi=0, M0=1, tol=1e-05, maxiter=None, spoil=True)
         Simulate GRE pulse sequence.
         
         T1 -- longitudinal exponential decay time constant.
@@ -3990,14 +4060,14 @@ FUNCTIONS
         dphi -- phase  cycling of RF pulses.
         M0 -- proton density.
         tol -- Maximum difference between voxel intensity iter to iter until stop.
-        iter -- number of excitations till steady state.
+        maxiter -- number of excitations till steady state.
         
-        iter=None will run until difference between all voxel intensities iteration
-        to iteration is within given tolerance, tol (default=1e-5).
+        maxiter=None will run until difference between all voxel intensities
+        iteration to iteration is within given tolerance, tol (default=1e-5).
         
         Returns complex transverse magnetization (Mx + 1j*My)
     
-    gre_sim_loop(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, dphi=0, M0=1, iter=200)
+    gre_sim_loop(T1, T2, TR=0.012, TE=0.006, alpha=1.0471975511965976, field_map=None, dphi=0, M0=1, maxiter=200)
         Simulate GRE pulse sequence.
         
         T1 -- longitudinal exponential decay time constant.
@@ -4008,7 +4078,7 @@ FUNCTIONS
         field_map -- offresonance field map (in hertz).
         dphi -- phase  cycling of RF pulses.
         M0 -- proton density.
-        iter -- number of excitations till steady state.
+        maxiter -- number of excitations till steady state.
     
     spoiled_gre(T1, T2star, TR, TE, alpha=None, M0=1)
         Spoiled, steady state GRE contrast simulation.
@@ -4180,7 +4250,13 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.ssfp.quantitative_field_mapping
+    mr_utils.sim.ssfp.quantitative_field_mapping - Quantitative field mapping for bSSFP.
+
+DESCRIPTION
+    Collect quantitative MR maps (T1, T2, flip angle), then, assuming that these
+    won't change during the duration of the scan, we can use these to take a single
+    bSSFP scan each time point and solve for the off-resonance.  Thus we get a
+    field map at time point.
 
 FUNCTIONS
     get_df_responses(T1, T2, PD, TR, alpha, phase_cyc, dfs)
@@ -4210,7 +4286,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.ssfp.ssfp
+    mr_utils.sim.ssfp.ssfp - SSFP constrast simulation functions.
 
 FUNCTIONS
     elliptical_params(T1, T2, TR, alpha, M0=1)
@@ -4235,7 +4311,7 @@ FUNCTIONS
         TR -- repetition time.
         field_map -- off-resonance map (Hz).
         delta_cs -- chemical shift of species w.r.t. the water peak (Hz).
-        phi_rf -- RF phase offset, related to the combination of Tx/Rx phases (rad).
+        phi_rf -- RF phase offset, related to the combin. of Tx/Rx phases (rad).
         phi_edd -- phase errors due to eddy current effects (rad).
         phi_drift -- phase errors due to B0 drift (rad).
         
@@ -4336,7 +4412,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.ssfp.ssfp_dictionary
+    mr_utils.sim.ssfp.ssfp_dictionary - Dictionary lookup of NMR parameters given bSSFP signal.
 
 FUNCTIONS
     find_atom(sig, D, keys)
@@ -4357,7 +4433,7 @@ FUNCTIONS
         df -- (1D) off-resonance frequencies over which to simulate.
         
         T1s,T2s,alphas should all be 1D arrays.  All feasible combinations will be
-        simulated (i.e., where T1 >= T2).  The dictionary and keys will be returned.
+        simulated (i.e., where T1 >= T2).  The dictionary and keys are returned.
         Each dictionary column is the simulation over frequencies df.  The keys are
         a list of tuples: (T1,T2,alpha).
     

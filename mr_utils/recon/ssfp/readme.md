@@ -5,7 +5,11 @@
 
 ```
 NAME
-    mr_utils.recon.ssfp.dixon
+    mr_utils.recon.ssfp.dixon - Collection of Dixon fat/water separation methods.
+
+DESCRIPTION
+    Implementations of methods described in Berstein (see function docstrings for
+    references).
 
 FUNCTIONS
     dixon_2pt(IP, OP)
@@ -135,10 +139,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.ssfp.gs_recon
+    mr_utils.recon.ssfp.gs_recon - Geometric solution to the elliptical signal model.
 
 FUNCTIONS
     complex_sum(I1, I2, I3, I4)
+        Complex sum image combination method.
     
     compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=3.141592653589793)
         Computes weighted sum of image pair (I0,I1).
@@ -197,6 +202,7 @@ FUNCTIONS
         For more info, see mr_utils.recon.ssfp.gs_recon.
     
     gs_recon_for_loop(I1, I2, I3, I4)
+        GS recon implemented using a straightfoward loop for verification.
     
     mask_isophase(numerator_patches, patch_size, isophase)
         Generate mask that chooses patch pixels that satisfy isophase.

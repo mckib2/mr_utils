@@ -6,7 +6,7 @@ def sos(im, axes=0):
     im -- Input image.
     axes -- Dimensions to sum across.
     '''
-    return np.sqrt(np.sum(np.abs(im)**2,axis=axes))
+    return np.sqrt(np.sum(np.abs(im)**2, axis=axes))
 
 if __name__ == '__main__':
     pass

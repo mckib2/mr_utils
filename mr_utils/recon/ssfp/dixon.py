@@ -1,6 +1,12 @@
+'''Collection of Dixon fat/water separation methods.
+
+Implementations of methods described in Berstein (see function docstrings for
+references).
+'''
+
 import numpy as np
 
-def dixon_2pt(IP,OP):
+def dixon_2pt(IP, OP):
     '''Naive two-point Dixon method of fat/water separation.
 
     IP -- In-phase image (corresponding to 0).
@@ -23,9 +29,9 @@ def dixon_2pt(IP,OP):
 
     W = (IP + OP)/2
     F = (IP - OP)/2
-    return(W,F)
+    return(W, F)
 
-def dixon_pc(IP,OP,method='vanilla'):
+def dixon_pc(IP, OP, method='vanilla'):
     '''Methods to determine pc, fat/water fraction within a voxel.
 
     method:
@@ -45,22 +51,22 @@ def dixon_pc(IP,OP,method='vanilla'):
     elif method == 'chen':
         def Hc(x):
             if x > .5:
-                return(1)
-            elif x > -0.5:
-                return(0)
-            else:
-                return(-1)
+                return 1
+            if x > -0.5:
+                return 0
+            # else...
+            return -1
         pc = Hc(np.real(OP)/np.abs(OP))
 
     elif method == 'vanilla':
-        pc = np.where(np.abs(IP) - np.abs(OP) > 0,1,-1)
+        pc = np.where(np.abs(IP) - np.abs(OP) > 0, 1, -1)
 
     else:
         raise NotImplementedError()
 
-    return(pc)
+    return pc
 
-def dixon_2pt_mag(IP,OP):
+def dixon_2pt_mag(IP, OP):
     '''Solution to two-point Dixon method using magnitude of images.
 
     IP -- In-phase image (corresponding to 0).
@@ -74,15 +80,15 @@ def dixon_2pt_mag(IP,OP):
     '''
 
     # If more water than fat, then p should be 1, else -1
-    p = dixon_pc(IP,OP,'vanilla')
+    p = dixon_pc(IP, OP, 'vanilla')
 
     # All phase information will be lost
     pOP = p*np.abs(OP)
     W = (np.abs(IP) + pOP)/2
     F = (np.abs(IP) - pOP)/2
-    return(W,F)
+    return(W, F)
 
-def dixon_extended_2pt(IP,OP,method='glover'):
+def dixon_extended_2pt(IP, OP, method='glover'):
     '''Extended two-point Dixon method for fat/water separation.
 
     IP -- In-phase image (corresponding to 0).
@@ -99,13 +105,13 @@ def dixon_extended_2pt(IP,OP,method='glover'):
         Handbook of MRI pulse sequences. Elsevier.
     '''
 
-    pc = dixon_pc(IP,OP,method)
+    pc = dixon_pc(IP, OP, method)
     pcOP = pc*np.abs(OP)
     W = (np.abs(IP) + pcOP)/2
     F = (np.abs(IP) - pcOP)/2
-    return(W,F)
+    return(W, F)
 
-def dixon_3pt(IP,OP1,OP2,use_2pi=True,method='glover'):
+def dixon_3pt(IP, OP1, OP2, use_2pi=True, method='glover'):
     '''Three point Dixon method of fat/water separation.
 
     IP -- In-phase image (corresponding to 0).
@@ -142,15 +148,15 @@ def dixon_3pt(IP,OP1,OP2,use_2pi=True,method='glover'):
         # OP2 is a 2*pi - this is better!
 
         # Should we be using I0 instead of IP?  We loose complex with I0...
-        pc = dixon_pc(IP,OP1,method)
+        pc = dixon_pc(IP, OP1, method)
         I0 = np.sqrt(np.abs(IP)*np.abs(OP2))
         pcOP1 = pc*np.abs(OP1)
         W = (I0 + pcOP1)/2
         F = (I0 - pcOP1)/2
 
-    return(W,F,phi)
+    return(W, F, phi)
 
-def dixon_3pt_eam(I0,I1,I2,method='glover'):
+def dixon_3pt_eam(I0, I1, I2, method='glover'):
     '''Three point Dixon including echo amplitude modulation (EAM).
 
     I0 -- In-phase image (corresponding to phi_0 phase).
@@ -174,15 +180,15 @@ def dixon_3pt_eam(I0,I1,I2,method='glover'):
 
     # Find A, the susceptibility dephasing map, and pc values
     A = np.sqrt(np.abs(I2)/np.abs(I0))
-    pc = dixon_pc(I0,I1,method)
+    pc = dixon_pc(I0, I1, method)
 
     pcI1 = pc*np.abs(I1)/A
     W = (np.abs(I0) + pcI1)/2
     F = (np.abs(I0) - pcI1)/2
 
-    return(W,F,A)
+    return(W, F, A)
 
-def dixon_3pt_dpe(I0,I1,I2,theta):
+def dixon_3pt_dpe(I0, I1, I2, theta):
     '''Three point Dixon using direct phase encoding (DPE).
 
     Note that theta_0 + theta should not be a multiple of pi!
@@ -198,4 +204,4 @@ def dixon_3pt_dpe(I0,I1,I2,theta):
     W = np.abs((I1 + delI)/2)
     F = np.abs((I1 - delI)/2)
 
-    return(W,F)
+    return(W, F)

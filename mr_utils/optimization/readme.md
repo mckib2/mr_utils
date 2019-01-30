@@ -81,12 +81,32 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.optimization.linesearch
+    mr_utils.optimization.linesearch - Linesearch functions.
+
+DESCRIPTION
+    Once we have a direction to step, for example, the negative gradient direction
+    in a gradient descent algorithm, then we need to know how big of a step to
+    take.  If we take too large or small a step, we may not find the minumum of
+    the object function along the line we are stepping.  A linesearch attempts to
+    find the optimal step size in a given direction with minimal gradient and
+    objective evaluations.
 
 FUNCTIONS
     linesearch(obj, x0, a0, s)
+        More sophisticated linesearch.
+        
+        obj -- Objective function.
+        x0 -- Current location.
+        a0 -- Current guess at stepsize.
+        s -- Search direction.
     
     linesearch_quad(f, x, a, s)
+        Simple quadratic linesearch.
+        
+        f -- Objective function.
+        x -- Current location.
+        a -- Guess for stepsize.
+        s -- Search direction.
 
 
 ```
