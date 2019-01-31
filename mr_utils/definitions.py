@@ -12,11 +12,9 @@ try:
         BART_PATH = None
     else:
         BART_PATH = os.environ['TOOLBOX_PATH'] + '/python'
-except:
+except KeyError:
     BART_PATH = None
 
 # Check for siemens_to_ismrmrd
-if find_executable('siemens_to_ismrmrd') is not None:
-    SIEMENS_TO_ISMRMRD_INSTALLED = True
-else:
-    SIEMENS_TO_ISMRMRD_INSTALLED = False
+SIEMENS_TO_ISMRMRD_INSTALLED = find_executable(
+    'siemens_to_ismrmrd') is not None
