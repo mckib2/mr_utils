@@ -245,7 +245,7 @@ def gre_sim(T1, T2, TR=12e-3, TE=6e-3, alpha=np.pi/3, field_map=None, phi=0,
     Returns complex transverse magnetization (Mx + 1j*My)
     '''
 
-    if isinstance(T1, np.ndarray):
+    if not isinstance(T1, np.ndarray):
         T1 = np.array([T1])
         T2 = np.array([T2])
         M0 = np.array([M0])
@@ -289,8 +289,10 @@ def gre_sim(T1, T2, TR=12e-3, TE=6e-3, alpha=np.pi/3, field_map=None, phi=0,
     c_ra = np.cos(rotation_angle)
     s_ra = np.sin(rotation_angle)
 
-    # Heavy lifting function run each iteration
+
     def iter_fun(Mgre, phi=0):
+        '''Heavy lifting function run each iteration'''
+
         # relaxation
         Mgre[0, 1, ...] = Mgre[0, 0, ...]*E2 # x
         Mgre[1, 1, ...] = Mgre[1, 0, ...]*E2 # y
