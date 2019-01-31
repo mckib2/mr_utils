@@ -20,7 +20,7 @@ setup(
     name='mr_utils',
     version='0.0.0',
     author='Nicholas McKibben',
-    author_email='nicholas@gmail.com',
+    author_email='nicholas.bgp@gmail.com',
     packages=find_packages(),
     scripts=[],
     url='https://github.com/mckib2/mr_utils',
