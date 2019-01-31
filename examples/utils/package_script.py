@@ -10,6 +10,6 @@ if __name__ == '__main__':
 
     filename = os.path.join(
         ROOT_DIR, 'mr_utils', 'recon', 'ssfp', 'gs_recon.py')
-    print(filename)
 
-    package_script(filename, existing_modules=['numpy', 'scipy'])
+    val = package_script(filename, existing_modules=['numpy', 'scipy', 'h5py'])
+    print(val)
