@@ -70,14 +70,20 @@ if __name__ == '__main__':
     sparsify = lambda x: cdf97_2d_forward(x, level)[0]
     unsparsify = lambda x: cdf97_2d_inverse(x, locations)
 
-    # How should we reorder?
-    # _,reordering_r = sort2d(x.real)
-    # _,reordering_i = sort2d(x.imag)
-    # reordering = reordering_r + 1j*reordering_i
-    # def reorder(x_hat):
-    #     '''True reordering.'''
-    #     global reordering
-    #     return(reordering)
+    #Some reordering strategies
+    def true_reorder(_x_hat):
+        '''True reordering.'''
+        _, reordering_r = sort2d(x.real)
+        _, reordering_i = sort2d(x.imag)
+        reordering = reordering_r + 1j*reordering_i
+        return reordering
+
+    def reorder_once(_x_hat):
+        '''True reordering.'''
+        _, reordering_r = sort2d(uft.inverse_ortho(y).real)
+        _, reordering_i = sort2d(uft.inverse_ortho(y).imag)
+        reordering = reordering_r + 1j*reordering_i
+        return reordering
 
     def reorder_every_iter(x_hat):
         '''Update reordering every iteration based on current estimate.'''
@@ -85,8 +91,11 @@ if __name__ == '__main__':
         _, reordering_i = sort2d(x_hat.imag)
         return reordering_r + 1j*reordering_i
 
-    reorder = reorder_every_iter
-    # reorder = None  # no reordering
+    # Comment and uncomment to see the effects of ordering strategies
+    # reorder = true_reorder
+    # reorder = reorder_once
+    # reorder = reorder_every_iter
+    reorder = None  # no reordering
 
     # selectives = [ None,select_n,select_patch ]
     selectives = [None, select_n]

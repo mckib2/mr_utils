@@ -99,6 +99,8 @@ class GadgetronConfig(object):
                 dll_el.text = 'gadgetron_epi'
             elif 'gtplus' in name.lower() or 'gtplus' in classname.lower():
                 dll_el.text = 'gadgetronPlus'
+            elif 'python' in name.lower() or 'python' in classname.lower():
+                dll_el.text = 'gadgetron_python'
             else:
                 dll_el.text = 'gadgetron_mricore'
         else:

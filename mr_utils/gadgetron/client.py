@@ -8,6 +8,7 @@ import pathlib
 import argparse
 import datetime
 from tempfile import NamedTemporaryFile
+import socket
 import logging
 import warnings
 with warnings.catch_warnings():
@@ -15,10 +16,10 @@ with warnings.catch_warnings():
     import ismrmrd
     import h5py
 
+from tqdm import trange
+
 from mr_utils.load_data import load_raw
 from . import gtconnector as gt
-
-logger = logging.getLogger(__name__)
 
 def client(
         data,
@@ -51,21 +52,17 @@ def client(
     if out_group is None:
         out_group = str(datetime.datetime.now())
 
-    # Initialize logging
-    console = logging.StreamHandler()
-    console.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
-    console.setLevel(logging.DEBUG)
-    logger.addHandler(console)
-
     # If user wanted to be verbose, let's give them verbose, otherwise just
     # tell them about warnings
     if verbose:
-        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(format='%(levelname)s: %(message)s',
+                            level=logging.DEBUG)
     else:
-        logger.setLevel(logging.WARNING)
+        logging.basicConfig(format='%(levelname)s: %(message)s',
+                            level=logging.WARNING)
 
     # The magic happens in the connector
-    logger.debug('Instantiating Connector')
+    logging.debug('Instantiating Connector')
     con = gt.Connector()
 
     ## Register all the readers we need:
@@ -75,7 +72,7 @@ def client(
     # store the output in and then kill it when we're done.
     if outfile is None:
         outfile = NamedTemporaryFile().name
-    logger.debug('Writing to filename: %s', outfile)
+    logging.debug('Writing to filename: %s', outfile)
 
     # Image message readers
     for im_id in [
@@ -109,15 +106,15 @@ def client(
         if port is None:
             port = profile.get_config_val('gadgetron.port')
 
-    logger.debug('Connecting to Gadgetron @ %s:%d', address, port)
+    logging.debug('Connecting to Gadgetron @ %s:%d', address, port)
     con.connect(address, port)
 
     # Find the configuration file we need
     if config_local:
-        logger.debug('Sending gadgetron configuration script %s', config_local)
+        logging.debug('Sending gadgetron configuration script...')
         con.send_gadgetron_configuration_script(config_local)
     else:
-        logger.debug('Sending gadgetron configuration filename %s', config)
+        logging.debug('Sending gadgetron configuration filename %s', config)
         con.send_gadgetron_configuration_file(config)
 
 
@@ -151,24 +148,26 @@ def client(
     con.send_gadgetron_parameters(xml_config)
 
     # Next, send each acquisition to gadgetron
-    for idx in range(dset.number_of_acquisitions()):
-        logger.debug('Sending acquisition %d', idx)
+    for idx in trange(dset.number_of_acquisitions(), desc='Send', leave=False):
         acq = dset.read_acquisition(idx)
         try:
             con.send_ismrmrd_acquisition(acq)
-        except:
-            logger.error('Failed to send acquisition %d', idx)
-            return
+        except socket.error as msg:
+            logging.error('Failed to send acquisition %d', idx)
+            print(msg)
+            return None
 
-
-    logger.debug('Sending close message to Gadgetron')
+    logging.debug('Sending close message to Gadgetron')
     con.send_gadgetron_close()
     con.wait()
 
     # Convert the hdf5 file into something we can use and send it back
     with h5py.File(outfile, 'r') as f:
-        data = f[out_group]['image_0']['data'][:]
-        header = f[out_group]['image_0']['header'][:]
+        # Group might not be image_0
+        data = f[out_group][list(f[out_group].keys())[0]]['data'][:]
+        header = f[out_group][list(f[out_group].keys())[0]]['header'][:]
+        # data = f[out_group]['image_0']['data'][:]
+        # header = f[out_group]['image_0']['header'][:]
     return(data, header)
 
 if __name__ == '__main__':
