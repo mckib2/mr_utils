@@ -30,6 +30,9 @@ def client(
         out_group=None,
         config='default.xml',
         config_local=None,
+        script=None,
+        existing_modules=['numpy', 'scipy', 'h5py'],
+        script_dir=None,
         verbose=False):
     '''Send acquisitions to Gadgetron.
 
@@ -43,6 +46,9 @@ def client(
     out_group -- Output group name if file is written.
     config -- Remote configuration file.
     config_local -- Local configuration file.
+    script -- File path to the Python script to be bundled and transfered.
+    existing_modules -- Python packages to exclude from bundling.
+    script_dir -- Directory to send script on remote machine.
     verbose -- Verbose mode.
 
     out_group=None will use the current date as the group name.
@@ -60,6 +66,12 @@ def client(
     else:
         logging.basicConfig(format='%(levelname)s: %(message)s',
                             level=logging.WARNING)
+
+    # First thing's first, we need to send the python script over!
+    if script is not None:
+        raise NotImplementedError()
+        from mr_utils.utils import package_script
+        package_script(script, existing_modules=existing_modules)
 
     # The magic happens in the connector
     logging.debug('Instantiating Connector')
