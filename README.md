@@ -731,7 +731,7 @@ DESCRIPTION
     Keeps same command line interface, but allows for import into scripts.
 
 FUNCTIONS
-    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, verbose=False)
+    client(data, address=None, port=None, outfile=None, in_group='/dataset', out_group=None, config='default.xml', config_local=None, script=None, existing_modules=['numpy', 'scipy', 'h5py'], script_dir=None, verbose=False)
         Send acquisitions to Gadgetron.
         
         This client allows you to connect to a Gadgetron server and process data.
@@ -744,6 +744,9 @@ FUNCTIONS
         out_group -- Output group name if file is written.
         config -- Remote configuration file.
         config_local -- Local configuration file.
+        script -- File path to the Python script to be bundled and transfered.
+        existing_modules -- Python packages to exclude from bundling.
+        script_dir -- Directory to send script on remote machine.
         verbose -- Verbose mode.
         
         out_group=None will use the current date as the group name.
