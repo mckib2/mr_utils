@@ -123,3 +123,22 @@ FUNCTIONS
 
 ```
 
+
+## mr_utils.gadgetron.configs.python
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/gadgetron/configs/python.py)
+
+```
+NAME
+    mr_utils.gadgetron.configs.python - Configs including python Gadgets.
+
+FUNCTIONS
+    python()
+        python.xml
+    
+    python_short()
+        python_short.xml
+
+
+```
+

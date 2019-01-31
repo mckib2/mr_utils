@@ -176,6 +176,43 @@ FUNCTIONS
 ```
 
 
+## mr_utils.utils.package_script
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/package_script.py)
+
+```
+NAME
+    mr_utils.utils.package_script - Package a script together with all its dependencies.
+
+DESCRIPTION
+    For example, on a remote computer I know for a fact that numpy and scipy are
+    available, but I cannot or cannot easily gaurantee that module x will be
+    installed.  I want to run script MyScript.py on this remote machine, but it
+    depends on module x.  package_script() will recurse through MyScript.py and
+    prepend module x (and all of module x's dependencies down to numpy, scipy, and
+    default python modules, assuming I've set existing_modules=['numpy', 'scipy']).
+
+FUNCTIONS
+    get_imports(filename, existing_modules=None)
+        Removes import statements and gets filenames of where imports are.
+    
+    get_std_lib()
+        Get list of all Python standard library modules.
+    
+    package_script(filename, existing_modules=None)
+        Package a script together with all dependencies.
+        
+        filename -- Path to Python script we wish to package.
+        existing_modules -- List of terminating modules.
+        
+        "Terminating module" is a module we assume is available on the machine we
+        want to run the packaged script on.  These are python's built-in modules
+        plus all existing_modules specified by caller.
+
+
+```
+
+
 ## mr_utils.utils.percent_ripple
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/percent_ripple.py)

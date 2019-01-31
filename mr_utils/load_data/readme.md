@@ -232,7 +232,7 @@ NAME
 CLASSES
     paramiko.transport.Transport(threading.Thread, paramiko.util.ClosingContextManager)
         FastTransport
-    tqdm._tqdm.tqdm(builtins.object)
+    tqdm._tqdm.tqdm(tqdm._utils.Comparable)
         TqdmWrap
     
     class FastTransport(paramiko.transport.Transport)
@@ -1088,6 +1088,7 @@ CLASSES
      |  Method resolution order:
      |      TqdmWrap
      |      tqdm._tqdm.tqdm
+     |      tqdm._utils.Comparable
      |      builtins.object
      |  
      |  Methods defined here:
@@ -1102,16 +1103,7 @@ CLASSES
      |  
      |  __enter__(self)
      |  
-     |  __eq__(self, other)
-     |      Return self==value.
-     |  
      |  __exit__(self, *exc)
-     |  
-     |  __ge__(self, other)
-     |      Return self>=value.
-     |  
-     |  __gt__(self, other)
-     |      Return self>value.
      |  
      |  __hash__(self)
      |      Return hash(self).
@@ -1145,9 +1137,9 @@ CLASSES
      |          fallback is a meter width of 10 and no limit for the counter and
      |          statistics. If 0, will not print any meter (only stats).
      |      mininterval  : float, optional
-     |          Minimum progress display update interval, in seconds [default: 0.1].
+     |          Minimum progress display update interval [default: 0.1] seconds.
      |      maxinterval  : float, optional
-     |          Maximum progress display update interval, in seconds [default: 10].
+     |          Maximum progress display update interval [default: 10] seconds.
      |          Automatically adjusts `miniters` to correspond to `mininterval`
      |          after long display update lag. Only works if `dynamic_miniters`
      |          or monitor thread is enabled.
@@ -1183,11 +1175,13 @@ CLASSES
      |          (current/instantaneous speed) [default: 0.3].
      |      bar_format  : str, optional
      |          Specify a custom bar string formatting. May impact performance.
-     |          If unspecified, will use '{l_bar}{bar}{r_bar}', where l_bar is
-     |          '{desc}: {percentage:3.0f}%|' and r_bar is
-     |          '| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
-     |          Possible vars: bar, n, n_fmt, total, total_fmt, percentage,
-     |          rate, rate_fmt, elapsed, remaining, l_bar, r_bar, desc.
+     |          [default: '{l_bar}{bar}{r_bar}'], where
+     |          l_bar='{desc}: {percentage:3.0f}%|' and
+     |          r_bar='| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, '
+     |            '{rate_fmt}{postfix}]'
+     |          Possible vars: l_bar, bar, r_bar, n, n_fmt, total, total_fmt,
+     |            percentage, rate, rate_fmt, rate_noinv, rate_noinv_fmt,
+     |            rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
      |          Note that a trailing ": " is automatically removed after {desc}
      |          if the latter is empty.
      |      initial  : int, optional
@@ -1197,10 +1191,9 @@ CLASSES
      |          Specify the line offset to print this bar (starting from 0)
      |          Automatic if unspecified.
      |          Useful to manage multiple bars at once (eg, from threads).
-     |      postfix  : dict, optional
+     |      postfix  : dict or *, optional
      |          Specify additional stats to display at the end of the bar.
-     |          Note: postfix is a dict ({'key': value} pairs) for this method,
-     |          not a string.
+     |          Calls `set_postfix(**postfix)` if possible (dict).
      |      unit_divisor  : float, optional
      |          [default: 1000], ignored unless `unit_scale` is True.
      |      gui  : bool, optional
@@ -1215,16 +1208,7 @@ CLASSES
      |  __iter__(self)
      |      Backward-compatibility to use: for x in tqdm(iterable)
      |  
-     |  __le__(self, other)
-     |      Return self<=value.
-     |  
      |  __len__(self)
-     |  
-     |  __lt__(self, other)
-     |      Return self<value.
-     |  
-     |  __ne__(self, other)
-     |      Return self!=value.
      |  
      |  __repr__(self, elapsed=None)
      |      Return repr(self).
@@ -1340,6 +1324,21 @@ CLASSES
      |  __new__(cls, *args, **kwargs)
      |      Create and return a new object.  See help(type) for accurate signature.
      |  
+     |  ema(x, mu=None, alpha=0.3)
+     |              Exponential moving average: smoothing to give progressively lower
+     |              weights to older values.
+     |      
+     |      Parameters
+     |      ----------
+     |      x  : float
+     |          New value to include in EMA.
+     |      mu  : float, optional
+     |          Previous EMA value.
+     |      alpha  : float, optional
+     |          Smoothing factor in range [0, 1], [default: 0.3].
+     |          Increase to give more weight to recent values.
+     |                      Ranges from 0 (yields mu) to 1 (yields x).
+     |  
      |  format_interval(t)
      |      Formats a number of seconds as a clock time, [H:]MM:SS
      |      
@@ -1347,6 +1346,7 @@ CLASSES
      |      ----------
      |      t  : int
      |          Number of seconds.
+     |      
      |      Returns
      |      -------
      |      out  : str
@@ -1398,16 +1398,31 @@ CLASSES
      |            rate_inv, rate_inv_fmt, elapsed, remaining, desc, postfix.
      |          Note that a trailing ": " is automatically removed after {desc}
      |          if the latter is empty.
-     |      postfix  : str, optional
+     |      postfix  : *, optional
      |          Similar to `prefix`, but placed at the end
      |          (e.g. for additional stats).
-     |          Note: postfix is a string for this method. Not a dict.
+     |          Note: postfix is usually a string (not a dict) for this method,
+     |          and will if possible be set to postfix = ', ' + postfix.
+     |          However other types are supported (#382).
      |      unit_divisor  : float, optional
      |          [default: 1000], ignored unless `unit_scale` is True.
      |      
      |      Returns
      |      -------
      |      out  : Formatted meter and stats, ready to display.
+     |  
+     |  format_num(n)
+     |      Intelligent scientific notation (.3g).
+     |      
+     |      Parameters
+     |      ----------
+     |      n  : int or float or Numeric
+     |          A Number.
+     |      
+     |      Returns
+     |      -------
+     |      out  : str
+     |          Formatted number.
      |  
      |  format_sizeof(num, suffix='', divisor=1000)
      |      Formats a number (greater than unity) with SI Order of Magnitude
@@ -1433,20 +1448,41 @@ CLASSES
      |      updating may not work (it will print a new line at each refresh).
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors inherited from tqdm._tqdm.tqdm:
+     |  Data and other attributes inherited from tqdm._tqdm.tqdm:
+     |  
+     |  monitor = None
+     |  
+     |  monitor_interval = 10
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from tqdm._utils.Comparable:
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __ge__(self, other)
+     |      Return self>=value.
+     |  
+     |  __gt__(self, other)
+     |      Return self>value.
+     |  
+     |  __le__(self, other)
+     |      Return self<=value.
+     |  
+     |  __lt__(self, other)
+     |      Return self<value.
+     |  
+     |  __ne__(self, other)
+     |      Return self!=value.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from tqdm._utils.Comparable:
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data and other attributes inherited from tqdm._tqdm.tqdm:
-     |  
-     |  monitor = None
-     |  
-     |  monitor_interval = 10
 
 FUNCTIONS
     s2i_client(filename, put_file=True, get_file=True, cleanup_raw=True, cleanup_processed=True, remote_dir='/tmp', host=None, port=22, username=None, ssh_key=None, password=None, debug_level=20)
