@@ -50,6 +50,7 @@ class BartholomewObject(object):
 
     def __getattr__(self, name, *args, **kwargs):
         def function(*args, **kwargs):
+            '''Pass arguments to the real_bart function.'''
 
             # Make sure function user asked for is a BART function
             if name not in self.commands:

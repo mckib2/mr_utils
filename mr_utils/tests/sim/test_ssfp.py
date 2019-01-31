@@ -105,7 +105,7 @@ class EllipticalSignalTestCase(unittest.TestCase):
         from mr_utils.sim.ssfp import spectrum
 
         # This is mostly just to show how it's used
-        sig = spectrum(self.T1, self.T2, self.TR, self.alpha)
+        _sig = spectrum(self.T1, self.T2, self.TR, self.alpha)
         # plt.subplot(2,1,1)
         # plt.plot(np.abs(sig))
         # plt.subplot(2,1,2)
