@@ -1,8 +1,8 @@
 '''Acquire pairs of points that are close together (i.e., dtheta small).
 
 Given a spectral profile, d(theta), any two points sampled along d(theta), say
-m0 and m1, do not constrain d(theta) to single possible profile.  Normally, we
-sample at theta=0 and theta=180 degrees and then do a sum of squares for
+m0 and m1, do not constrain d(theta) to a single possible profile.  Normally,
+we sample at theta=0 and theta=180 degrees and then do a sum of squares for
 optimal SNR banding reduction.  However, if we choose dtheta small, then we can
 constrain d(theta) by two points plus the approximate derivative,
 d/dtheta d(theta), at (theta1 - theta0)/2.
@@ -32,13 +32,19 @@ if __name__ == '__main__':
     T2 = 0.8
     df = .3/TR
     phase_cycs = [0, np.pi]
-    print('phase cycles: ', phase_cycs)
     use_offset = True
+    add_noise = False
+    sigma = 1e-19 # we need to do some scaling - we're down in the weeds
 
     # Simulate acquisitions
     acqs = np.zeros(len(phase_cycs), dtype='complex')
     for ii, phase_cyc in enumerate(phase_cycs):
         acqs[ii] = ssfp(T1, T2, TR, alpha, df, phase_cyc=phase_cyc)
+
+    # Add complex valued noise Gaussian noise to real/imag channels
+    if add_noise:
+        acqs += np.random.normal(0, sigma, acqs.shape) \
+            + 1j*np.random.normal(0, sigma, acqs.shape)
 
     # Make a dictionary
     keys = get_keys(T1s, T2s, np.atleast_1d(alpha))
@@ -49,19 +55,23 @@ if __name__ == '__main__':
     # Find out where the second acquisition should be relative to first
     idx_away = (phase_cycs[1] - phase_cycs[0])/(2*np.pi)*(1/TR)
     idx_away = np.around(idx_away/(2/TR)*dfs.size).astype(int)
-    print(idx_away)
+    # print(idx_away)
 
     # Find error at each dictionary df
     err = np.zeros(D.shape)
     for ii in range(dfs.size):
         if use_offset:
 
+            # Use Euclidean distance
             tmp1 = np.abs(D[ii, :] - acqs[0, None])
             tmp2 = np.abs(D[ii, :] - acqs[1, None])
             err[ii, :] = tmp1 + tmp2
 
+            # # Here's where we need a term to do something with difference
+            # diff = acqs[1] - acqs[0]
+
         else:
-            err[ii, :] = np.abs(D[ii, :] - acqs[0])
+            err[ii, :] = np.abs(D[ii, :] - acqs[0, None])
 
     # Look up the best match
     idx = np.unravel_index(np.argmin(err), D.shape)
@@ -70,12 +80,13 @@ if __name__ == '__main__':
              np.abs(acqs), '*')
     plt.show()
 
+    # Let's see how we did:
     print('Found:')
-    print('    df: %g' % dfs[idx[0]])
-    print('    T1: %g' % keys[0, idx[1]])
-    print('    T2: %g' % keys[1, idx[1]])
+    print('    df: %g Hz' % dfs[idx[0]])
+    print('    T1: %g sec' % keys[0, idx[1]])
+    print('    T2: %g sec' % keys[1, idx[1]])
 
     print('True:')
-    print('    df: %g' % df)
-    print('    T1: %g' % T1)
-    print('    T2: %g' % T2)
+    print('    df: %g Hz' % df)
+    print('    T1: %g sec' % T1)
+    print('    T2: %g sec' % T2)
