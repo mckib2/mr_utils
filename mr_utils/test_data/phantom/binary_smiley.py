@@ -1,3 +1,5 @@
+'''Simple numerical phantom shaped like a smiley face.  Value either 1 or 0.'''
+
 import numpy as np
 
 def binary_smiley(N):
@@ -6,12 +8,12 @@ def binary_smiley(N):
     N -- Height and width in pixels.
     '''
 
-    smiley = np.zeros((N,N))
+    smiley = np.zeros((N, N))
 
     # make circle for head
     radius = 0.75
-    x,h = np.linspace(-1,1,N,retstep=True)
-    X,Y = np.meshgrid(x,x)
+    x, _h = np.linspace(-1, 1, N, retstep=True)
+    X, Y = np.meshgrid(x, x)
     idx = np.sqrt(X**2 + Y**2) < radius
     smiley[idx] = 1
 
@@ -31,4 +33,4 @@ def binary_smiley(N):
     idx &= Y < 1/2*radius + .05
     smiley[idx] = 0
 
-    return(smiley)
+    return smiley

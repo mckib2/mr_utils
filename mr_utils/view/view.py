@@ -46,6 +46,7 @@ def view(
         image,
         load_opts={},
         is_raw=None,
+        is_line=None,
         prep=None,
         fft=False,
         fft_axes=None,
@@ -73,6 +74,7 @@ def view(
     load_opts -- Options to pass to data loader.
 
     is_raw -- Inform if data is raw. Will attempt to guess from extension.
+    is_line -- Whether or not this is a line plot (as opposed to image).
     prep -- Lambda function to process the data before it's displayed.
 
     fft -- Whether or not to perform n-dimensional FFT of data.
@@ -138,7 +140,7 @@ def view(
             if data is None:
                 data = load_mat(image, **load_opts)
         elif ext == '.h5':
-            raise NotImplementedError();
+            raise NotImplementedError()
         else:
             raise Exception('File type %s not understood!' % ext)
 
@@ -338,6 +340,10 @@ def view(
     if callable(prep):
         data = prep(data)
 
+    # If it's just a line plot, skip all the montage, movie stuff
+    if is_line:
+        montage_axis = None
+        movie_axis = None
 
     if montage_axis is not None:
         # We can deal with 4 dimensions if we allow multichannel
@@ -372,7 +378,7 @@ def view(
             im.set_array(data[..., frame])
             return im,  # pylint: disable=R1707
 
-        ani = animation.FuncAnimation(
+        _ani = animation.FuncAnimation(
             fig,
             updatefig,
             frames=data.shape[-1],
@@ -383,7 +389,7 @@ def view(
         if not test_run:
             plt.show()
     else:
-        if data.ndim == 1:
+        if data.ndim == 1 or is_line:
             plt.plot(data)
         elif data.ndim == 2:
             # Just a regular old 2d image...
