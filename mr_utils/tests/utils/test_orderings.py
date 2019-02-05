@@ -3,8 +3,10 @@
 import unittest
 
 import numpy as np
+from scipy.linalg import hadamard
 
-from mr_utils.utils.orderings import colwise, rowwise, inverse_permutation
+from mr_utils.utils.orderings import colwise, rowwise, inverse_permutation, \
+    random_boarding
 
 class TestOrderings(unittest.TestCase):
     '''Test orderings of matrices to make sure we're doing them right.'''
@@ -38,6 +40,18 @@ class TestOrderings(unittest.TestCase):
         self.assertTrue(np.allclose(self.data.flatten()[idx][ridx],
                                     self.data.flatten()))
 
+
+    def test_random_boarding(self):
+        '''Give it a go...'''
+
+        N = 16
+        T = hadamard(N)
+        x = np.random.randn(N, N)
+        idx, f = random_boarding(x, T, return_sorted=True)
+        self.assertTrue(np.allclose(x.flatten()[idx].reshape(f.shape), f))
+
+        # Doesn't always pass...
+        self.assertTrue(np.sum(T - np.sign(f).astype(int) != 0) < N)
 
 if __name__ == '__main__':
     unittest.main()

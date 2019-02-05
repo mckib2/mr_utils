@@ -8,4 +8,4 @@ def find_nearest(array, value):
     '''
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
-    return(idx, array[idx])
+    return(idx, array[np.unravel_index(idx, array.shape)])
