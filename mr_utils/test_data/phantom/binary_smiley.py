@@ -2,16 +2,16 @@
 
 import numpy as np
 
-def binary_smiley(N):
+def binary_smiley(N, radius=.75):
     '''Binary smiley face numerical phantom.
 
     N -- Height and width in pixels.
+    radius -- Radius of circle used for head.
     '''
 
     smiley = np.zeros((N, N))
 
     # make circle for head
-    radius = 0.75
     x, _h = np.linspace(-1, 1, N, retstep=True)
     X, Y = np.meshgrid(x, x)
     idx = np.sqrt(X**2 + Y**2) < radius
