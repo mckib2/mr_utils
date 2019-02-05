@@ -49,12 +49,4 @@ def inverse_permutation(ordering):
     return inverse_ordering
 
 if __name__ == '__main__':
-
-    from mr_utils import view
-    data = np.random.random((10, 5))
-    # idx = colwise(data)
-    idx = rowwise(data)
-    view(data.flatten()[idx].reshape(data.shape))
-
-    ridx = inverse_permutation(idx)
-    assert np.allclose(data.flatten()[idx][ridx], data.flatten())
+    pass
