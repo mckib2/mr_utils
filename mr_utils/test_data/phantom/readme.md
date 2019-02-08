@@ -5,13 +5,14 @@
 
 ```
 NAME
-    mr_utils.test_data.phantom.binary_smiley
+    mr_utils.test_data.phantom.binary_smiley - Simple numerical phantom shaped like a smiley face.  Value either 1 or 0.
 
 FUNCTIONS
-    binary_smiley(N)
+    binary_smiley(N, radius=0.75)
         Binary smiley face numerical phantom.
         
         N -- Height and width in pixels.
+        radius -- Radius of circle used for head.
 
 
 ```
@@ -23,7 +24,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.test_data.phantom.cylinder_2d
+    mr_utils.test_data.phantom.cylinder_2d - Simple cylindrical phantoms generated with different contrasts.
 
 FUNCTIONS
     bssfp_2d_cylinder(TR=0.006, alpha=1.0471975511965976, dims=(64, 64), FOV=((-1, 1), (-1, 1)), radius=0.5, field_map=None, phase_cyc=0, kspace=False)
