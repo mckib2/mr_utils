@@ -36,6 +36,7 @@ out a different data set.  See fourier transform, strange phase.
 import numpy as np
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from skimage.measure import compare_mse, compare_ssim
 
 from mr_utils.test_data import SCRReordering
 from mr_utils import view
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     alpha = .008
     selective = select_n  # or None
     ignore = False
-    disp = True
+    disp = False
 
     # Reordering strategies
     k = .99
@@ -130,6 +131,12 @@ if __name__ == '__main__':
         idx_rw = idx_r + 1j*idx_i
         reorder_rw = lambda x: idx_rw
 
+        # Composite reordering
+        tmp = prior.real[np.unravel_index(reordering_r, prior.shape)] \
+            + 1j*prior.imag[np.unravel_index(reordering_i, prior.shape)]
+        idx2 = bulk_up(tmp.reshape(prior.shape), sparsify, unsparsify, k)
+        idx_cp = reordering_r[idx2] + 1j*reordering_i[idx2]
+        reorder_cp = lambda x: idx_cp
 
         # How good did we reorder?
         sh = imspace.shape
@@ -147,6 +154,7 @@ if __name__ == '__main__':
         s2d_true = get_true(idx_ro)
         col_true = get_true(idx_cw)
         row_true = get_true(idx_rw)
+        comp_true = get_true(idx_cp)
 
         # Get the sorted coefficients
         coeffs0 = -np.sort(-np.abs(sparsify(imspace).flatten()))
@@ -155,6 +163,7 @@ if __name__ == '__main__':
         coeffs_2d = -np.sort(-np.abs(sparsify(s2d_true).flatten()))
         coeffs_col = -np.sort(-np.abs(sparsify(col_true).flatten()))
         coeffs_row = -np.sort(-np.abs(sparsify(row_true).flatten()))
+        coeffs_comp = -np.sort(-np.abs(sparsify(comp_true).flatten()))
 
         # Plot them on a log axis so we can see what's going on
         plt.semilogy(coeffs0, '-', label='True coeffs')
@@ -163,6 +172,7 @@ if __name__ == '__main__':
         plt.semilogy(coeffs_2d, label='sort2d coeffs')
         plt.semilogy(coeffs_col, label='CW coeffs')
         plt.semilogy(coeffs_row, label='RW coeffs')
+        plt.semilogy(coeffs_comp, label='CP coeffs')
         plt.legend()
         plt.show(block=True)
 
@@ -204,4 +214,23 @@ if __name__ == '__main__':
                        alpha=alpha, selective=selective, x=imspace,
                        ignore_residual=ignore, disp=disp, maxiter=maxiter)
 
-    view(np.stack((imspace, imspace_u, x_no, x_ro, x_bu, x_wd, x_cw, x_rw)))
+    x_cp = proximal_GD(kspace_u, forward_fun=uft.forward,
+                       inverse_fun=uft.inverse, sparsify=sparsify,
+                       unsparsify=unsparsify, reorder_fun=reorder_cp,
+                       alpha=alpha, selective=selective, x=imspace,
+                       ignore_residual=ignore, disp=disp, maxiter=maxiter)
+
+    # Let's see how we did
+    ys = [x_no, x_ro, x_bu, x_wd, x_cw, x_rw, x_cp]
+    xs = ['None', 'sort2d', 'BU', 'WD', 'Col', 'Row', 'Comp']
+    absx = np.abs(imspace)
+    plt.figure()
+    plt.scatter(xs, [compare_mse(absx, np.abs(x)) for x in ys])
+    plt.title('MSE')
+    plt.show(block=False)
+    plt.figure()
+    plt.scatter(xs, [compare_ssim(absx, np.abs(x)) for x in ys])
+    plt.title('SSIM')
+    plt.show()
+
+    view(np.stack((imspace, imspace_u, *xs)))

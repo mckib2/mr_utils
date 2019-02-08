@@ -24,6 +24,7 @@ def proximal_GD(
         reorder_fun=None,
         mode='soft',
         alpha=.5,
+        thresh_sep=False,
         selective=None,
         x=None,
         ignore_residual=False,
@@ -40,6 +41,7 @@ def proximal_GD(
     unreorder_fun --
     mode -- Thresholding mode: {'soft','hard','garotte','greater','less'}.
     alpha -- Step size, used for thresholding.
+    thresh_sep -- Whether or not to threshold real/imag individually.
     selective -- Function returning indicies of update to keep at each iter.
     x -- The true image we are trying to reconstruct.
     ignore_residual -- Whether or not to break out of loop if resid increases.
@@ -77,7 +79,7 @@ def proximal_GD(
             logging.info(line)
     else:
         # Use tqdm to give us an idea of how fast we're going
-        from tqdm import trange
+        from tqdm import trange, tqdm
         range_fun = lambda x: trange(x, leave=False, desc='Proximal GD')
 
     # Initialize
@@ -92,8 +94,12 @@ def proximal_GD(
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
         if not ignore_residual and stop_criteria > prev_stop_criteria:
-            logging.warning('Breaking out of loop after %d iterations. \
-                Norm of residual increased!', ii)
+            msg = ('Breaking out of loop after %d iterations. '
+                   'Norm of residual increased!' % ii)
+            if tqdm is not None:
+                tqdm.write(msg)
+            else:
+                logging.warning(msg)
             break
         prev_stop_criteria = stop_criteria
 
@@ -115,8 +121,14 @@ def proximal_GD(
         # Take the step, we would normally assign x_hat directly, but because
         # we might be reordering and selectively updating, we'll store it in
         # a temporary variable...
-        update = unsparsify(
-            threshold(sparsify(grad_step), value=alpha, mode=mode))
+        if thresh_sep:
+            tmp = sparsify(grad_step)
+            tmp_r = threshold(tmp.real, value=alpha, mode=mode)
+            tmp_i = threshold(tmp.imag, value=alpha, mode=mode)
+            update = unsparsify(tmp_r + 1j*tmp_i)
+        else:
+            update = unsparsify(
+                threshold(sparsify(grad_step), value=alpha, mode=mode))
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
