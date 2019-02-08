@@ -54,12 +54,12 @@ def proximal_GD(
     not throw away any updates.
     '''
 
-    # Make sure compare_mse is defined
+    # Make sure compare_mse, compare_ssim is defined
     if x is None:
         compare_mse = lambda xx, yy: 0
-        logging.info('No true x provided, MSE will not be calculated.')
+        logging.info('No true x provided, MSE/SSIM will not be calculated.')
     else:
-        from skimage.measure import compare_mse
+        from skimage.measure import compare_mse, compare_ssim
         xabs = np.abs(x) # Precompute absolute value of true image
 
     # Get some display stuff happening
@@ -69,16 +69,16 @@ def proximal_GD(
 
         from mr_utils.utils.printtable import Table
         table = Table(
-            ['iter', 'norm', 'MSE'],
-            [len(repr(maxiter)), 8, 8],
-            ['d', 'e', 'e'])
+            ['iter', 'norm', 'MSE', 'SSIM'],
+            [len(repr(maxiter)), 8, 8, 8],
+            ['d', 'e', 'e', 'e'])
         hdr = table.header()
         for line in hdr.split('\n'):
             logging.info(line)
     else:
         # Use tqdm to give us an idea of how fast we're going
         from tqdm import trange
-        range_fun = trange
+        range_fun = lambda x: trange(x, leave=False, desc='Proximal GD')
 
     # Initialize
     x_hat = np.zeros(y.shape, dtype=y.dtype)
@@ -137,9 +137,11 @@ def proximal_GD(
 
         # Tell the user what happened
         if disp:
+            curxabs = np.abs(x_hat)
             logging.info(
                 table.row(
-                    [ii, stop_criteria, compare_mse(np.abs(x_hat), xabs)]))
+                    [ii, stop_criteria, compare_mse(curxabs, xabs),
+                     compare_ssim(curxabs, xabs)]))
 
         # Compute residual
         r = forward_fun(x_hat) - y

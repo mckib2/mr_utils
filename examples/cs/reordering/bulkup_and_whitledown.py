@@ -1,7 +1,7 @@
-'''A couple strategies for manipulating coefficient power.
+'''A couple strategies for manipulating sparse coefficients.
 
 This seems to depend a lot on the transform you want to be sparse in.  We
-choose the DCT and CDF 9/7 wavelet transform for this example.
+choose the DCT amnd CDF 9/7 wavelet for this example.
 
 For the DCT, both techniques appear better than no reordering and are about
 equivalent.
@@ -36,17 +36,19 @@ if __name__ == '__main__':
     norm = 'ortho'
     Ts.append(lambda x: dct(dct(x, axis=0, norm=norm), axis=1, norm=norm))
     Tis.append(lambda x: idct(idct(x, axis=0, norm=norm), axis=1, norm=norm))
-    assert np.allclose(x, Tis[0](Ts[0](x)))
+    assert np.allclose(x, Tis[-1](Ts[-1](x)))
 
     # Wavelet transform
     level = 3
     _, locs = cdf97_2d_forward(x, level)
     Ts.append(lambda x: cdf97_2d_forward(x, level)[0])
     Tis.append(lambda x: cdf97_2d_inverse(x, locs))
+    assert np.allclose(x, Tis[-1](Ts[-1](x)))
 
     # Tuning parameter for each transform and case, k -- percent of coeffs
     nc = int(.2*x.size)  # number of coefficients to keep for comparison
     ks = [
+        [.1, .9],
         [.1, .9],  # k for bulk_up, whittle_down for DCT
         [.1, .9]]  # k for bulk_up, whittle_down for wavelet
 
