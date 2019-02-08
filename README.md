@@ -4509,12 +4509,18 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.traj.cartesian
+    mr_utils.sim.traj.cartesian - Create sampling patterns for Cartesian k-space trajectories.
 
 FUNCTIONS
     cartesian_gaussian(shape, undersample=(0.5, 0.5), reflines=20)
+        Undersample in Gaussian pattern.
     
     cartesian_pe(shape, undersample=0.5, reflines=20)
+        Randomly collect Cartesian phase encodes (lines).
+        
+        shape -- Shape of the image to be sampled.
+        undersample -- Undersampling factor (0 < undersample <= 1).
+        reflines -- Number of lines in the center to collect regardless.
 
 
 ```
@@ -4652,13 +4658,14 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.test_data.phantom.binary_smiley
+    mr_utils.test_data.phantom.binary_smiley - Simple numerical phantom shaped like a smiley face.  Value either 1 or 0.
 
 FUNCTIONS
-    binary_smiley(N)
+    binary_smiley(N, radius=0.75)
         Binary smiley face numerical phantom.
         
         N -- Height and width in pixels.
+        radius -- Radius of circle used for head.
 
 
 ```
@@ -4670,7 +4677,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.test_data.phantom.cylinder_2d
+    mr_utils.test_data.phantom.cylinder_2d - Simple cylindrical phantoms generated with different contrasts.
 
 FUNCTIONS
     bssfp_2d_cylinder(TR=0.006, alpha=1.0471975511965976, dims=(64, 64), FOV=((-1, 1), (-1, 1)), radius=0.5, field_map=None, phase_cyc=0, kspace=False)
@@ -5285,6 +5292,19 @@ DESCRIPTION
     Hopefully these orderings make the signals more sparse in some domain.
 
 FUNCTIONS
+    brute_force1d(x, T)
+        Given transform matrix, T, sort 1d signal exhaustively.
+        
+        This IS NOT A GOOD IDEA.
+    
+    bulk_up(x, T, Ti, k)
+        Given existing nonzero coefficients, try to make large ones larger.
+        
+        x -- Array to find ordering of.
+        T -- Transform function.
+        Ti -- Inverse transform function.
+        k -- Percent of coefficients to shoot for.
+    
     col_stacked_order(x)
         Find ordering of monotonically varying flattened array, x.
         
@@ -5297,15 +5317,57 @@ FUNCTIONS
         
         x -- Array to find ordering of.
     
+    factorial(...)
+        factorial(x) -> Integral
+        
+        Find x!. Raise a ValueError if x is negative or non-integral.
+    
+    gen_sort1d(x, T)
+        Given 1D transform T, sort 1d signal, x.
+    
     inverse_permutation(ordering)
         Given some permutation, find the inverse permutation.
         
         ordering -- Flattened indicies, such as output of np.argsort.
     
+    random_match(x, T, return_sorted=False)
+        Match x to T as closely as possible pixel by pixel.
+        
+        x -- Array to find ordering of.
+        T -- Target matrix.
+        return_sorted -- Whether or not to return the sorted matrix.
+    
+    random_match_by_col(x, T, return_sorted=False)
+        Given matrix T, choose reordering of x that matches it col by col.
+        
+        x -- Array to find ordering of.
+        T -- Target matrix.
+        return_sorted -- Whether or not to return the sorted matrix.
+    
+    random_search(x, T, k, compare='l1', compare_opts=None, disp=False)
+        Given transform T, find the best of k permutations.
+        
+        x -- Array to find the ordering of.
+        T -- Transform matrix/function that we want x to be sparse under.
+        k -- Number of permutations to try (randomly selected).
+        compare -- How to compare two permutations.
+        compare_opts -- Arguments to pass to compare function.
+        disp -- Verbose mode.
+        
+        compare={'nonzero', 'l1', fun}.
+    
     rowwise(x)
         Find ordering of monotonically varying rows.
         
         x -- Array to find ordering of.
+    
+    whittle_down(x, T, Ti, k)
+        Given existing nonzero coefficients, try to remove lower ones.
+        
+        x -- Array to find ordering of.
+        T -- Transform function.
+        Ti -- Inverse transform function.
+        k -- Percent of coefficients to shoot for.
 
 
 ```
@@ -5505,7 +5567,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.utils.wavelet
+    mr_utils.utils.wavelet - Wrappers for PyWavelets.
 
 FUNCTIONS
     cdf97_2d_forward(x, level)
@@ -5519,12 +5581,64 @@ FUNCTIONS
         each block are located.
         
         Biorthogonal 4/4 is the same as CDF 9/7 according to wikipedia:
-            see https://en.wikipedia.org/wiki/Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
+            see https://en.wikipedia.org/wiki/
+                Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
     
     cdf97_2d_inverse(coeffs, locations)
         Inverse 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
         
         coeffs,locations -- Output of cdf97_2d_forward().
+    
+    combine_chunks(wvlt, shape, dtype=<class 'float'>)
+        Stitch together the output of PyWavelets wavedec2.
+        
+        wvlt -- Output of pywt.wavedec2().
+        shape -- Desired shape.
+        dtype -- Type of numpy array.
+        
+        We have tuples that look like this:
+                                    -------------------
+                                    |        |        |
+                                    | cA(LL) | cH(LH) |
+                                    |        |        |
+        (cA, (cH, cV, cD))  <--->   -------------------
+                                    |        |        |
+                                    | cV(HL) | cD(HH) |
+                                    |        |        |
+                                    -------------------
+    
+    split_chunks(coeffs, locations)
+        Separate the stitched together transform into blocks again.
+        
+        x -- Stitched together wavelet transform.
+        locations -- Indices where the coefficients for each block are located.
+        
+        x, locations are the output of combine_chunks().
+    
+    wavelet_forward(x, wavelet, mode='symmetric', level=None, axes=(-2, -1))
+        Wrapper for the multilevel 2D discrete wavelet transform.
+        
+        x -- Input data.
+        wavelet -- Wavelet to use.
+        mode -- Signal extension mode.
+        level -- Decomposition level (must be >= 0).
+        axes -- Axes over which to compute the DWT.
+        
+        See PyWavelets documentation on pywt.wavedec2() for more information.
+        
+        If level=None (default) then it will be calculated using the dwt_max_level
+        function.
+    
+    wavelet_inverse(coeffs, locations, wavelet, mode='symmetric', axes=(-2, -1))
+        Wrapper for the multilevel 2D inverse discrete wavelet transform.
+        
+        coeffs -- Combined coefficients.
+        locations -- Indices where the coefficients for each block are located.
+        wavelet -- Wavelet to use.
+        mode -- Signal extension mode.
+        axes -- Axes over which to compute the IDWT.
+        
+        coeffs, locations are the output of forward().
 
 
 ```
@@ -5558,13 +5672,14 @@ FUNCTIONS
         filename -- .mat filename.
         ignore_dbl_underscored -- Remove keys beginng with two underscores.
     
-    view(image, load_opts={}, is_raw=None, prep=None, fft=False, fft_axes=None, fftshift=None, avg_axis=None, coil_combine_axis=None, coil_combine_method='walsh', coil_combine_opts={}, is_imspace=False, mag=None, phase=False, log=False, imshow_opts={'cmap': 'gray'}, montage_axis=None, montage_opts={'padding_width': 2}, movie_axis=None, movie_repeat=True, save_npy=False, debug_level=10, test_run=False)
+    view(image, load_opts={}, is_raw=None, is_line=None, prep=None, fft=False, fft_axes=None, fftshift=None, avg_axis=None, coil_combine_axis=None, coil_combine_method='walsh', coil_combine_opts={}, is_imspace=False, mag=None, phase=False, log=False, imshow_opts={'cmap': 'gray'}, montage_axis=None, montage_opts={'padding_width': 2}, movie_axis=None, movie_repeat=True, save_npy=False, debug_level=10, test_run=False)
         Image viewer to quickly inspect data.
         
         image -- Name of the file including the file extension or numpy array.
         load_opts -- Options to pass to data loader.
         
         is_raw -- Inform if data is raw. Will attempt to guess from extension.
+        is_line -- Whether or not this is a line plot (as opposed to image).
         prep -- Lambda function to process the data before it's displayed.
         
         fft -- Whether or not to perform n-dimensional FFT of data.

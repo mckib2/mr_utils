@@ -4,7 +4,7 @@
 import numpy as np
 # import matplotlib.pyplot as plt
 
-from mr_utils.sim.ssfp import ssfp_old
+from mr_utils.sim.ssfp import ssfp
 
 def get_keys(T1s, T2s, alphas):
     '''Generate matrix of params [T1,T2,alpha] to generate a dictionary.
@@ -40,8 +40,19 @@ def ssfp_dictionary(T1s, T2s, TR, alphas, df):
     # Get keys from supplied params
     keys = get_keys(T1s, T2s, alphas)
 
-    # Use more efficient matrix formulation
-    D = ssfp_old(keys[0, :], keys[1, :], TR, keys[2, :], df)
+    # # Use more efficient matrix formulation
+    # D = ssfp_old(keys[0, :], keys[1, :], TR, keys[2, :], df)
+
+    # Right now we have to do it for every alpha because ssfp() can't handle
+    # more than one alpha at a time...
+    D = np.zeros((keys.shape[1], df.size), dtype='complex')
+    for ii, alpha in np.ndenumerate(keys[2, :]):
+        D[ii, :] = ssfp(keys[0, ii], keys[1, ii], TR, alpha, df)
+
+    # D = np.zeros((keys.shape[1], df.size), dtype='complex')
+    # for ii, alpha in np.ndenumerate(keys[2, :]):
+    #     for jj, df0 in  np.ndenumerate(df):
+    #         D[ii, jj] = ssfp(keys[0, ii], keys[1, ii], TR, alpha, df0)
     return(D, keys)
 
 def ssfp_dictionary_for_loop(T1s, T2s, TR, alphas, df):
@@ -51,10 +62,11 @@ def ssfp_dictionary_for_loop(T1s, T2s, TR, alphas, df):
     keys = get_keys(T1s, T2s, alphas)
 
     # Generate dictionary iterating over keys
-    N = np.sum(keys.shape[1])
+    N = keys.shape[1]
     D = np.zeros((N, df.size), dtype='complex')
     for ii in range(N):
-        D[ii, :] = ssfp_old(keys[0, ii], keys[1, ii], TR, keys[2, ii], df)
+        for jj in range(df.size):
+            D[ii, jj] = ssfp(keys[0, ii], keys[1, ii], TR, keys[2, ii], df[jj])
     return(D, keys)
 
 def find_atom(sig, D, keys):

@@ -1,8 +1,15 @@
 '''Test cases for SSFP simulation.'''
 
 import unittest
+
 import numpy as np
 # import matplotlib.pyplot as plt
+
+from mr_utils.sim.ssfp import ssfp, ssfp_dictionary, make_cart_ellipse, \
+    ssfp_dictionary_for_loop, find_atom, ssfp_from_ellipse, \
+    elliptical_params, get_cart_elliptical_params, get_center_of_mass, \
+    get_center_of_mass_nmr, spectrum, get_cross_point, \
+    get_complex_cross_point
 
 class DictionaryTestCase(unittest.TestCase):
     '''Look up df in a dictionary of T1,T2,alpha.'''
@@ -22,23 +29,23 @@ class DictionaryTestCase(unittest.TestCase):
 
     def test_dictionary(self):
         '''Verify implementation against a naive loop implementation.'''
-        from mr_utils.sim.ssfp import ssfp_dictionary, ssfp_dictionary_for_loop
 
         # Make sure we get the same answer whether we build dictionary from
         # matrix operations or iterate through a for loop:
-        D0, _keys0 = ssfp_dictionary(self.T1s, self.T2s, self.TR, self.alphas,
-                                     self.df)
-        D1, _keys1 = ssfp_dictionary_for_loop(self.T1s, self.T2s, self.TR,
-                                              self.alphas, self.df)
+        D0, keys0 = ssfp_dictionary(self.T1s, self.T2s, self.TR, self.alphas,
+                                    self.df)
+        D1, keys1 = ssfp_dictionary_for_loop(self.T1s, self.T2s, self.TR,
+                                             self.alphas, self.df)
+        self.assertTrue(np.allclose(keys0, keys1))
         self.assertTrue(np.allclose(D0, D1))
 
         # # Look at the dictionary
         # plt.plot(np.abs(D0.T))
+        # plt.plot(np.abs(D1.T), '--')
         # plt.show()
 
     def test_find_atom(self):
         '''Test method that finds atom in a given dictionary.'''
-        from mr_utils.sim.ssfp import ssfp, ssfp_dictionary, find_atom
 
         D, keys = ssfp_dictionary(
             self.T1s, self.T2s, self.TR, self.alphas, self.df)
@@ -59,8 +66,6 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
     def test_ssfp_sim(self):
         '''Generate signal from bSSFP signal eq and elliptical model.'''
-        from mr_utils.sim.ssfp import ssfp, elliptical_params, \
-                                      ssfp_from_ellipse
 
         # Do it the "normal" way
         I0 = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df)
@@ -73,9 +78,6 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
     def test_make_ellipse(self):
         '''Make an ellipse given NMR params and elliptical params.'''
-        from mr_utils.sim.ssfp import elliptical_params, \
-                                      get_cart_elliptical_params, \
-                                      make_cart_ellipse
 
         M, a, b = elliptical_params(self.T1, self.T2, self.TR, self.alpha)
         xc, yc, A, B = get_cart_elliptical_params(M, a, b)
@@ -91,8 +93,6 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
     def test_center_of_mass(self):
         '''Make sure we can find the center of mass of an ellipse.'''
-        from mr_utils.sim.ssfp import elliptical_params, get_center_of_mass, \
-                                      get_center_of_mass_nmr
 
         M, a, b = elliptical_params(self.T1, self.T2, self.TR, self.alpha)
         cm0 = get_center_of_mass(M, a, b)
@@ -102,7 +102,6 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
     def test_spectrum(self):
         '''Generate bSSFP spectrum.'''
-        from mr_utils.sim.ssfp import spectrum
 
         # This is mostly just to show how it's used
         _sig = spectrum(self.T1, self.T2, self.TR, self.alpha)
@@ -114,8 +113,6 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
     def test_banding_sim_2d(self):
         '''Make sure banding looks the same coming from NMR params and ESM.'''
-        from mr_utils.sim.ssfp import ssfp, elliptical_params, \
-                                      ssfp_from_ellipse
 
         # To get periodic banding like we want to see, we need some serious
         # field inhomogeneity.
@@ -145,8 +142,6 @@ class EllipticalSignalTestCase(unittest.TestCase):
 
     def test_cross_point(self):
         '''Find cross point from cartesian and ESM function.'''
-        from mr_utils.sim.ssfp import ssfp, get_cross_point, \
-                                      get_complex_cross_point
 
         # Get four phase cycled images
         I1 = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df,

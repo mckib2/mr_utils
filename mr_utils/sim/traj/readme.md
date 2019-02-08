@@ -5,12 +5,18 @@
 
 ```
 NAME
-    mr_utils.sim.traj.cartesian
+    mr_utils.sim.traj.cartesian - Create sampling patterns for Cartesian k-space trajectories.
 
 FUNCTIONS
     cartesian_gaussian(shape, undersample=(0.5, 0.5), reflines=20)
+        Undersample in Gaussian pattern.
     
     cartesian_pe(shape, undersample=0.5, reflines=20)
+        Randomly collect Cartesian phase encodes (lines).
+        
+        shape -- Shape of the image to be sampled.
+        undersample -- Undersampling factor (0 < undersample <= 1).
+        reflines -- Number of lines in the center to collect regardless.
 
 
 ```
