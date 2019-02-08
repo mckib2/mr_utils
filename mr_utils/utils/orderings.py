@@ -10,6 +10,7 @@ import logging
 
 import numpy as np
 from tqdm import tqdm
+from pywt import threshold
 
 from mr_utils.utils import find_nearest
 
@@ -135,7 +136,7 @@ def random_search(x, T, k, compare='l1', compare_opts=None, disp=False):
             p = np.random.permutation(idx)
             ps.add(p.tostring())
             metric = compare0(T0, x, p)
-            pbar.write('%g %g' % (winner_metric, metric))
+            # pbar.write('%g %g' % (winner_metric, metric))
             if metric < winner_metric:
                 winner = p
                 winner_metric = metric
@@ -172,8 +173,72 @@ def gen_sort1d(x, T):
 
     return indices[:, min_err[0]]
 
+def bulk_up(x, T, Ti, k):
+    '''Given existing nonzero coefficients, try to make large ones larger.
+
+    x -- Array to find ordering of.
+    T -- Transform function.
+    Ti -- Inverse transform function.
+    k -- Percent of coefficients to shoot for.
+    '''
+
+    # Keep the largest coefficients
+    t = T(x)
+    idx = np.argsort(-np.abs(t.flatten()))[int(k*t.size)]
+    t0 = np.abs(t[np.unravel_index(idx, t.shape)])
+    t = threshold(t, value=t0, mode='hard')
+
+    # Now reorder with the intent to match the thresholded image
+    target = Ti(t)
+    idx = random_match(x, target)
+    return idx
+
+def whittle_down(x, T, Ti, k):
+    '''Given existing nonzero coefficients, try to remove lower ones.
+
+    x -- Array to find ordering of.
+    T -- Transform function.
+    Ti -- Inverse transform function.
+    k -- Percent of coefficients to shoot for.
+    '''
+
+    t = T(x)
+    idx = np.argsort(np.abs(t.flatten()))[int(k*t.size)]
+    t0 = 1/np.abs(t[np.unravel_index(idx, t.shape)])
+    ti = np.divide(1, t, out=np.zeros_like(t), where=t != 0)
+    ti = threshold(ti, value=t0, mode='hard')
+    t = np.divide(1, ti, out=np.zeros_like(ti), where=ti != 0)
+
+    target = x - Ti(t)
+    idx = random_match(x, target)
+    return idx
+
 def random_match(x, T, return_sorted=False):
-    '''Given matrix T, choose reordering of x that matches it.
+    '''Match x to T as closely as possible pixel by pixel.
+
+    x -- Array to find ordering of.
+    T -- Target matrix.
+    return_sorted -- Whether or not to return the sorted matrix.
+    '''
+
+    # Pick a random pixel and place in recon
+    idx = np.zeros(T.size, dtype=int)
+    recon = np.zeros(T.size, dtype=x.dtype)
+    T0 = T.flatten().astype(float)
+    x0 = x.flatten()
+    for px in tqdm(np.random.permutation(np.arange(T.size)), desc='Matching',
+                   leave=False):
+        ii = np.nanargmin(np.abs(T0 - x0[px]))
+        T0[ii] = np.nan
+        recon[ii] = x0[px]
+        idx[ii] = px
+    if return_sorted:
+        return(idx, recon.reshape(T.shape))
+    return idx
+
+
+def random_match_by_col(x, T, return_sorted=False):
+    '''Given matrix T, choose reordering of x that matches it col by col.
 
     x -- Array to find ordering of.
     T -- Target matrix.
@@ -191,30 +256,28 @@ def random_match(x, T, return_sorted=False):
     xk = x.copy()
     f = np.zeros(T.shape, dtype=x.dtype)
     indices = np.arange(x.size).reshape(x.shape)
-    while not done:
+    with tqdm(desc='Matching', total=M, leave=False) as pbar:
+        while not done:
 
-        # Choose a row
-        idx = np.random.choice(np.arange(len(fijs)))
-        jj = fijs[idx]
+            # Choose a row
+            idx = np.random.choice(np.arange(len(fijs)))
+            jj = fijs[idx]
 
-        # Choose a column
-        for ii in np.random.permutation(list(range(N))):
-            ind, f[ii, jj] = find_nearest(xk, T[ii, jj])
-            indices[ii, jj] = ind
-            xk[np.unravel_index(ind, x.shape)] = np.inf
+            # Choose a column
+            for ii in np.random.permutation(list(range(N))):
+                ind, f[ii, jj] = find_nearest(xk, T[ii, jj])
+                indices[ii, jj] = ind
+                xk[np.unravel_index(ind, x.shape)] = np.inf
 
-        # Finalize the best fit, i.e., min || f[:, jj] - X[jj] ||
-        min_err = np.abs((f - T)**2).mean(axis=0).argsort()
-        for me in min_err:
-            try:
-                fijs.remove(me)
-                break
-            except ValueError:
-                pass
+            # Finalize the best fit, i.e., min || f[:, jj] - X[jj] ||
+            min_err = np.abs((f - T)**2).mean(axis=0).argsort().tolist()
+            min_err = [me for me in min_err if me in fijs]
+            fijs.remove(min_err[0])
 
-        # Check the stopping condition
-        if not fijs:
-            done = True
+            # Check the stopping condition
+            if not fijs:
+                done = True
+            pbar.update(1)
 
     # If we asked for the sorted matrix, send it back, too
     if return_sorted:
