@@ -224,7 +224,7 @@ def random_match(x, T, return_sorted=False):
     # Pick a random pixel and place in recon
     idx = np.zeros(T.size, dtype=int)
     recon = np.zeros(T.size, dtype=x.dtype)
-    T0 = T.flatten().astype(float)
+    T0 = T.flatten().astype(x.dtype)
     x0 = x.flatten()
     for px in tqdm(np.random.permutation(np.arange(T.size)), desc='Matching',
                    leave=False):

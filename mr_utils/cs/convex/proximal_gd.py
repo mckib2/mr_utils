@@ -7,6 +7,7 @@ iteration.
 '''
 
 import logging
+import importlib
 
 import numpy as np
 from pywt import threshold
@@ -24,6 +25,7 @@ def proximal_GD(
         reorder_fun=None,
         mode='soft',
         alpha=.5,
+        thresh_sep=True,
         selective=None,
         x=None,
         ignore_residual=False,
@@ -40,6 +42,7 @@ def proximal_GD(
     unreorder_fun --
     mode -- Thresholding mode: {'soft','hard','garotte','greater','less'}.
     alpha -- Step size, used for thresholding.
+    thresh_sep -- Whether or not to threshold real/imag individually.
     selective -- Function returning indicies of update to keep at each iter.
     x -- The true image we are trying to reconstruct.
     ignore_residual -- Whether or not to break out of loop if resid increases.
@@ -54,12 +57,12 @@ def proximal_GD(
     not throw away any updates.
     '''
 
-    # Make sure compare_mse is defined
+    # Make sure compare_mse, compare_ssim is defined
     if x is None:
         compare_mse = lambda xx, yy: 0
-        logging.info('No true x provided, MSE will not be calculated.')
+        logging.info('No true x provided, MSE/SSIM will not be calculated.')
     else:
-        from skimage.measure import compare_mse
+        from skimage.measure import compare_mse, compare_ssim
         xabs = np.abs(x) # Precompute absolute value of true image
 
     # Get some display stuff happening
@@ -69,16 +72,16 @@ def proximal_GD(
 
         from mr_utils.utils.printtable import Table
         table = Table(
-            ['iter', 'norm', 'MSE'],
-            [len(repr(maxiter)), 8, 8],
-            ['d', 'e', 'e'])
+            ['iter', 'norm', 'MSE', 'SSIM'],
+            [len(repr(maxiter)), 8, 8, 8],
+            ['d', 'e', 'e', 'e'])
         hdr = table.header()
         for line in hdr.split('\n'):
             logging.info(line)
     else:
         # Use tqdm to give us an idea of how fast we're going
-        from tqdm import trange
-        range_fun = trange
+        from tqdm import trange, tqdm
+        range_fun = lambda x: trange(x, leave=False, desc='Proximal GD')
 
     # Initialize
     x_hat = np.zeros(y.shape, dtype=y.dtype)
@@ -92,8 +95,12 @@ def proximal_GD(
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
         if not ignore_residual and stop_criteria > prev_stop_criteria:
-            logging.warning('Breaking out of loop after %d iterations. \
-                Norm of residual increased!', ii)
+            msg = ('Breaking out of loop after %d iterations. '
+                   'Norm of residual increased!' % ii)
+            if importlib.util.find_spec("tqdm") is None:
+                tqdm.write(msg)
+            else:
+                logging.warning(msg)
             break
         prev_stop_criteria = stop_criteria
 
@@ -115,8 +122,14 @@ def proximal_GD(
         # Take the step, we would normally assign x_hat directly, but because
         # we might be reordering and selectively updating, we'll store it in
         # a temporary variable...
-        update = unsparsify(
-            threshold(sparsify(grad_step), value=alpha, mode=mode))
+        if thresh_sep:
+            tmp = sparsify(grad_step)
+            tmp_r = threshold(tmp.real, value=alpha, mode=mode)
+            tmp_i = threshold(tmp.imag, value=alpha, mode=mode)
+            update = unsparsify(tmp_r + 1j*tmp_i)
+        else:
+            update = unsparsify(
+                threshold(sparsify(grad_step), value=alpha, mode=mode))
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
@@ -137,9 +150,11 @@ def proximal_GD(
 
         # Tell the user what happened
         if disp:
+            curxabs = np.abs(x_hat)
             logging.info(
                 table.row(
-                    [ii, stop_criteria, compare_mse(np.abs(x_hat), xabs)]))
+                    [ii, stop_criteria, compare_mse(curxabs, xabs),
+                     compare_ssim(curxabs, xabs)]))
 
         # Compute residual
         r = forward_fun(x_hat) - y

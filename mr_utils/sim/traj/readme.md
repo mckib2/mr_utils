@@ -28,7 +28,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.sim.traj.radial
+    mr_utils.sim.traj.radial - Generate radial sampling masks.
 
 FUNCTIONS
     radial(shape, num_spokes, theta=None, skinny=True, extend=False)
