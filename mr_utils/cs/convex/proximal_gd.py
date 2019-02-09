@@ -7,6 +7,7 @@ iteration.
 '''
 
 import logging
+import importlib
 
 import numpy as np
 from pywt import threshold
@@ -96,7 +97,7 @@ def proximal_GD(
         if not ignore_residual and stop_criteria > prev_stop_criteria:
             msg = ('Breaking out of loop after %d iterations. '
                    'Norm of residual increased!' % ii)
-            if tqdm is not None:
+            if importlib.util.find_spec("tqdm") is None:
                 tqdm.write(msg)
             else:
                 logging.warning(msg)

@@ -1,8 +1,10 @@
+'''Generate radial sampling masks.'''
+
 import numpy as np
 from skimage.morphology import skeletonize
 from skimage.transform import rotate
 
-def radial(shape,num_spokes,theta=None,skinny=True,extend=False):
+def radial(shape, num_spokes, theta=None, skinny=True, extend=False):
     '''Create 2d binary radial sampling pattern.
 
     shape -- x,y dimensions of sampling pattern.
@@ -26,16 +28,17 @@ def radial(shape,num_spokes,theta=None,skinny=True,extend=False):
         theta = np.pi*(3 - np.sqrt(5))
 
     # initialze binary sampling image
-    idx = np.zeros(shape,dtype=bool)
+    idx = np.zeros(shape, dtype=bool)
 
     # Create prototype spoke that we'll rotate
-    idx0 = np.zeros(idx.shape,dtype=bool)
-    idx0[int(shape[0]/2),:] = 1
+    idx0 = np.zeros(idx.shape, dtype=bool)
+    idx0[int(shape[0]/2), :] = 1
 
     # Create all the spokes
     for ii in range(num_spokes):
         # Rotate prototype spoke to desired angle
-        idx1 = rotate(idx0,np.rad2deg(theta*ii),resize=False,mode=mode).astype(bool)
+        idx1 = rotate(
+            idx0, np.rad2deg(theta*ii), resize=False, mode=mode).astype(bool)
 
         # If we want the spokes to gave 1px width
         if skinny:
@@ -44,9 +47,9 @@ def radial(shape,num_spokes,theta=None,skinny=True,extend=False):
         # Add spoke to sampling mask
         idx |= idx1
 
-    return(idx)
+    return idx
 
-def radial_golden_ratio_meshgrid(X,Y,num_spokes):
+def radial_golden_ratio_meshgrid(X, Y, num_spokes):
     '''Create 2d binary golden angle radial sampling pattern.
 
     X,Y -- Meshgrid.
@@ -61,21 +64,21 @@ def radial_golden_ratio_meshgrid(X,Y,num_spokes):
     from scipy.ndimage.morphology import binary_dilation
 
     N = X.shape[0]
-    h = np.abs(X[0,1] - X[0,0])
+    h = np.abs(X[0, 1] - X[0, 0])
 
     golden = np.pi*(3 - np.sqrt(5))
-    samp = np.zeros((N,N))
-    idx = np.zeros(samp.shape,dtype=bool)
+    samp = np.zeros((N, N))
+    idx = np.zeros(samp.shape, dtype=bool)
     for ii in range(num_spokes):
 
         # Get spoke
         m = np.tan(golden*ii) # slope
-        idx0 = np.isclose(Y,m*X,atol=h/2)
+        idx0 = np.isclose(Y, m*X, atol=h/2)
 
         # But we need to make sure everything is connected -- sometimes the
         # slope is too large and we get gaps in spoke
         if np.abs(m) > 1:
-            idx0 = binary_dilation(idx0,iterations=6)
+            idx0 = binary_dilation(idx0, iterations=6)
             idx0 = skeletonize(idx0)
             # idx0 = binary_erosion(idx0,iterations=1)
 
@@ -90,7 +93,7 @@ def radial_golden_ratio_meshgrid(X,Y,num_spokes):
         # plt.plot(x,np.tan(golden*ii)*x)
 
     samp[idx] = 1
-    return(samp)
+    return samp
 
 if __name__ == '__main__':
     pass
