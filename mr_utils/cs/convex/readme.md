@@ -78,7 +78,7 @@ DESCRIPTION
     iteration.
 
 FUNCTIONS
-    proximal_GD(y, forward_fun, inverse_fun, sparsify, unsparsify, reorder_fun=None, mode='soft', alpha=0.5, selective=None, x=None, ignore_residual=False, disp=False, maxiter=200)
+    proximal_GD(y, forward_fun, inverse_fun, sparsify, unsparsify, reorder_fun=None, mode='soft', alpha=0.5, thresh_sep=True, selective=None, x=None, ignore_residual=False, disp=False, maxiter=200)
         Proximal gradient descent for a generic encoding, sparsity models.
         
         y -- Measured data (i.e., y = Ax).
@@ -90,6 +90,7 @@ FUNCTIONS
         unreorder_fun --
         mode -- Thresholding mode: {'soft','hard','garotte','greater','less'}.
         alpha -- Step size, used for thresholding.
+        thresh_sep -- Whether or not to threshold real/imag individually.
         selective -- Function returning indicies of update to keep at each iter.
         x -- The true image we are trying to reconstruct.
         ignore_residual -- Whether or not to break out of loop if resid increases.

@@ -25,7 +25,7 @@ def proximal_GD(
         reorder_fun=None,
         mode='soft',
         alpha=.5,
-        thresh_sep=False,
+        thresh_sep=True,
         selective=None,
         x=None,
         ignore_residual=False,
