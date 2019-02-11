@@ -61,16 +61,16 @@ def H_metric(H1, H2, mode='chi2'):
 if __name__ == '__main__':
 
     # Make a phantom to work with, shepp_logan will do
-    dim = 50
+    dim = 32
     x = np.rot90(modified_shepp_logan((dim,)*3)[:, :, int(dim/2)])
     # view(x)
 
     # Define transform
-    level = 1
+    level = 3
     wavelets = ['haar', 'db', 'sym', 'coif', 'bior', 'rbio', 'dmey']
     modes = ['zero', 'constant', 'symmetric', 'reflect', 'periodic', 'smooth',
              'periodization']
-    wavelet = wavelets[0]
+    wavelet = wavelets[1]+'2'
     mode = modes[-1]
     wvlt, loc = wavelet_forward(x, wavelet, mode, level)
     T = lambda x: wavelet_forward(x, wavelet, mode, level)[0]
@@ -181,6 +181,10 @@ if __name__ == '__main__':
     plt.legend()
     plt.show()
 
+    # Instead of basing off the truncated version of sorted coefficients,
+    # try finding the k subset of the sorted coefficients that gives the
+    # closest histogram.
+
     # Well we're still off, and not even sorting first can fix all of it.  So
     # let's look around a little for better choices of coefficients.  Swap
     # individual coefficients greedily
@@ -194,13 +198,14 @@ if __name__ == '__main__':
             idx0 = idx.copy()
             idx0[cc] = not_idx[ii]
             x0 = winner.copy()
-            x0[cc] = 1
+            x0[cc] = .1
             res = least_squares(lambda y: H_metric(H1, make_hist(y, idx0), \
                 H_metrics[h_met]), x0)
 
             score = H_metric(H1, make_hist(res['x'], idx0), H_metrics[h_met])
             if score < winner_score:
                 idx = idx0
+                not_idx = np.setdiff1d(np.arange(x.size), idx, True)
                 winner = res['x']
                 winner_score = score
                 tqdm.write('We won! Score: %g' % winner_score)
