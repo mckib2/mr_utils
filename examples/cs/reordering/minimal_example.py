@@ -24,30 +24,30 @@ if __name__ == '__main__':
     tol = 1e-10
 
     # We do infact have a 1-sparse signal
-    # plt.plot(x)
-    # plt.show()
-    # plt.plot(dct(x))
-    # plt.show()
+    plt.plot(x_pi)
+    plt.show()
+    plt.plot(dct(x_pi))
+    plt.show()
 
     # Now randomly mix it up, and we have a not-so-sparse signal
     np.random.seed(0)
     x = np.random.permutation(x_pi)
     print('Number nonzero coefficients of x: %d' \
         % np.count_nonzero(np.abs(dct(x)) > tol))
-    # plt.plot(x)
-    # plt.show()
-    # plt.plot(dct(x))
-    # plt.show()
+    plt.plot(x)
+    plt.show()
+    plt.plot(dct(x))
+    plt.show()
 
     # Apply simple heuristic of sorting montonically
     x_sort = np.sort(x)
     print('Number nonzero coefficients of montonically sorted x: %d' \
         % np.count_nonzero(np.abs(dct(x_sort)) > tol))
-    # plt.plot(x_sort)
-    # plt.show()
-    # plt.plot(dct(x_sort))
-    # plt.plot(dct(x))
-    # plt.show()
+    plt.plot(x_sort)
+    plt.show()
+    plt.plot(dct(x_sort))
+    plt.plot(dct(x))
+    plt.show()
 
     # Find the histogram of x and constrain bins from here on out
     # Need to be careful about range we bin over, so let's normalize all
@@ -79,9 +79,9 @@ if __name__ == '__main__':
     # Now construct the 1-sparse signal x_hat defined by the coefficient we
     # chose, take the normalized x_hat to be our estimate of x_pi
     x_hat = D[:, guess_idx]
-    # plt.plot(x_pi/np.max(np.abs(x_pi)))
-    # plt.plot(x_hat/np.max(np.abs(x_hat)), '--')
-    # plt.show()
+    plt.plot(x_pi/np.max(np.abs(x_pi)))
+    plt.plot(x_hat/np.max(np.abs(x_hat)), '--')
+    plt.show()
 
     # Since x_pi by assumption was the permuted signal x, we need to map all
     # the pixels of x to x_hat (our guess of what x_pi is), and call this the

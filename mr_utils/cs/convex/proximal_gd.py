@@ -124,8 +124,9 @@ def proximal_GD(
         # a temporary variable...
         if thresh_sep:
             tmp = sparsify(grad_step)
-            tmp_r = threshold(tmp.real, value=alpha, mode=mode)
-            tmp_i = threshold(tmp.imag, value=alpha, mode=mode)
+            # Take a half step in each real/imag after talk with Ed
+            tmp_r = threshold(tmp.real, value=alpha/2, mode=mode)
+            tmp_i = threshold(tmp.imag, value=alpha/2, mode=mode)
             update = unsparsify(tmp_r + 1j*tmp_i)
         else:
             update = unsparsify(
