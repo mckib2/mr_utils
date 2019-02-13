@@ -1,4 +1,10 @@
-'''Attempting to solve for coefficients which minimize MSE using KDE.'''
+'''Attempting to solve for coefficients which minimize MSE using KDE.
+
+What we'd like to do is derive an expression from a standard normal kernel
+density estimator to find the values of the current coefficient locations.
+What would be super is if these values minimized the mean square error with
+the pdf estimate of x.
+'''
 
 import numpy as np
 from scipy.fftpack import dct
