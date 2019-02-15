@@ -9,17 +9,22 @@ the pdf estimate of x.
 import numpy as np
 from scipy.fftpack import dct
 from scipy.stats import gaussian_kde
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
     # Make a signal k-sparse in DCT
-    N = 256
-    k = 10
+    # np.random.seed(0)
+    N = 128
+    k = 2
     D = dct(np.eye(N))
-    true_idx = [int(N/(ii + 1)) - 1 for ii in range(k)]
+    true_idx = np.sort(np.random.choice(N, k))
+    # print(true_idx)
+    # plt.plot(D[:, true_idx])
+    # plt.show()
     c_true = np.zeros(N)
-    c_true[true_idx] = 2.5
+    c_true[true_idx] = np.random.random(k)
     x_pi = np.dot(D, c_true)
 
     # Now create a scrambled signal that should have an identical distributions
@@ -28,19 +33,26 @@ if __name__ == '__main__':
     # Instead of matching histograms, let's try matching probability density
     # estimates from kernel density estimators,
     # Make our kernel the standard normal and choose bandwidth in a simple way
-    kernel0 = gaussian_kde(x_pi)
-    kernel1 = gaussian_kde(x)
-    Y = np.linspace(np.min(x), np.max(x), 100)
-    plt.plot(kernel0(Y))
-    plt.plot(kernel1(Y), '--')
-    plt.show()
+    L = 200
+    Y = np.linspace(np.min(D.flatten()), np.max(D.flatten()), L)
+    kernel0 = gaussian_kde(x_pi).evaluate(Y)
+    kernel1 = gaussian_kde(x).evaluate(Y)
+    # plt.plot(Y, kernel0)
+    # plt.plot(Y, kernel1, '--')
+    # plt.show()
 
-    # Now solve for the correct values of c
-    c = np.zeros(len(true_idx))
-    A = D[:, true_idx]
-    for kk in true_idx:
-        pass
+    # HOW DO I FIND C!?!?
+    # We can find it pretty well if we have k <= 2, which isn't very good...
+    c0 = np.ones(k)
+    h = gaussian_kde(x).factor/2
+    kernel_ref = gaussian_kde(x, bw_method=h).evaluate(Y)
+    obj = lambda x: np.linalg.norm(gaussian_kde(
+        D[:, true_idx].dot(x), bw_method=h).evaluate(Y) - kernel_ref)
+    res = minimize(obj, c0)
+    print(c_true[true_idx])
+    print(res)
 
-    plt.plot(c_true[true_idx])
-    plt.plot(c, '--')
+    plt.plot(Y, kernel_ref)
+    plt.plot(Y, gaussian_kde(
+        D[:, true_idx].dot(res['x']), bw_method=h).evaluate(Y), '--')
     plt.show()
