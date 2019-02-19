@@ -37,6 +37,7 @@ from tqdm import trange
 from ismrmrdtools.coils import calculate_csm_inati_iter as inati
 
 from mr_utils.recon.ssfp import gs_recon3d
+from mr_utils.utils import sos
 from mr_utils import view
 
 if __name__ == '__main__':
@@ -50,11 +51,6 @@ if __name__ == '__main__':
     print('Starting fft...')
     data = np.fft.fftshift(np.fft.fft2(data, axes=(0, 1)), axes=(0, 1))
     print('Finished fft!')
-
-    # Look at a single pixels' time curves
-    import matplotlib.pyplot as plt
-    plt.plot(np.abs(data[64, 16:50, 0, :, 0]).T)
-    plt.show()
 
     # For each coil for all slices for each possible GS recon in N time points
     N = 16  # since we have 16 unique phase-cycles...
@@ -82,3 +78,13 @@ if __name__ == '__main__':
 
     # Take a look at each slice
     view(recons, montage_axis=-1)
+
+    # Over the course of these N time points, plot a representative pixel's
+    # time curve
+    pcs = [360*n/16 for n in range(16)] # Phase cycles
+    import matplotlib.pyplot as plt
+    plt.plot(pcs, sos(data[64, 32, :, :N, :].squeeze(), axes=-3))
+    plt.title('Time curves for column of pixels')
+    plt.xlabel('Phase-cycle (deg)')
+    plt.ylabel('SOS')
+    plt.show()
