@@ -1,3 +1,5 @@
+'''Simple root sum of squares image combination.'''
+
 import numpy as np
 
 def sos(im, axes=0):

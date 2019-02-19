@@ -27,5 +27,5 @@ from mr_utils.coils.gs_comparison.gs_coil_combine_comparison import \
 if __name__ == '__main__':
 
     err = [] # @ each SNR, rmse for (recon method index,num coils index)
-    for SNR in [ None,50,20,10,5,1 ]:
+    for SNR in [None, 50, 20, 10, 5, 1]:
         err.append(comparison_numerical_phantom(SNR))
