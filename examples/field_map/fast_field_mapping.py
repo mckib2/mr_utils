@@ -30,7 +30,7 @@ Method:
     take these off-resonance maps to have BOLD-weighted contrast.
 '''
 
-from os.path import dirname
+from os.path import dirname, isfile
 
 import numpy as np
 from tqdm import trange
@@ -43,14 +43,26 @@ from mr_utils import view
 if __name__ == '__main__':
 
     # Load the data
-    data = np.load(dirname(__file__) + '/data.npy')
+    data_fft_filename = dirname(__file__) + 'data_fft.npy'
+    if isfile(data_fft_filename):
+        # Go ahead and get the fft'd data directly
+        data = np.load(data_fft_filename)
+    else:
+        # Else we'll have to do it ourselves
+        data = np.load(dirname(__file__) + '/data.npy')
+        # Put 'er in image space
+        print('Starting fft...')
+        data = np.fft.fftshift(np.fft.fft2(data, axes=(0, 1)), axes=(0, 1))
+        np.save(data_fft_filename, data)
+        print('Finished saving fft!')
+
+    # Tell me about it
     print('Data shape is:', data.shape)
     sx, sy, nc, nt, ns = data.shape[:]
 
-    # Put 'er in image space
-    print('Starting fft...')
-    data = np.fft.fftshift(np.fft.fft2(data, axes=(0, 1)), axes=(0, 1))
-    print('Finished fft!')
+    # Take a look at it in all its glory -- notice significant motion
+    view(sos(data[..., 2::16, :], axes=2).squeeze(), montage_axis=-1,
+         movie_axis=-2)
 
     # For each coil for all slices for each possible GS recon in N time points
     N = 16  # since we have 16 unique phase-cycles...
@@ -69,6 +81,7 @@ if __name__ == '__main__':
     # Average all the GS recons we got
     recons = np.mean(recons, axis=-2)
     print('Shape of recon after averaging is:', recons.shape)
+    view(recons)
 
     # We still have a coil dimension, can we coil combine here before parameter
     # mapping or is that a no-no?
