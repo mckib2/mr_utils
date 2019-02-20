@@ -43,7 +43,7 @@ from mr_utils import view
 if __name__ == '__main__':
 
     # Load the data
-    data_fft_filename = dirname(__file__) + 'data_fft.npy'
+    data_fft_filename = dirname(__file__) + '/data_fft.npy'
     if isfile(data_fft_filename):
         # Go ahead and get the fft'd data directly
         data = np.load(data_fft_filename)

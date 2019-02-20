@@ -10,14 +10,14 @@ from mr_utils.recon.ssfp import PLANET
 
 if __name__ == '__main__':
 
-    num_pc = 6
+    num_pc = 8
     I = np.zeros(num_pc, dtype='complex')
     pcs = [2*np.pi*n/num_pc for n in range(num_pc)]
     TR = 10e-3
     T1s = np.linspace(.2, 2, 100)
     alpha = np.deg2rad(30)
 
-    iters = 10000
+    iters = 100
     misses = 0
     asserts = 0
     df_err = np.zeros(iters)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         for ii, pc in enumerate(pcs):
             I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
         try:
-            Meff, T1, T2, df = PLANET(I, alpha, TR, T1s, None, True, False)
+            Meff, T1, T2, df = PLANET(I, alpha, TR, T1s, None, True, True)
             df_err[jj] = np.abs(df_true - df)
             if not np.allclose([T1, T2], [T1_true, T2_true]):
                 misses += 1
