@@ -2,6 +2,58 @@
 
 import numpy as np
 
+
+def get_semiaxes(c):
+    '''Solve for semi-axes of the cartesian form of the ellipse equation.
+
+    c -- Coefficients of general quadratic polynomial function for conic funs.
+
+    See:
+        https://en.wikipedia.org/wiki/Ellipse
+    '''
+    A, B, C, D, E, F = c[:]
+    num = 2*(A*E**2 + C*D**2 - B*D*E + (B**2 - 4*A*C)*F)
+    num *= (A + C + np.array([1, -1])*np.sqrt((A - C)**2 + B**2))
+    den = B**2 - 4*A*C
+    AB = -1*np.sqrt(num)/den
+
+    # Return semi-major axis first
+    if AB[0] > AB[1]:
+        return(AB[1], AB[0])
+    return(AB[0], AB[1])
+
+
+def get_center(c):
+    '''Compute center of ellipse from implicit function coefficients.
+
+    c -- Coefficients of general quadratic polynomial function for conic funs.
+    '''
+    A, B, C, D, E, _F = c[:]
+    den = B**2 - 4*A*C
+    xc = (2*C*D - B*E)/den
+    yc = (2*A*E - B*D)/den
+    return(xc, yc)
+
+def rotate_coefficients(c, phi):
+    '''Rotate coefficients of implicit equations through angle phi.
+
+    c -- Coefficients of general quadratic polynomial function for conic funs.
+    phi -- Angle in radians to rotate ellipse.
+
+    See:
+        http://www.mathamazement.com/Lessons/Pre-Calculus/
+        09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
+    '''
+    cp, c2p = np.cos(phi), np.cos(2*phi)
+    sp, s2p = np.sin(phi), np.sin(2*phi)
+    A, B, C, D, E, F = c[:]
+    Ar = (A + C + (A - C)*c2p - B*s2p)/2
+    Br = (A - C)*s2p + B*c2p
+    Cr = (A + C + (C - A)*c2p + B*s2p)/2
+    Dr = D*cp - E*sp
+    Er = D*sp + E*cp
+    return np.array([Ar, Br, Cr, Dr, Er, F])
+
 def check_fit(C, I):
     '''General quadratic polynomial function.
 
