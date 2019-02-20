@@ -28,7 +28,7 @@ class TestPLANET(unittest.TestCase):
     def test_requires_6_phase_cycles(self):
         '''Make sure we can't continue without 6 phase-cycles.'''
         with self.assertRaises(AssertionError):
-            PLANET(self.I[:5], self.alpha, self.TR, self.T1s)
+            PLANET(self.I[:5], self.alpha, self.TR, T1s=self.T1s)
 
     def test_ellipse_fit(self):
         '''Make sure we can fit an ellipse using complex ssfp data.'''
@@ -38,5 +38,5 @@ class TestPLANET(unittest.TestCase):
 
     def test_no_noise_case(self):
         '''Make sure we perform in ideal conditions.'''
-        _Meff, T1, T2 = PLANET(self.I, self.alpha, self.TR, self.T1s)
+        _Meff, T1, T2 = PLANET(self.I, self.alpha, self.TR, T1s=self.T1s)
         self.assertTrue(np.allclose([T1, T2], [self.T1, self.T2]))

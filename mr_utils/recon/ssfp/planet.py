@@ -7,24 +7,35 @@ import numpy as np
 
 from mr_utils.utils import fit_ellipse
 
-
-def PLANET(I, alpha, TR, T1s=None):
+def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False):
     '''Simultaneous T1, T2 mapping using phase‐cycled bSSFP.
 
     I -- Complex voxels from phase-cycled bSSFP images.
     alpha -- Flip angle (in rad).
     TR -- Repetition time (in sec).
+    pcs -- List of phase-cycles in I (required if computing df).
     T1s -- Range of T1s.
+    compute_df -- Whether or not estimate local off-resonance, df.
 
     Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
     method they use (and which is implemented here) may not be the best
     method, but it is quick.  Could add more options for fitting in the future.
+
+    pcs should be a list of phase-cycles in radians.  If pcs=None, it will be
+    determined as I.size equally spaced phasce-cycles on the interval [0, 2pi).
 
     Implements algorithm described in:
         Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
         simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
         free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
     '''
+
+    # Make sure we know what phase-cycles we have if we're computing df
+    if compute_df:
+        from scipy.optimize import curve_fit
+        if pcs is None:
+            pcs = [2*np.pi*nn/I.size for nn in range(I.size)]
+        assert len(pcs) == I.size, 'Phase-cycle list must match entries of I!'
 
     # Make sure we have a reasonable range of T1s to work with if the user
     # doesn't provide any
@@ -86,7 +97,7 @@ def PLANET(I, alpha, TR, T1s=None):
     xc = (2*Cr*Dr - Br*Er)/den
     xc2 = xc**2
     yc = (2*Ar*Er - Br*Dr)/den
-    assert np.allclose(yc, 0), 'Ellipse rotation failed!'
+    assert np.allclose(yc, 0), 'Ellipse rotation failed! yc = %g' % yc
 
     # Solve for semi-axes of the cartesian form of the ellipse equation: AA, BB
     # See: https://en.wikipedia.org/wiki/Ellipse
@@ -122,6 +133,19 @@ def PLANET(I, alpha, TR, T1s=None):
     ca = np.cos(alpha)
     T1 = -1*TR/(np.log((a*(1 + ca - ab*ca) - b)/(a*(1 + ca - ab) - b*ca)))
     T2 = -1*TR/np.log(a)
+
+    ## Step 4. Estimation of the local off-resonance df.
+    if compute_df:
+        tanbeta = I.imag/(I.real - xc)
+        tn = np.arctan2(AA, BB*tanbeta)
+        ct = (np.cos(tn) - b)/(b*np.cos(tn) - 1)
+
+        k, _cov = curve_fit(
+            lambda x, k0, k1: k0*np.cos(x) + k1*np.sin(x), pcs, ct)
+        theta0 = np.arctan2(k[1], k[0])
+        df = theta0/(2*np.pi*TR)
+        return(Meff, T1, T2, df)
+    # else...
     return(Meff, T1, T2)
 
 if __name__ == '__main__':
@@ -138,4 +162,5 @@ if __name__ == '__main__':
     for ii, pc in enumerate(pcs):
         I[ii] = ssfp(.3, .085, TR, alpha, df, pc)
 
-    PLANET(I, alpha, TR, T1s)
+    print(PLANET(I, alpha, TR, T1s, compute_df=True))
+    print(df)
