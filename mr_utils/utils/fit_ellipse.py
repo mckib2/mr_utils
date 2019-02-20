@@ -65,5 +65,5 @@ def fit_ellipse(I):
     _eval, evec = np.linalg.eig(M) # solve eigensystem
     cond = 4*evec[0, :]*evec[2, :] - evec[1, :]**2 # evaluate a’Ca
     a1 = evec[:, cond > 0] # eigenvector for min. pos. eigenvalue
-    a = np.vstack([a1, T.dot(a1)]) # ellipse coefficients
+    a = np.vstack([a1, T.dot(a1)]).squeeze() # ellipse coefficients
     return a
