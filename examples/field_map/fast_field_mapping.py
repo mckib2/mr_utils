@@ -62,8 +62,8 @@ if __name__ == '__main__':
     sx, sy, nc, nt, ns = data.shape[:]
 
     # Take a look at it in all its glory -- notice significant motion
-    view(sos(data[..., 2::16, :], axes=2).squeeze(), montage_axis=-1,
-         movie_axis=-2)
+    # view(sos(data[..., 2::16, :], axes=2).squeeze(), montage_axis=-1,
+    #      movie_axis=-2)
 
     # For each coil for all slices for each possible GS recon in N time points
     N = 16  # since we have 16 unique phase-cycles...
@@ -91,13 +91,13 @@ if __name__ == '__main__':
     print('Shape of recon after coil combine is:', recons.shape)
 
     # Take a look at each slice
-    view(recons_cc, montage_axis=-1)
+    # view(recons_cc, montage_axis=-1)
 
     # For each pixel we want to find T1, T2, so do PLANET on each voxel.  Make
     # a mask using coil combined recons so we only compute voxels in the brain
     thresh = threshold_li(np.abs(recons_cc))
     mask = np.abs(recons_cc) > thresh
-    view(mask, montage_axis=-1)
+    # view(mask, montage_axis=-1)
 
     data_masked = data.transpose((0, 1, 4, 2, 3))
     data_masked = data_masked.reshape((128, 64, 10, -1))
@@ -106,25 +106,37 @@ if __name__ == '__main__':
     data_masked = data_masked.reshape((128, 64, 10, 4, 120))
     data_masked = data_masked.transpose((0, 1, 3, 2, 4))
     print('Masked data shape is:', data_masked.shape)
-    T2_map = np.zeros(data_masked.shape[:-1])
-    pcs = [360*n/16 for n in range(16)] # Phase cycles
+    pcs = [2*np.pi*n/16 for n in range(16)] # Phase cycles
     alpha = np.deg2rad(10)
     TR = 3.34e-3
 
     # Need to figure out how to only loop over the mask to save on time
-    for idx, _val in tqdm(np.ndenumerate(T2_map), leave=False):
-        if np.all(data_masked[idx, :N] != 0):
+
+    # Choose one slice, one coil to try it out on first N phase-cycles
+    coil_idx = 0
+    sl_idx = -1
+    sl = data_masked[..., coil_idx, sl_idx, :N].squeeze()
+    sl_mask = mask[..., sl_idx]
+    idx = np.where(sl_mask > 0)
+    print(sl.shape)
+    pts = sl[idx[0], idx[1], :]
+    T2_map = np.zeros(sl_mask.shape)
+    for ii in trange(pts.shape[0]):
+        try:
+            # This is failing because of noise
             _Meff, T1, T2 = PLANET(
-                data_masked[idx, :N], alpha, TR, None, pcs, False, True)
-            T2_map[idx] = T2
+                pts[ii, :], alpha, TR, 2, pcs, False, True)
+            T2_map[idx[0][ii], idx[1][ii]] = T2
+        except AssertionError:
+            pass
 
     view(T2_map)
 
-    # Over the course of these N time points, plot a representative pixel's
-    # time curve
-    import matplotlib.pyplot as plt
-    plt.plot(pcs, sos(data[64, 32, :, :N, :].squeeze(), axes=-3))
-    plt.title('Time curves for column of pixels')
-    plt.xlabel('Phase-cycle (deg)')
-    plt.ylabel('SOS')
-    plt.show()
+    # # Over the course of these N time points, plot a representative pixel's
+    # # time curve
+    # import matplotlib.pyplot as plt
+    # plt.plot(pcs, sos(data[64, 32, :, :N, :].squeeze(), axes=-3))
+    # plt.title('Time curves for column of pixels')
+    # plt.xlabel('Phase-cycle (deg)')
+    # plt.ylabel('SOS')
+    # plt.show()

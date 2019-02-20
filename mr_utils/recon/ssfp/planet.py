@@ -55,20 +55,6 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
     A, B, C, D, E, F = c[:]
     assert B**2 - 4*A*C < 0, 'Not an ellipse!'
 
-    # Show some ellipses (for debugging mostly)
-    if disp:
-        import matplotlib.pyplot as plt
-        x = np.linspace(-0.4, 0.4, 1000)
-        y = np.linspace(-0.4, 0.4, 1000)
-        X, Y = np.meshgrid(x, y)
-        eqn = A*X**2 + B*X*Y + C*Y**2 + D*X + E*Y + F
-        Z = 0
-        plt.contour(X, Y, eqn, [Z])
-        plt.xlim([-0.3, 0.3])
-        plt.ylim([-0.3, 0.3])
-        plt.grid()
-        plt.plot(I.real, I.imag, '.')
-
     ## Step 2. Rotation of the ellipse to initial vertical conic form.
     phi = -.5*np.arctan2(c[1], c[0] - c[2]) # Shcherbakova with added -1 fac
     cr = rotate_coefficients(c, phi)
@@ -91,10 +77,23 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
 
     # If we want to look at it (for debugging mostly)
     if disp:
+        import matplotlib.pyplot as plt
+        _fig, ax = plt.subplots()
+        x = np.linspace(-0.4, 0.4, 1000)
+        y = np.linspace(-0.4, 0.4, 1000)
+        X, Y = np.meshgrid(x, y)
+        eqn = A*X**2 + B*X*Y + C*Y**2 + D*X + E*Y + F
+        ax.contour(X, Y, eqn, [0])
+        ax.grid()
+        ax.plot(I.real, I.imag, '.')
+
         Ir = I*np.exp(1j*phi)
-        plt.plot(Ir.real, Ir.imag, '*')
+        ax.plot(Ir.real, Ir.imag, '*')
         eqn = Ar*X**2 + Br*X*Y + Cr*Y**2 + Dr*X + Er*Y + Fr
-        plt.contour(X, Y, eqn, [Z])
+        ax.contour(X, Y, eqn, [0])
+        ax.relim()
+        ax.autoscale_view(True)
+        plt.axis('scaled')
         plt.show()
 
     ## Step 3. Analytical solution for parameters Meff, T1, T2.
@@ -126,10 +125,12 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
     ab = a*b
     Meff = xc*(1 - b2)/(1 - ab)
 
-    # Now we can find the things we were really after
+    # Sanity checks:
     assert 0 < b < 1, '0 < b < 1 has been violated! b = %g' % b
     assert 0 < a < 1, '0 < a < 1 has been violated! a = %g' % a
     assert 0 < Meff < 1, '0 < Meff < 1 has been violated! Meff = %g' % Meff
+
+    # Now we can find the things we were really after
     ca = np.cos(alpha)
     T1 = -1*TR/(np.log((a*(1 + ca - ab*ca) - b)/(a*(1 + ca - ab) - b*ca)))
     T2 = -1*TR/np.log(a)
