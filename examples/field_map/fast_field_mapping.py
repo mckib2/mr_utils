@@ -33,10 +33,11 @@ Method:
 from os.path import dirname, isfile
 
 import numpy as np
-from tqdm import trange
+from tqdm import trange, tqdm
 from ismrmrdtools.coils import calculate_csm_inati_iter as inati
+from skimage.filters import threshold_li
 
-from mr_utils.recon.ssfp import gs_recon3d
+from mr_utils.recon.ssfp import gs_recon3d, PLANET
 from mr_utils.utils import sos
 from mr_utils import view
 
@@ -81,20 +82,46 @@ if __name__ == '__main__':
     # Average all the GS recons we got
     recons = np.mean(recons, axis=-2)
     print('Shape of recon after averaging is:', recons.shape)
-    view(recons)
+    # view(recons)
 
     # We still have a coil dimension, can we coil combine here before parameter
     # mapping or is that a no-no?
-    _, recons = inati(recons.transpose((2, 0, 1, 3)), smoothing=5, niter=5,
-                      thresh=1e-3, verbose=False)
+    _, recons_cc = inati(recons.transpose((2, 0, 1, 3)), smoothing=5, niter=5,
+                         thresh=1e-3, verbose=False)
     print('Shape of recon after coil combine is:', recons.shape)
 
     # Take a look at each slice
-    view(recons, montage_axis=-1)
+    view(recons_cc, montage_axis=-1)
+
+    # For each pixel we want to find T1, T2, so do PLANET on each voxel.  Make
+    # a mask using coil combined recons so we only compute voxels in the brain
+    thresh = threshold_li(np.abs(recons_cc))
+    mask = np.abs(recons_cc) > thresh
+    view(mask, montage_axis=-1)
+
+    data_masked = data.transpose((0, 1, 4, 2, 3))
+    data_masked = data_masked.reshape((128, 64, 10, -1))
+    for ii in range(data_masked.shape[-1]):
+        data_masked[..., ii] *= mask
+    data_masked = data_masked.reshape((128, 64, 10, 4, 120))
+    data_masked = data_masked.transpose((0, 1, 3, 2, 4))
+    print('Masked data shape is:', data_masked.shape)
+    T2_map = np.zeros(data_masked.shape[:-1])
+    pcs = [360*n/16 for n in range(16)] # Phase cycles
+    alpha = np.deg2rad(10)
+    TR = 3.34e-3
+
+    # Need to figure out how to only loop over the mask to save on time
+    for idx, _val in tqdm(np.ndenumerate(T2_map), leave=False):
+        if np.all(data_masked[idx, :N] != 0):
+            _Meff, T1, T2 = PLANET(
+                data_masked[idx, :N], alpha, TR, None, pcs, False, True)
+            T2_map[idx] = T2
+
+    view(T2_map)
 
     # Over the course of these N time points, plot a representative pixel's
     # time curve
-    pcs = [360*n/16 for n in range(16)] # Phase cycles
     import matplotlib.pyplot as plt
     plt.plot(pcs, sos(data[64, 32, :, :N, :].squeeze(), axes=-3))
     plt.title('Time curves for column of pixels')

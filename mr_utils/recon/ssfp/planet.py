@@ -39,6 +39,9 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
             pcs = [2*np.pi*nn/I.size for nn in range(I.size)]
         assert len(pcs) == I.size, 'Phase-cycle list must match entries of I!'
 
+        # For now, let's just die
+        raise NotImplementedError('compute_df not working yet...')
+
     # Make sure we have a reasonable range of T1s to work with if the user
     # doesn't provide any
     if T1s is None:
