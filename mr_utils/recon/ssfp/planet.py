@@ -98,8 +98,8 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     if disp:
         import matplotlib.pyplot as plt
         _fig, ax = plt.subplots()
-        x = np.linspace(-0.4, 0.4, 1000)
-        y = np.linspace(-0.4, 0.4, 1000)
+        x = np.linspace(-0.5, 0.5, 1000)
+        y = np.linspace(-0.5, 0.5, 1000)
         X, Y = np.meshgrid(x, y)
         eqn = A*X**2 + B*X*Y + C*Y**2 + D*X + E*Y + F
         ax.contour(X, Y, eqn, [0])

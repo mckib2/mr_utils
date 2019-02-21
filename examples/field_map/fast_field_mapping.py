@@ -33,7 +33,7 @@ Method:
 from os.path import dirname, isfile
 
 import numpy as np
-from tqdm import trange, tqdm
+from tqdm import trange
 from ismrmrdtools.coils import calculate_csm_inati_iter as inati
 from skimage.filters import threshold_li
 
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     sx, sy, nc, nt, ns = data.shape[:]
 
     # Take a look at it in all its glory -- notice significant motion
-    # view(sos(data[..., 2::16, :], axes=2).squeeze(), montage_axis=-1,
-    #      movie_axis=-2)
+    view(sos(data[..., 1::16, :], axes=2).squeeze(), montage_axis=-1,
+         movie_axis=-2)
 
     # For each coil for all slices for each possible GS recon in N time points
     N = 16  # since we have 16 unique phase-cycles...
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # Average all the GS recons we got
     recons = np.mean(recons, axis=-2)
     print('Shape of recon after averaging is:', recons.shape)
-    # view(recons)
+    view(recons)
 
     # We still have a coil dimension, can we coil combine here before parameter
     # mapping or is that a no-no?
@@ -91,13 +91,13 @@ if __name__ == '__main__':
     print('Shape of recon after coil combine is:', recons.shape)
 
     # Take a look at each slice
-    # view(recons_cc, montage_axis=-1)
+    view(recons_cc, montage_axis=-1)
 
     # For each pixel we want to find T1, T2, so do PLANET on each voxel.  Make
     # a mask using coil combined recons so we only compute voxels in the brain
     thresh = threshold_li(np.abs(recons_cc))
     mask = np.abs(recons_cc) > thresh
-    # view(mask, montage_axis=-1)
+    view(mask, montage_axis=-1)
 
     data_masked = data.transpose((0, 1, 4, 2, 3))
     data_masked = data_masked.reshape((128, 64, 10, -1))
@@ -132,11 +132,11 @@ if __name__ == '__main__':
 
     view(T2_map)
 
-    # # Over the course of these N time points, plot a representative pixel's
-    # # time curve
-    # import matplotlib.pyplot as plt
-    # plt.plot(pcs, sos(data[64, 32, :, :N, :].squeeze(), axes=-3))
-    # plt.title('Time curves for column of pixels')
-    # plt.xlabel('Phase-cycle (deg)')
-    # plt.ylabel('SOS')
-    # plt.show()
+    # Over the course of these N time points, plot a representative pixel's
+    # time curve
+    import matplotlib.pyplot as plt
+    plt.plot(pcs, sos(data[64, 32, :, :N, :].squeeze(), axes=-3))
+    plt.title('Time curves for column of pixels')
+    plt.xlabel('Phase-cycle (deg)')
+    plt.ylabel('SOS')
+    plt.show()

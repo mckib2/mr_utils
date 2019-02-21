@@ -17,7 +17,7 @@ if __name__ == '__main__':
     T1s = np.linspace(.2, 2, 100)
     alpha = np.deg2rad(30)
 
-    iters = 100
+    iters = 1
     misses = 0
     asserts = 0
     df_err = np.zeros(iters)*np.nan
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         for ii, pc in enumerate(pcs):
             I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
         try:
-            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=False)
+            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=True)
             df = 0
             df_err[jj] = np.abs(df_true - df)
             if not np.allclose([T1, T2], [T1_true, T2_true]):

@@ -1,5 +1,7 @@
 '''General functions for working with ellipses.'''
 
+import logging
+
 import numpy as np
 from scipy.optimize import leastsq
 
@@ -22,7 +24,6 @@ def get_semiaxes(c):
     if AB[0] > AB[1]:
         return(AB[1], AB[0])
     return(AB[0], AB[1])
-
 
 def get_center(c):
     '''Compute center of ellipse from implicit function coefficients.
@@ -103,7 +104,8 @@ def fit_ellipse_halir(x, y):
     y = y.flatten()
 
     # Make sure we have at least 6 points (6 unknowns...)
-    assert x.size >= 6 and y.size >= 6, 'We need at least 6 sample points!'
+    if x.size < 6 and y.size < 6:
+        logging.warning('We need at least 6 sample points for a good fit!')
 
     # Here's the heavy lifting
     D1 = np.stack((x**2, x*y, y**2)).T # quadratic part of the design matrix
@@ -139,7 +141,8 @@ def fit_ellipse_fitzgibon(x, y):
     y = y.flatten()
 
     # Make sure we have at least 6 points (6 unknowns...)
-    assert x.size >= 6 and y.size >= 6, 'We need at least 6 sample points!'
+    if x.size < 6 and y.size < 6:
+        logging.warning('We need at least 6 sample points for a good fit!')
 
     # Do the thing
     x = x[:, np.newaxis]

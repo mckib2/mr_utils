@@ -13,7 +13,7 @@ from mr_utils.recon.ssfp import PLANET
 
 if __name__ == '__main__':
 
-    num_pc = 8
+    num_pc = 10
     I = np.zeros(num_pc, dtype='complex')
     pcs = [2*np.pi*n/num_pc for n in range(num_pc)]
     TR = 10e-3
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     mu = 0
     sigma = 1
 
-    iters = 100
+    iters = 1
     misses = 0
     asserts = 0
     for jj in trange(iters, leave=False):
@@ -35,7 +35,7 @@ if __name__ == '__main__':
             I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
         I += np.random.normal(mu, sigma/2) + 1j*np.random.normal(mu, sigma/2)
         try:
-            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=False)
+            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=True)
             if not np.allclose([T1, T2], [T1_true, T2_true]):
                 misses += 1
         except AssertionError as e:
