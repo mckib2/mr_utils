@@ -1,7 +1,7 @@
-'''Ellipse fitting functions.'''
+'''General functions for working with ellipses.'''
 
 import numpy as np
-
+from scipy.optimize import leastsq
 
 def get_semiaxes(c):
     '''Solve for semi-axes of the cartesian form of the ellipse equation.
@@ -12,9 +12,10 @@ def get_semiaxes(c):
         https://en.wikipedia.org/wiki/Ellipse
     '''
     A, B, C, D, E, F = c[:]
-    num = 2*(A*E**2 + C*D**2 - B*D*E + (B**2 - 4*A*C)*F)
-    num *= (A + C + np.array([1, -1])*np.sqrt((A - C)**2 + B**2))
-    den = B**2 - 4*A*C
+    B2 = B**2
+    den = B2 - 4*A*C
+    num = 2*(A*E**2 + C*D**2 - B*D*E + den*F)
+    num *= (A + C + np.array([1, -1])*np.sqrt((A - C)**2 + B2))
     AB = -1*np.sqrt(num)/den
 
     # Return semi-major axis first
@@ -54,11 +55,11 @@ def rotate_coefficients(c, phi):
     Er = D*sp + E*cp
     return np.array([Ar, Br, Cr, Dr, Er, F])
 
-def check_fit(C, I):
+def check_fit(C, x, y):
     '''General quadratic polynomial function.
 
     C -- coefficients.
-    I -- Complex voxels.
+    x, y -- Coordinates assumed to be on ellipse.
 
     We want this to equal 0 for a good ellipse fit.   This polynomial is called
     the algebraic distance of the point (x, y) to the given conic.
@@ -72,14 +73,16 @@ def check_fit(C, I):
         fitting of ellipses." Proc. 6th International Conference in Central
         Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
     '''
-    x = I.real
-    y = I.imag
+    x = x.flatten()
+    y = y.flatten()
     return C[0]*x**2 + C[1]*x*y + C[2]*y**2 + C[3]*x + C[4]*y + C[5]
 
-def fit_ellipse(I):
-    '''Python port of improved ellipse fitting algorithm.
+def fit_ellipse_halir(x, y):
+    '''Python port of improved ellipse fitting algorithm by Halir and Flusser.
 
-    I -- Complex voxels from 6 phase-cycled bSSFP images.
+    x, y -- Coordinates assumed to be on ellipse.
+
+    Note that there should be at least 6 pairs of (x,y).
 
     From the paper's conclusion:
         "Due to its systematic bias, the proposed fitting algorithm cannot be
@@ -94,16 +97,13 @@ def fit_ellipse(I):
         Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
     '''
 
-    # We should just have a bunch of phase-cycles of the same voxel, so make
-    # it into a column vector since shape doesn't matter
-    I = I.flatten()
+    # We should just have a bunch of points, so we can shape it into a column
+    # vector since shape doesn't matter
+    x = x.flatten()
+    y = y.flatten()
 
-    # Make sure we have at least 6 phase-cycles (6 unknowns...)
-    assert I.size >= 6, 'We need at least 6 phase-cycles!'
-
-    # Behold, the complex plane
-    x = I.real
-    y = I.imag
+    # Make sure we have at least 6 points (6 unknowns...)
+    assert x.size >= 6 and y.size >= 6, 'We need at least 6 sample points!'
 
     # Here's the heavy lifting
     D1 = np.stack((x**2, x*y, y**2)).T # quadratic part of the design matrix
@@ -119,3 +119,91 @@ def fit_ellipse(I):
     a1 = evec[:, cond > 0] # eigenvector for min. pos. eigenvalue
     a = np.vstack([a1, T.dot(a1)]).squeeze() # ellipse coefficients
     return a
+
+def fit_ellipse_fitzgibon(x, y):
+    '''Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
+
+    x, y -- Coordinates assumed to be on ellipse.
+
+    See Figure 1 from:
+        Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
+        fitting of ellipses." Proc. 6th International Conference in Central
+        Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+
+    Also see previous python port:
+        http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html
+    '''
+
+    # Like a pancake...
+    x = x.flatten()
+    y = y.flatten()
+
+    # Make sure we have at least 6 points (6 unknowns...)
+    assert x.size >= 6 and y.size >= 6, 'We need at least 6 sample points!'
+
+    # Do the thing
+    x = x[:, np.newaxis]
+    y = y[:, np.newaxis]
+    D = np.hstack((x*x, x*y, y*y, x, y, np.ones_like(x))) # Design matrix
+    S = np.dot(D.T, D) # Scatter matrix
+    C = np.zeros([6, 6]) # Constraint matrix
+    C[(0, 2), (0, 2)] = 2
+    C[1, 1] = -1
+    E, V = np.linalg.eig(np.dot(np.linalg.inv(S), C)) # solve eigensystem
+    n = np.argmax(np.abs(E)) # find positive eigenvalue
+    a = V[:, n].squeeze() # corresponding eigenvector
+    return a
+
+def fit_ellipse_nonlin(x, y, polar=False):
+    '''Fit ellipse only depending on semi-major axis and eccentricity.
+
+    x, y -- Coordinates assumed to be on ellipse.
+    polar -- Whether or not coordinates are provided as polar or Cartesian.
+
+    Note that if polar=True, then x will be assumed to be radius and y will be
+    assumed to be theta.
+
+    See:
+        https://scipython.com/book/chapter-8-scipy/examples/
+        non-linear-fitting-to-an-ellipse/
+    '''
+
+    # Convert cartesian coordinates to polar
+    if not polar:
+        r = np.sqrt(x**2 + y**2)
+        theta = np.arctan2(y, x)
+    else:
+        r = x
+        theta = y
+
+    def f(theta, p):
+        '''Ellipse function.'''
+        a, e = p
+        return a * (1 - e**2)/(1 - e*np.cos(theta))
+
+    def residuals(p, r, theta):
+        '''Return the observed - calculated residuals using f(theta, p).'''
+        return r - f(theta, p)
+
+    def jac(p, _r, theta):
+        '''Calculate and return the Jacobian of residuals.'''
+        a, e = p
+        ct = np.cos(theta)
+        ect = e*ct
+        e2 = e**2
+        da = (1 - e2)/(1 - ect)
+        de = (-2*a*e*(1 - ect) + a*(1 - e2)*ct)/(1 - ect)**2
+        return(-da, -de)
+
+    p0 = (1, 0.5)
+    plsq = leastsq(residuals, p0, Dfun=jac, args=(r, theta), col_deriv=True)
+    # print(plsq[0])
+
+    # import matplotlib.pyplot as plt
+    # plt.polar(theta, r, 'x')
+    # theta_grid = np.linspace(0, 2*np.pi, 200)
+    # plt.polar(theta_grid, f(theta_grid, plsq[0]), lw=2)
+    # plt.show()
+
+    # Return a, e
+    return plsq[0]

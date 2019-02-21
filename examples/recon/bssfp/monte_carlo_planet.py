@@ -28,7 +28,8 @@ if __name__ == '__main__':
         for ii, pc in enumerate(pcs):
             I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
         try:
-            Meff, T1, T2, df = PLANET(I, alpha, TR, T1s, None, True, False)
+            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=False)
+            df = 0
             df_err[jj] = np.abs(df_true - df)
             if not np.allclose([T1, T2], [T1_true, T2_true]):
                 misses += 1

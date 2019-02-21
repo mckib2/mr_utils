@@ -6,7 +6,7 @@ import numpy as np
 
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.recon.ssfp import PLANET
-from mr_utils.utils import fit_ellipse, check_fit
+from mr_utils.utils import fit_ellipse_halir, fit_ellipse_fitzgibon, check_fit
 
 class TestPLANET(unittest.TestCase):
     '''PLANET sanity checks.'''
@@ -32,11 +32,16 @@ class TestPLANET(unittest.TestCase):
 
     def test_ellipse_fit(self):
         '''Make sure we can fit an ellipse using complex ssfp data.'''
-        c = fit_ellipse(self.I)
+        c = fit_ellipse_halir(self.I.real, self.I.imag)
         self.assertTrue(np.allclose(
-            check_fit(c, self.I), np.zeros(self.I.size)))
+            check_fit(c, self.I.real, self.I.imag), np.zeros(self.I.size)))
+
+        # Try with alternative method
+        c = fit_ellipse_fitzgibon(self.I.real, self.I.imag)
+        self.assertTrue(np.allclose(
+            check_fit(c, self.I.real, self.I.imag), np.zeros(self.I.size)))
 
     def test_no_noise_case(self):
         '''Make sure we perform in ideal conditions.'''
-        _Meff, T1, T2 = PLANET(self.I, self.alpha, self.TR, T1s=self.T1s)
+        _Meff, T1, T2 = PLANET(self.I, self.alpha, self.TR, T1s=self.T1s, disp=True)
         self.assertTrue(np.allclose([T1, T2], [self.T1, self.T2]))

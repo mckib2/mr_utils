@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     # Noise parameters
     mu = 0
-    sigma = 0.00001
+    sigma = 1
 
     iters = 100
     misses = 0
@@ -35,7 +35,7 @@ if __name__ == '__main__':
             I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
         I += np.random.normal(mu, sigma/2) + 1j*np.random.normal(mu, sigma/2)
         try:
-            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, None, False, True)
+            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=False)
             if not np.allclose([T1, T2], [T1_true, T2_true]):
                 misses += 1
         except AssertionError as e:

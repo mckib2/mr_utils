@@ -5,10 +5,11 @@
 
 import numpy as np
 
-from mr_utils.utils import fit_ellipse, rotate_coefficients, get_center
+from mr_utils.utils import rotate_coefficients, get_center
 from mr_utils.utils import get_semiaxes
 
-def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
+def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
+           compute_df=False, disp=False):
     '''Simultaneous T1, T2 mapping using phase‐cycled bSSFP.
 
     I -- Complex voxels from phase-cycled bSSFP images.
@@ -16,12 +17,17 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
     TR -- Repetition time (in sec).
     pcs -- List of phase-cycles in I (required if computing df).
     T1s -- Range of T1s.
+    fit_ellipse -- Function used to fit data points to ellipse.
     compute_df -- Whether or not estimate local off-resonance, df.
     disp -- Show plots.
 
     Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
     method they use (and which is implemented here) may not be the best
     method, but it is quick.  Could add more options for fitting in the future.
+
+    fit_ellipse(x, y) should take two arguments and return a vector containing
+    the coefficients of the implicit ellipse equation.  If fit_ellipse=None
+    then the mr_utils.utils.fit_ellipse_halir() function will be used.
 
     pcs should be a list of phase-cycles in radians.  If pcs=None, it will be
     determined as I.size equally spaced phasce-cycles on the interval [0, 2pi).
@@ -31,6 +37,11 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
         simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
         free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
     '''
+
+    # Make sure we have an ellipse fitting function
+    if fit_ellipse is None:
+        from mr_utils.utils import fit_ellipse_halir
+        fit_ellipse = fit_ellipse_halir
 
     # Make sure we know what phase-cycles we have if we're computing df
     if compute_df:
@@ -49,30 +60,38 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
 
     ## Step 1. Direct linear least squares ellipse fitting to phase-cycled
     ## bSSFP data.
-    c = fit_ellipse(I)
+    c = fit_ellipse(I.real, I.imag)
 
     # Look at it in standard form
     A, B, C, D, E, F = c[:]
     assert B**2 - 4*A*C < 0, 'Not an ellipse!'
 
     ## Step 2. Rotation of the ellipse to initial vertical conic form.
-    phi = -.5*np.arctan2(c[1], c[0] - c[2]) # Shcherbakova with added -1 fac
-    cr = rotate_coefficients(c, phi)
+    phi = .5*np.arctan(c[1]/(c[0] - c[2]))
+    cr = rotate_coefficients(c, -phi)
     xc, yc = get_center(cr)
 
-    # Manually unwrap
+    # "Manually unwrap"
     if not np.allclose(yc, 0):
         phi0 = phi + np.pi/2
-        cr = rotate_coefficients(c, phi0)
+        cr = rotate_coefficients(c, -phi0)
         xc, yc = get_center(cr)
         if not np.allclose(yc, 0):
             phi0 = phi - np.pi/2
-            cr = rotate_coefficients(c, phi0)
+            cr = rotate_coefficients(c, -phi0)
             xc, yc = get_center(cr)
+        phi = phi0
+
+    # We want xc to be in the right half-plane (positive, that is)
+    if xc < 0:
+        phi0 = phi + np.pi # flip it across the y-axis
+        cr = rotate_coefficients(c, -phi0)
+        xc, yc = get_center(cr)
         phi = phi0
 
     # Make sure we got what we wanted:
     assert np.allclose(yc, 0), 'Ellipse rotation failed! yc = %g' % yc
+    assert xc > 0, 'xc needs to be in the right half-plane! xc = %g' % xc
     Ar, Br, Cr, Dr, Er, Fr = cr[:]
 
     # If we want to look at it (for debugging mostly)
@@ -87,7 +106,7 @@ def PLANET(I, alpha, TR, T1s=None, pcs=None, compute_df=False, disp=False):
         ax.grid()
         ax.plot(I.real, I.imag, '.')
 
-        Ir = I*np.exp(1j*phi)
+        Ir = I*np.exp(-1j*phi)
         ax.plot(Ir.real, Ir.imag, '*')
         eqn = Ar*X**2 + Br*X*Y + Cr*Y**2 + Dr*X + Er*Y + Fr
         ax.contour(X, Y, eqn, [0])
