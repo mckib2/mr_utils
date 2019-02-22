@@ -240,3 +240,47 @@ FUNCTIONS
 
 ```
 
+
+## mr_utils.recon.ssfp.planet
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/recon/ssfp/planet.py)
+
+```
+NAME
+    mr_utils.recon.ssfp.planet - PLANET: an ellipse fitting approach for simultaneous T1 and T2 mapping...
+
+DESCRIPTION
+    ...Using Phase-Cycled Balanced Steady-State Free Precession.
+
+FUNCTIONS
+    PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None, compute_df=False, disp=False)
+        Simultaneous T1, T2 mapping using phase‐cycled bSSFP.
+        
+        I -- Complex voxels from phase-cycled bSSFP images.
+        alpha -- Flip angle (in rad).
+        TR -- Repetition time (in sec).
+        pcs -- List of phase-cycles in I (required if computing df).
+        T1s -- Range of T1s.
+        fit_ellipse -- Function used to fit data points to ellipse.
+        compute_df -- Whether or not estimate local off-resonance, df.
+        disp -- Show plots.
+        
+        Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
+        method they use (and which is implemented here) may not be the best
+        method, but it is quick.  Could add more options for fitting in the future.
+        
+        fit_ellipse(x, y) should take two arguments and return a vector containing
+        the coefficients of the implicit ellipse equation.  If fit_ellipse=None
+        then the mr_utils.utils.fit_ellipse_halir() function will be used.
+        
+        pcs should be a list of phase-cycles in radians.  If pcs=None, it will be
+        determined as I.size equally spaced phasce-cycles on the interval [0, 2pi).
+        
+        Implements algorithm described in:
+            Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
+            simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
+            free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
+
+
+```
+

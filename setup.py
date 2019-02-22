@@ -29,7 +29,7 @@ setup(
     long_description='', #open('README.rst').read(),
     install_requires=[
         "numpy>=1.14.1",
-        "scipy>=1.0.0",
+        "scipy>=1.2.1",
         "h5py>=2.7.1",
         "rawdatarinator>=0.1.9",
         "matplotlib>=2.1.1",

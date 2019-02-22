@@ -44,7 +44,7 @@ def mat_keys(filename, ignore_dbl_underscored=True, no_print=False):
 
 def view(
         image,
-        load_opts={},
+        load_opts=None,
         is_raw=None,
         is_line=None,
         prep=None,
@@ -54,7 +54,7 @@ def view(
         avg_axis=None,
         coil_combine_axis=None,
         coil_combine_method='walsh',
-        coil_combine_opts={},
+        coil_combine_opts=None,
         is_imspace=False,
         mag=None,
         phase=False,
@@ -107,6 +107,12 @@ def view(
     # Set up logging...
     logging.basicConfig(format='%(levelname)s: %(message)s', level=debug_level)
 
+    # Add some default empty params
+    if load_opts is None:
+        load_opts = dict()
+    if coil_combine_opts is None:
+        coil_combine_opts = dict()
+
     # If the user wants to look at numpy matrix, recognize that filename is the
     # matrix:
     if isinstance(image, np.ndarray):
@@ -129,7 +135,7 @@ def view(
             # Help out the user a little bit...  If only one nontrivial key is
             # found then go ahead and assume it's that one
             data = None
-            if not len(list(load_opts)):
+            if not list(load_opts):
                 keys = mat_keys(image, no_print=True)
                 if len(keys) == 1:
                     logging.info('No key supplied, but one key for mat \
@@ -359,7 +365,12 @@ def view(
 
         # Put the montage axis in front
         data = np.moveaxis(data, montage_axis, 0)
-        data = skimontage(data, **montage_opts)
+        try:
+            data = skimontage(data, **montage_opts)
+        except ValueError:
+            # Multichannel might be erronously set
+            montage_opts['multichannel'] = False
+            data = skimontage(data, **montage_opts)
 
         if data.ndim == 3:
             # If we had 4 dimensions, we just lost one, so now we need to know
@@ -375,6 +386,7 @@ def view(
         im = plt.imshow(data[..., 0], **imshow_opts)
 
         def updatefig(frame):
+            '''Animation function for figure.'''
             im.set_array(data[..., frame])
             return im,  # pylint: disable=R1707
 
@@ -411,6 +423,7 @@ def view(
     # If we're testing, return all the local vars
     if test_run:
         return locals()
+    return None
 
 if __name__ == '__main__':
 
