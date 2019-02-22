@@ -27,7 +27,7 @@ FUNCTIONS
         filename -- .mat filename.
         ignore_dbl_underscored -- Remove keys beginng with two underscores.
     
-    view(image, load_opts={}, is_raw=None, is_line=None, prep=None, fft=False, fft_axes=None, fftshift=None, avg_axis=None, coil_combine_axis=None, coil_combine_method='walsh', coil_combine_opts={}, is_imspace=False, mag=None, phase=False, log=False, imshow_opts={'cmap': 'gray'}, montage_axis=None, montage_opts={'padding_width': 2}, movie_axis=None, movie_repeat=True, save_npy=False, debug_level=10, test_run=False)
+    view(image, load_opts=None, is_raw=None, is_line=None, prep=None, fft=False, fft_axes=None, fftshift=None, avg_axis=None, coil_combine_axis=None, coil_combine_method='walsh', coil_combine_opts=None, is_imspace=False, mag=None, phase=False, log=False, imshow_opts={'cmap': 'gray'}, montage_axis=None, montage_opts={'padding_width': 2}, movie_axis=None, movie_repeat=True, save_npy=False, debug_level=10, test_run=False)
         Image viewer to quickly inspect data.
         
         image -- Name of the file including the file extension or numpy array.

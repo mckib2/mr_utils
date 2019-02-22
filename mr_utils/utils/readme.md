@@ -69,6 +69,105 @@ FUNCTIONS
 ```
 
 
+## mr_utils.utils.ellipse
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/ellipse.py)
+
+```
+NAME
+    mr_utils.utils.ellipse - General functions for working with ellipses.
+
+FUNCTIONS
+    check_fit(C, x, y)
+        General quadratic polynomial function.
+        
+        C -- coefficients.
+        x, y -- Coordinates assumed to be on ellipse.
+        
+        We want this to equal 0 for a good ellipse fit.   This polynomial is called
+        the algebraic distance of the point (x, y) to the given conic.
+        
+        See:
+            Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
+            simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
+            free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
+        
+            Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
+            fitting of ellipses." Proc. 6th International Conference in Central
+            Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+    
+    fit_ellipse_fitzgibon(x, y)
+        Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
+        
+        x, y -- Coordinates assumed to be on ellipse.
+        
+        See Figure 1 from:
+            Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
+            fitting of ellipses." Proc. 6th International Conference in Central
+            Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+        
+        Also see previous python port:
+            http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html
+    
+    fit_ellipse_halir(x, y)
+        Python port of improved ellipse fitting algorithm by Halir and Flusser.
+        
+        x, y -- Coordinates assumed to be on ellipse.
+        
+        Note that there should be at least 6 pairs of (x,y).
+        
+        From the paper's conclusion:
+            "Due to its systematic bias, the proposed fitting algorithm cannot be
+            used directly in applications where excellent accuracy of the fitting
+            is required. But even in that applications our method can be useful as
+            a fast and robust estimator of a good initial solution of the fitting
+            problem..."
+        
+        See figure 2 from:
+            Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
+            fitting of ellipses." Proc. 6th International Conference in Central
+            Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+    
+    fit_ellipse_nonlin(x, y, polar=False)
+        Fit ellipse only depending on semi-major axis and eccentricity.
+        
+        x, y -- Coordinates assumed to be on ellipse.
+        polar -- Whether or not coordinates are provided as polar or Cartesian.
+        
+        Note that if polar=True, then x will be assumed to be radius and y will be
+        assumed to be theta.
+        
+        See:
+            https://scipython.com/book/chapter-8-scipy/examples/
+            non-linear-fitting-to-an-ellipse/
+    
+    get_center(c)
+        Compute center of ellipse from implicit function coefficients.
+        
+        c -- Coefficients of general quadratic polynomial function for conic funs.
+    
+    get_semiaxes(c)
+        Solve for semi-axes of the cartesian form of the ellipse equation.
+        
+        c -- Coefficients of general quadratic polynomial function for conic funs.
+        
+        See:
+            https://en.wikipedia.org/wiki/Ellipse
+    
+    rotate_coefficients(c, phi)
+        Rotate coefficients of implicit equations through angle phi.
+        
+        c -- Coefficients of general quadratic polynomial function for conic funs.
+        phi -- Angle in radians to rotate ellipse.
+        
+        See:
+            http://www.mathamazement.com/Lessons/Pre-Calculus/
+            09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
+
+
+```
+
+
 ## mr_utils.utils.find_nearest
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/find_nearest.py)
@@ -107,6 +206,62 @@ FUNCTIONS
             Zhang, Yan, Yuanyuan Wang, and Chen Zhang. "Total variation based
             gradient descent algorithm for sparse-view photoacoustic image
             reconstruction." Ultrasonics 52.8 (2012): 1046-1055.
+
+
+```
+
+
+## mr_utils.utils.histogram
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/histogram.py)
+
+```
+NAME
+    mr_utils.utils.histogram - Some functions for working with histograms.
+
+FUNCTIONS
+    dH(H1, H2, mode='l2')
+        Histogram metrics.
+        
+        H1, H2 -- 1d histograms with matched bins.
+        mode -- Metric to use.
+        
+        Similar bins means the same number and size over the same range.
+        
+        Modes:
+            l2 -- Euclidean distance
+            l1 -- Manhattan distance
+            vcos -- Vector cosine distance
+            intersect -- Histogram intersection distance
+            chi2 -- Chi square distance
+            jsd -- Jensen-Shannan Divergence
+            emd -- Earth Mover's Distance
+        
+        Issues:
+            I'm not completely convinced that intersect is doing the right thing.
+        
+        The quality of the metric will depend a lot on the qaulity of the
+        histograms themselves.  Obviously more samples and well-chosen bins will
+        help out in the comparisons.
+    
+    hist_match(source, template)
+        Adjust the pixel values of a grayscale image such that its histogram
+        matches that of a target image
+        
+        Arguments:
+        -----------
+            source: np.ndarray
+                Image to transform; the histogram is computed over the flattened
+                array
+            template: np.ndarray
+                Template image; can have different dimensions to source
+        Returns:
+        -----------
+            matched: np.ndarray
+                The transformed output image
+        
+        See:
+            https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
 
 
 ```
@@ -295,6 +450,95 @@ FUNCTIONS
 ```
 
 
+## mr_utils.utils.permutation_rank
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/permutation_rank.py)
+
+```
+NAME
+    mr_utils.utils.permutation_rank - Determining rank of a permutation and generating permutation given rank.
+
+DESCRIPTION
+    This implementation is due to:
+        https://rosettacode.org/wiki/Permutations/Rank_of_a_permutation#Python
+    
+    See:
+        Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations in
+        linear time." Information Processing Letters 79.6 (2001): 281-284.
+
+FUNCTIONS
+    fact = factorial(...)
+        factorial(x) -> Integral
+        
+        Find x!. Raise a ValueError if x is negative or non-integral.
+    
+    get_random_ranks(permsize, samplesize)
+    
+    identity_perm(n)
+        Generate sequence 0:n-1.
+    
+    init_pi1(n, pi)
+        Get the inverse permutation of pi.
+    
+    pi2rank(pi, method='rank2', iterative=True)
+        Return rank of permutation pi.
+        
+        pi -- Permutation.
+        method -- Which ranking method to use, one of {'rank1', 'rank2'}.
+        iterative -- Whether or not to use iterative or recursive version.
+        
+        The permutation pi should be a permutation of the list range(n) and contain
+        n elements.
+        
+        'method' should be one of {'rank1', 'rank2'} corresponding to the two
+        schemes presented in the Myrvold and Ruskey paper.  There is an iterative
+        version available for both algorithms.
+        
+        Implements algorithms from:
+            Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations
+            in linear time." Information Processing Letters 79.6 (2001): 281-284.
+    
+    rank2pi(r, n, method='rank2')
+        Given rank and permutation length produce the corresponding permutation.
+        
+        r -- Rank.
+        n -- Lenth of the permutation.
+        method -- Which ranking method to use, one of {'rank1', 'rank2'}.
+        
+        Implements algorithms from:
+            Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations
+            in linear time." Information Processing Letters 79.6 (2001): 281-284.
+    
+    ranker1(n, pi, pi1)
+        Rank1 algorithm from M&R paper.
+    
+    ranker1_iter(n, pi, pi1)
+        Iterative version of ranker1.
+    
+    ranker2(n, pi, pi1)
+        Ranker2 algorithm from M&R paper.
+    
+    ranker2_iter(n, pi, pi1)
+        Iterative version of ranker2.
+    
+    test1(comment, unranker, ranker)
+    
+    test2(comment, unranker)
+    
+    unranker1(n, r, pi)
+        Given rank produce the corresponding permutation.
+        
+        Rank is given by rank1 algorithm of M&R paper.
+    
+    unranker2(n, r, pi)
+        Given rank produce the corresponding permutation.
+        
+        Rank is given by rank2 algorithm of M&R paper.
+
+
+```
+
+
 ## mr_utils.utils.printtable
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/utils/printtable.py)
@@ -406,7 +650,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.utils.sos
+    mr_utils.utils.sos - Simple root sum of squares image combination.
 
 FUNCTIONS
     sos(im, axes=0)
