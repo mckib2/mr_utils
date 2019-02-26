@@ -254,9 +254,9 @@ def readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE):
         for ii in range(NUM_ENTRIES):
             entry = {}
             entry['measId_'], entry['fileId_'] = np.fromfile(
-                siemens_dat, dtype=np.uint32, count=2)
+                siemens_dat, dtype=np.uint32, count=2) #pylint: disable=E1101
             entry['off_'], entry['len_'] = np.fromfile(
-                siemens_dat, dtype=np.uint64, count=2)
+                siemens_dat, dtype=np.uint64, count=2) #pylint: disable=E1101
             entry['patName_'], entry['protName_'] = np.fromfile(
                 siemens_dat, dtype='U64', count=2) # could be S64?
 
@@ -284,7 +284,7 @@ def readMeasurementHeaderBuffers(siemens_dat, num_buffers):
 
         logging.info('Buffer Name: %s', tmp_bufname)
         buf['name'] = tmp_bufname
-        buflen = np.fromfile(siemens_dat, dtype=np.uint32, count=1)[0]
+        buflen = np.fromfile(siemens_dat, dtype=np.uint32, count=1)[0] #pylint: disable=E1101
         bytebuf = siemens_dat.read(buflen)
         buf['buf'] = bytebuf.decode(
             'utf-8', errors='replace').replace('\uFFFD', 'X')
@@ -333,7 +333,8 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
             # const XProtocol::XNode* n2 = apply_visitor(
             #    XProtocol::getChildNodeByName("MEAS.sWipMemBlock.alFree"), n);
             try:
-                wip_long = [int(x) for x in doc_root['MEAS']['sWiPMemBlock']['alFree']]
+                wip_long = [int(x) for x in
+                            doc_root['MEAS']['sWiPMemBlock']['alFree']]
             except:
                 logging.warning(
                     'Search path: MEAS.sWipMemBlock.alFree not found.')
@@ -345,7 +346,8 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
             # const XProtocol::XNode* n2 = apply_visitor(
             #    XProtocol::getChildNodeByName("MEAS.sWipMemBlock.adFree"), n);
             try:
-                wip_double = [float(x) for x in doc_root['MEAS']['sWiPMemBlock']['adFree'][1:]]
+                wip_double = [float(x) for x in
+                              doc_root['MEAS']['sWiPMemBlock']['adFree'][1:]]
             except:
                 logging.warning(
                     'Search path: MEAS.sWipMemBlock.adFree not found.')
@@ -357,7 +359,8 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
             # const XProtocol::XNode* n2 = apply_visitor(
             #   XProtocol::getChildNodeByName("MEAS.sRXSPEC.alDwellTime"), n);
             try:
-                temp = [int(x) for x in doc_root['MEAS']['sRXSPEC']['alDwellTime']]
+                temp = [int(x) for x in
+                        doc_root['MEAS']['sRXSPEC']['alDwellTime']]
             except:
                 logging.warning(
                     'Search path: MEAS.sWipMemBlock.alDwellTime not found.')
@@ -392,7 +395,7 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
                     4: 'TRAJECTORY_SPIRAL',
                     8: 'TRAJECTORY_BLADE'
                 }[traj]
-                logging.info('Trajectory is: %d (%s)', (traj, trajectory))
+                logging.info('Trajectory is: %d (%s)', traj, trajectory)
 
             # Get some parameters - max channels
             # const XProtocol::XNode* n2 = apply_visitor(
@@ -414,7 +417,8 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
             #         XProtocol::getChildNodeByName(
             #            "MEAS.sKSpace.lPhaseEncodingLines"), n);
             try:
-                temp = [int(doc_root['MEAS']['sKSpace']['lPhaseEncodingLines'][0])]
+                temp = [int(
+                    doc_root['MEAS']['sKSpace']['lPhaseEncodingLines'][0])]
             except:
                 logging.warning('MEAS.sKSpace.lPhaseEncodingLines not found')
             if len(temp) != 1:
@@ -494,14 +498,16 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
 
             # set the values
             if has_FirstFourierLine: # bottom half for partial fourier
-                center_line = lPhaseEncodingLines/2 - (lPhaseEncodingLines - iNoOfFourierLines)
+                center_line = lPhaseEncodingLines/2 - (
+                    lPhaseEncodingLines - iNoOfFourierLines)
             else:
                 center_line = lPhaseEncodingLines/2
 
             if iNoOfFourierPartitions > 1:
                 # 3D
                 if has_FirstFourierPartition: # bottom half for partial fourier
-                    center_partition = lPartitions/2 - (lPartitions - iNoOfFourierPartitions)
+                    center_partition = lPartitions/2 - (
+                        lPartitions - iNoOfFourierPartitions)
                 else:
                     center_partition = lPartitions/2
             else:
@@ -552,13 +558,15 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
             #         XProtocol::getChildNodeByName(
             #            "MEAS.sProtConsistencyInfo.tBaselineString"), n);
             try:
-                baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tBaselineString'][0]
+                baseLineString = doc_root[
+                    'MEAS']['sProtConsistencyInfo']['tBaselineString'][0]
             except:
                 # const XProtocol::XNode* n2 = apply_visitor(
                 #         XProtocol::getChildNodeByName(
                 #    "MEAS.sProtConsistencyInfo.tMeasuredBaselineString"), n);
                 try:
-                    baseLineString = doc_root['MEAS']['sProtConsistencyInfo']['tMeasuredBaselineString'][0]
+                    baseLineString = doc_root['MEAS'][
+                        'sProtConsistencyInfo']['tMeasuredBaselineString'][0]
                 except:
                     logging.warning(('Failed to find MEAS.sProtConsistencyInfo'
                                      '.tBaselineString/tMeasuredBaseline'
@@ -636,7 +644,7 @@ def main(args):
     '''Run the program with arguments.'''
 
     # If we only wanted the version, that's all we're gonna do
-    if args['version']:
+    if 'version' in args and args['version']:
         print('Converter version is: %s.%s.%s' % (
             SIEMENS_TO_ISMRMRD_VERSION_MAJOR,
             SIEMENS_TO_ISMRMRD_VERSION_MINOR,
@@ -645,30 +653,30 @@ def main(args):
             ISMRMRD_VERSION_MAJOR,
             ISMRMRD_VERSION_MINOR,
             ISMRMRD_VERSION_PATCH))
-        return ERR_STATE
+        return
 
     # Embedded files are parameter maps and stylesheets included with this
     # program
-    if args['list']:
+    if 'list' in args and args['list']:
         print('Embedded Files:')
         for file in sorted(get_list_of_embedded_files()):
             print('\t%s' % file)
+        return
 
     # Extract specified parameter map if requested
-    if args['extract'] is not None:
+    if 'extract' in args and args['extract'] is not None:
         logging.info('Extract specified parameter map if we asked for it...')
         raise NotImplementedError()
 
     # If we are going any further, we're going to need a file...
-    if args['file'] is None:
-        logging.error('Missing Siemens DAT filename')
-        return ERR_STATE
+    if 'file' not in args or args['file'] is None:
+        raise ValueError('Missing Siemens DAT filename')
 
     # Check if Siemens file can be opened, if not, we're in trouble
     if not os.path.isfile(args['file']):
-        logging.error(('Provided Siemens file (%s) can not be opened or does'
-                       ' not exist.', args['file']))
-        return ERR_STATE
+        msg = ('Provided Siemens file (%s) can not be opened or does not '
+               'exist' % args['file'])
+        raise IOError(msg)
     # else...
     logging.info('Siemens file is: %s', args['file'])
 
@@ -709,7 +717,7 @@ def main(args):
         VBFILE = False
         ParcRaidHead = {}
         ParcRaidHead['hdSize_'], ParcRaidHead['count_'] = np.fromfile(
-            siemens_dat, dtype=np.uint32, count=2)
+            siemens_dat, dtype=np.uint32, count=2) #pylint: disable=E1101
 
         if ParcRaidHead['hdSize_'] > 32:
             VBFILE = True
@@ -754,12 +762,13 @@ def main(args):
                          os.SEEK_SET)
 
         dma_length, num_buffers = np.fromfile(
-            siemens_dat, dtype=np.uint32, count=2)
+            siemens_dat, dtype=np.uint32, count=2) #pylint: disable=E1101
 
         buffers = readMeasurementHeaderBuffers(siemens_dat, num_buffers)
 
         # We need to be on a 32 byte boundary after reading the buffers
-        position_in_meas = siemens_dat.tell() - ParcFileEntries[args['measNum'] - 1]['off_']
+        position_in_meas = siemens_dat.tell() - ParcFileEntries[args[
+            'measNum'] - 1]['off_']
         if np.mod(position_in_meas, 32) != 0:
             siemens_dat.seek(32 - np.mod(position_in_meas, 32), os.SEEK_CUR)
 
@@ -841,7 +850,8 @@ def main(args):
             # readScanHeader(siemens_dat, VBFILE, mdh, scanhead);
             #
             if not siemens_dat:
-                logging.error('Error reading header at acquisition %d.' % acquisitions)
+                logging.error('Error reading header at acquisition %d.',
+                              acquisitions)
                 break
 
             # TODO
@@ -933,8 +943,12 @@ if __name__ == '__main__':
     parser.add_argument('-H', dest='headerOnly',
                         help='<HEADER ONLY flag (create xml header only)>',
                         default=True)
-    parser.add_argument('-B', dest='bufferAppend', help='<Append Siemens protocol buffers (bas64) to user parameters>', default=True)
-    parser.add_argument('--studyDate', help='<User can supply study date, in the format of yyyy-mm-dd>')
+    parser.add_argument('-B', dest='bufferAppend',
+                        help=('<Append Siemens protocol buffers (bas64) to '
+                              'user parameters>'), default=True)
+    parser.add_argument('--studyDate',
+                        help=('<User can supply study date, in the format of '
+                              'yyyy-mm-dd>'))
 
     args = parser.parse_args()
     print(args)
