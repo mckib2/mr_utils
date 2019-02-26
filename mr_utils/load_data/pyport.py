@@ -5,14 +5,15 @@ import os
 import logging
 import operator
 from functools import reduce
-import json
+# import json
 import urllib.request
 import xml.etree.ElementTree as ET
 
 import numpy as np
 import xmltodict
 
-from mr_utils.load_data.xprot_parser import XProtParser
+# from mr_utils.load_data.xprot_parser import XProtParser
+from mr_utils.load_data.xprot_parser_strsearch import xprot_get_val
 # from mr_utils.load_data.parser.infoparser import InfoParser
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
@@ -121,10 +122,14 @@ def get_list_of_embedded_files():
     return files
 
 def get_embedded_file(file):
+    '''Retrieve embedded file from github.
+
+    file -- Name of embedded file to get.
+    '''
     files = get_list_of_embedded_files()
     if file not in files:
-        logging.error('%s is not a valid embedded file.', file)
-        return ERR_STATE
+        msg = '"%s" is not a valid embedded file.' % file
+        raise ValueError(msg)
     # else...
     url = ('https://raw.githubusercontent.com/ismrmrd/siemens_to_ismrmrd/'
            'master/parameter_maps/%s' % file)
@@ -153,9 +158,9 @@ def getparammap_file_content(parammap_file, usermap_file, VBFILE):
             # If the user specified only a user-supplied parameter map file
             else:
                 if not os.path.isfile(usermap_file):
-                    logging.error('Parameter map file: %s does not exist.',
-                                  usermap_file)
-                    raise RuntimeError()
+                    msg = ('Parameter map file: %s does not exist.'
+                           '' % usermap_file)
+                    raise ValueError(msg)
 
                 logging.info('Parameter map file is: %s', usermap_file)
                 parammap_file_content = ET.parse(usermap_file)
@@ -297,6 +302,7 @@ def readMeasurementHeaderBuffers(siemens_dat, num_buffers):
 def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
                   wip_double, trajectory, dwell_time_0, max_channels,
                   radial_views, baseLineString, protocol_name):
+    '''Read in and format header from raw data file.'''
 
     dwell_time_0 = 0
     max_channels = 0
@@ -315,185 +321,152 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
 
             # Grab the header from the .dat file
             config_buffer = buffers[b]['buf'][:-2]
+            # print(config_buffer)
 
             # Write out the raw header if we asked for it
             if debug_xml:
                 with open('config_buffer.xprot', 'w') as f:
                     f.write(config_buffer)
 
-            # Let's parse this sucker
-            parser = XProtParser()
-            parser.parse(config_buffer)
-            doc_root = parser.structure['XProtocol']['Params']['']
-            # parser = InfoParser()
-            # doc_root = xmltodict.parse(
-            #    parser.raw2xml(config_buffer))['doc_root']
-
             # Get some parameters - wip long
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #    XProtocol::getChildNodeByName("MEAS.sWipMemBlock.alFree"), n);
             try:
-                wip_long = [int(x) for x in
-                            doc_root['MEAS']['sWiPMemBlock']['alFree']]
-            except:
-                logging.warning(
-                    'Search path: MEAS.sWipMemBlock.alFree not found.')
-            if wip_long:
-                logging.error('Failed to find WIP long parameters')
-                raise RuntimeError()
+                wip_long = xprot_get_val(
+                    config_buffer, 'MEAS.sWiPMemBlock.alFree')
+                if wip_long.size == 0:
+                    # If we found it but have no entries, then something is
+                    # wrong
+                    raise RuntimeError('Failed to find WIP long parameters')
+            except KeyError:
+                msg = 'Search path: MEAS.sWipMemBlock.alFree not found.'
+                logging.warning(msg)
 
             # Get some parameters - wip double
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #    XProtocol::getChildNodeByName("MEAS.sWipMemBlock.adFree"), n);
             try:
-                wip_double = [float(x) for x in
-                              doc_root['MEAS']['sWiPMemBlock']['adFree'][1:]]
-            except:
-                logging.warning(
-                    'Search path: MEAS.sWipMemBlock.adFree not found.')
-            if wip_double:
-                logging.error('Failed to find WIP double parameters')
-                raise RuntimeError()
+                wip_double = xprot_get_val(
+                    config_buffer, 'MEAS.sWiPMemBlock.adFree')
+                if wip_double.size == 0:
+                    raise RuntimeError('Failed to find WIP double parameters')
+            except KeyError:
+                msg = 'Search path: MEAS.sWipMemBlock.adFree not found.'
+                logging.warning(msg)
 
             # Get some parameters - dwell times
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #   XProtocol::getChildNodeByName("MEAS.sRXSPEC.alDwellTime"), n);
             try:
-                temp = [int(x) for x in
-                        doc_root['MEAS']['sRXSPEC']['alDwellTime']]
-            except:
-                logging.warning(
-                    'Search path: MEAS.sWipMemBlock.alDwellTime not found.')
-            if temp:
-                logging.error('Failed to find dwell times')
-                raise RuntimeError()
-            else:
-                dwell_time_0 = temp[0]
+                dwell_time_0 = xprot_get_val(
+                    config_buffer, 'MEAS.sRXSPEC.alDwellTime')
+                if dwell_time_0.size == 0:
+                    raise RuntimeError('Failed to find dwell times')
+                dwell_time_0 = dwell_time_0[0]
+            except KeyError:
+                msg = 'Search path: MEAS.sWipMemBlock.alDwellTime not found.'
+                logging.warning(msg)
 
             # Get some parameters - trajectory
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #    XProtocol::getChildNodeByName("MEAS.sKSpace.ucTrajectory"), n)
             try:
-                temp = [int(doc_root['MEAS']['sKSpace']['ucTrajectory'][0])]
-            except:
-                logging.warning(
-                    'Search path: MEAS.sKSpace.ucTrajectory not found.')
-            if len(temp) != 1:
-                logging.error('Failed to find appropriate trajectory array')
-                raise RuntimeError()
-            else:
-                # enum class Trajectory {
-                #   TRAJECTORY_CARTESIAN = 0x01,
-                #   TRAJECTORY_RADIAL    = 0x02,
-                #   TRAJECTORY_SPIRAL    = 0x04,
-                #   TRAJECTORY_BLADE     = 0x08
-                # };
-                traj = temp[0]
+                traj = xprot_get_val(
+                    config_buffer, 'MEAS.sKSpace.ucTrajectory')
+                if traj.size != 1:
+                    raise RuntimeError(
+                        'Failed to find appropriate trajectory array')
+                # Convert into enum:
                 trajectory = {
                     1: 'TRAJECTORY_CARTESIAN',
                     2: 'TRAJECTORY_RADIAL',
                     4: 'TRAJECTORY_SPIRAL',
                     8: 'TRAJECTORY_BLADE'
-                }[traj]
+                }[traj[0]]
                 logging.info('Trajectory is: %d (%s)', traj, trajectory)
+            except KeyError:
+                msg = 'Search path: MEAS.sKSpace.ucTrajectory not found.'
+                logging.warning(msg)
 
             # Get some parameters - max channels
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #    XProtocol::getChildNodeByName("YAPS.iMaxNoOfRxChannels"), n);
             try:
-                temp = [int(doc_root['YAPS']['iMaxNoOfRxChannels'][0])]
-            except:
-                logging.warning(
-                    'Search path: YAPS.iMaxNoOfRxChannels not found')
-            if len(temp) != 1:
-                logging.error('Failed to find YAPS.iMaxNoOfRxChannels array')
-                raise RuntimeError()
-            else:
-                max_channels = temp[0]
+                max_channels = xprot_get_val(
+                    config_buffer, 'YAPS.iMaxNoOfRxChannels')
+                if max_channels.size == 0:
+                    raise RuntimeError(
+                        'Failed to find YAPS.iMaxNoOfRxChannels array')
+                max_channels = max_channels[0]
+            except KeyError:
+                msg = 'Search path: YAPS.iMaxNoOfRxChannels not found'
+                logging.warning(msg)
 
             # Get some parameters - cartesian encoding bits
-            # get the center line parameters
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #         XProtocol::getChildNodeByName(
-            #            "MEAS.sKSpace.lPhaseEncodingLines"), n);
             try:
-                temp = [int(
-                    doc_root['MEAS']['sKSpace']['lPhaseEncodingLines'][0])]
-            except:
-                logging.warning('MEAS.sKSpace.lPhaseEncodingLines not found')
-            if len(temp) != 1:
-                logging.error(
-                    'Failed to find MEAS.sKSpace.lPhaseEncodingLines array')
-                raise RuntimeError()
-            else:
-                lPhaseEncodingLines = temp[0]
+                tmp = xprot_get_val(config_buffer,
+                                    'MEAS.sKSpace.lPhaseEncodingLines')
+                if tmp.size == 0:
+                    msg = 'Failed to find MEAS.sKSpace.lPhaseEncodingLines'
+                    raise RuntimeError(msg)
+                lPhaseEncodingLines = tmp[0]
+            except KeyError:
+                msg = 'Search path: MEAS.sKSpace.lPhaseEncodingLines not found'
+                logging.warning(msg)
 
-            # n2 = apply_visitor(XProtocol::getChildNodeByName(
-            #    "YAPS.iNoOfFourierLines"), n);
             try:
-                temp = [int(doc_root['YAPS']['iNoOfFourierLines'][0])]
-            except:
-                logging.warning('YAPS.iNoOfFourierLines not found')
-
-            if len(temp) != 1:
-                logging.error('Failed to find YAPS.iNoOfFourierLines array')
-                raise RuntimeError()
-            else:
-                iNoOfFourierLines = temp[0]
+                iNoOfFourierLines = xprot_get_val(
+                    config_buffer, 'YAPS.iNoOfFourierLines')
+                if iNoOfFourierLines.size == 0:
+                    msg = 'Failed to find YAPS.iNoOfFourierLines array'
+                    raise RuntimeError(msg)
+                iNoOfFourierLines = iNoOfFourierLines[0]
+            except KeyError:
+                msg = 'Search path: YAPS.iNoOfFourierLines not found'
+                logging.warning(msg)
 
             has_FirstFourierLine = False
-            # n2 = apply_visitor(XProtocol::getChildNodeByName(
-            #    "YAPS.lFirstFourierLine"), n);
             try:
-                temp = doc_root['YAPS']['lFirstFourierLine']
-            except:
-                logging.warning('YAPS.lFirstFourierLine not found')
-            try:
-                lFirstFourierLine = int(temp[0])
-                has_FirstFourierLine = True
-            except:
-                logging.warning('Failed to find YAPS.lFirstFourierLine array')
-                has_FirstFourierLine = False
+                lFirstFourierLine = xprot_get_val(
+                    config_buffer, 'YAPS.lFirstFourierLine')
+                if lFirstFourierLine.size == 0:
+                    msg = 'Failed to find YAPS.lFirstFourierLine array'
+                    logging.warning(msg)
+                    has_FirstFourierLine = False
+                else:
+                    lFirstFourierLine = lFirstFourierLine[0]
+                    has_FirstFourierLine = True
+            except KeyError:
+                msg = 'Search path: YAPS.lFirstFourierLine not found'
+                logging.warning(msg)
 
             # get the center partition parameters
-            # n2 = apply_visitor(XProtocol::getChildNodeByName(
-            #    "MEAS.sKSpace.lPartitions"), n);
             try:
-                temp = [int(doc_root['MEAS']['sKSpace']['lPartitions'][0])]
-            except:
-                logging.warning('MEAS.sKSpace.lPartitions not found')
-            if len(temp) != 1:
-                logging.error('Failed to find MEAS.sKSpace.lPartitions array')
-                raise RuntimeError()
-            else:
-                lPartitions = temp[0]
+                lPartitions = xprot_get_val(
+                    config_buffer, 'MEAS.sKSpace.lPartitions')
+                if lPartitions.size == 0:
+                    msg = 'Failed to find MEAS.sKSpace.lPartitions array'
+                    raise RuntimeError(msg)
+                lPartitions = lPartitions[0]
+            except KeyError:
+                msg = 'Search path: MEAS.sKSpace.lPartitions not found'
+                logging.warning(msg)
 
             # Note: iNoOfFourierPartitions is sometimes absent for 2D sequences
-            # n2 = apply_visitor(XProtocol::getChildNodeByName(
-            #    "YAPS.iNoOfFourierPartitions"), n);
             try:
-                temp = doc_root['YAPS']['iNoOfFourierPartitions']
-                try:
-                    iNoOfFourierPartitions = int(temp[0])
-                except:
+                iNoOfFourierPartitions = xprot_get_val(
+                    config_buffer, 'YAPS.iNoOfFourierPartitions')
+                if iNoOfFourierPartitions.size == 0:
                     iNoOfFourierPartitions = 1
-            except:
+                else:
+                    iNoOfFourierPartitions = iNoOfFourierPartitions[0]
+            except KeyError:
                 iNoOfFourierPartitions = 1
 
             has_FirstFourierPartition = False
-            # n2 = apply_visitor(XProtocol::getChildNodeByName(
-            #    "YAPS.lFirstFourierPartition"), n);
             try:
-                temp = doc_root['YAPS']['lFirstFourierPartition']
-            except:
-                logging.warning('YAPS.lFirstFourierPartition not found')
-            try:
-                lFirstFourierPartition = int(temp[0])
-                has_FirstFourierPartition = True
-            except:
-                logging.warning(
-                    'Failed to find encYAPS.lFirstFourierPartition array')
-                has_FirstFourierPartition = False
+                lFirstFourierPartition = xprot_get_val(
+                    config_buffer, 'YAPS.lFirstFourierPartition')
+                if lFirstFourierPartition.size == 0:
+                    msg = 'Failed to find encYAPS.lFirstFourierPartition array'
+                    logging.warning(msg)
+                    has_FirstFourierPartition = False
+                else:
+                    lFirstFourierPartition = lFirstFourierPartition[0]
+                    has_FirstFourierPartition = True
+            except KeyError:
+                msg = 'Search path: YAPS.lFirstFourierPartition not found'
+                logging.warning(msg)
 
 
             # set the values
@@ -522,70 +495,66 @@ def readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers,
             logging.info('center_line = %d', center_line)
             logging.info('center_partition = %d', center_partition)
 
-
             # Get some parameters - radial views
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #    XProtocol::getChildNodeByName("MEAS.sKSpace.lRadialViews"), n)
             try:
-                temp = doc_root['MEAS']['sKSpace']['lRadialViews']
-            except:
-                logging.warning('MEAS.sKSpace.lRadialViews not found')
-            try:
-                radial_views = int(temp[0])
-            except:
-                logging.error(
-                    'Failed to find YAPS.MEAS.sKSpace.lRadialViews array')
-                raise RuntimeError()
-
-
+                radial_views = xprot_get_val(
+                    config_buffer, 'MEAS.sKSpace.lRadialViews')
+                if radial_views.size == 0:
+                    msg = 'Failed to find MEAS.sKSpace.lRadialViews array'
+                    raise RuntimeError(msg)
+                radial_views = radial_views[0]
+            except KeyError:
+                msg = 'Search path: MEAS.sKSpace.lRadialViews not found'
+                logging.warning(msg)
 
             # Get some parameters - protocol name
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #    XProtocol::getChildNodeByName("HEADER.tProtocolName"), n);
             try:
-                temp = doc_root['HEADER']['tProtocolName']
-            except:
-                logging.warning('HEADER.tProtocolName not found')
-            try:
-                protocol_name = temp
-            except:
-                logging.error('Failed to find HEADER.tProtocolName')
-                raise RuntimeError()
-
+                protocol_name = xprot_get_val(
+                    config_buffer, 'HEADER.tProtocolName')
+                if not protocol_name:
+                    msg = 'Failed to find HEADER.tProtocolName'
+                    raise RuntimeError(msg)
+            except KeyError:
+                msg = 'Search path: HEADER.tProtocolName not found'
+                logging.warning(msg)
 
             # Get some parameters - base line
-            # const XProtocol::XNode* n2 = apply_visitor(
-            #         XProtocol::getChildNodeByName(
-            #            "MEAS.sProtConsistencyInfo.tBaselineString"), n);
             try:
-                baseLineString = doc_root[
-                    'MEAS']['sProtConsistencyInfo']['tBaselineString'][0]
-            except:
-                # const XProtocol::XNode* n2 = apply_visitor(
-                #         XProtocol::getChildNodeByName(
-                #    "MEAS.sProtConsistencyInfo.tMeasuredBaselineString"), n);
+                baseLineString = xprot_get_val(
+                    config_buffer, 'MEAS.sProtConsistencyInfo.tBaselineString')
+                if not baseLineString:
+                    raise KeyError()
+            except KeyError:
                 try:
-                    baseLineString = doc_root['MEAS'][
-                        'sProtConsistencyInfo']['tMeasuredBaselineString'][0]
-                except:
-                    logging.warning(('Failed to find MEAS.sProtConsistencyInfo'
-                                     '.tBaselineString/tMeasuredBaseline'
-                                     'String'))
+                    baseLineString = xprot_get_val(
+                        config_buffer,
+                        'MEAS.sProtConsistencyInfo.tBaselineString')
+                    if not baseLineString:
+                        raise KeyError()
+                except KeyError:
+                    msg = ('Failed to find MEAS.sProtConsistencyInfo.'
+                           'tMeasuredBaselineString.tBaselineString/'
+                           'tMeasuredBaselineString')
+                    logging.warning(msg)
 
-            return(ProcessParameterMap(doc_root, parammap_file_content),
+            return(ProcessParameterMap(config_buffer, parammap_file_content),
                    protocol_name, baseLineString)
 
-def ProcessParameterMap(doc_root, parammap_file_content):
+    # We'll never hit this, here for linting
+    return None
+
+def ProcessParameterMap(config_buffer, parammap_file_content):
+    '''Fill in the headers of all parammap_file's fields.'''
 
     # Output document
     out_doc = {'siemens': {}}
 
     # Input document
-    doc = xmltodict.parse(ET.tostring(parammap_file_content, encoding='utf8',
-                                      method='xml'))
+    doc = xmltodict.parse(
+        ET.tostring(parammap_file_content, encoding='utf8', method='xml'))
     if not ('siemens' in doc and 'parameters' in doc['siemens']):
-        logging.error('Malformed parameter map (parameters section not found)')
-        raise ValueError()
+        msg = 'Malformed parameter map (parameters section not found)'
+        raise ValueError(msg)
 
     for p in doc['siemens']['parameters']['p']:
 
@@ -595,35 +564,33 @@ def ProcessParameterMap(doc_root, parammap_file_content):
 
         source = p['s']
         destination = p['d']
-        # split_path = source.split('.')
         if source.split('.')[0].isnumeric():
             logging.warning(
                 'First element of path %s cannot be numeric', source)
             continue
 
-        # This split_path thing is useless...
-        # if len([ sp for sp in split_path[1:-1] if sp.isnumeric() ]):
-        #     logging.warning(
-        #   'Numeric index not supported inside path for source = %s' % source)
-        # search_path = [ sp for sp in split_path[:-1] if ~sp.isnumeric() ]
-        # search_path.append(split_path[-1])
-        # search_path = '.'.join(search_path)
-        search_path = source
-
+        # Not really sure what this is about
         if source.split('.')[-1].isnumeric():
             index = int(source.split('.')[-1])
         else:
-            # search_path = search_path + '.' + source.split('.')[-1]
             index = None
-        # print(search_path)
 
-        search_path = search_path.split('.')
+        # Go get the parameters!
         try:
-            parameters = reduce(operator.getitem, search_path, doc_root)
-        except:
+            parameters = xprot_get_val(config_buffer, source)
+
+            # We can't serialize numpy arrays, so make 'em into lists
+            if isinstance(parameters, np.ndarray):
+                parameters = parameters.tolist()
+
+                # Single parameters should be single
+                if len(parameters) == 1:
+                    parameters = parameters[0]
+
+        except KeyError:
             logging.warning('Search path: %s not found.', source)
 
-
+        # Again, not sure what index is about, but here you go...
         if index is not None:
             logging.error('index >=0 not implemented!')
         else:
@@ -632,19 +599,20 @@ def ProcessParameterMap(doc_root, parammap_file_content):
             # If the key does not exist, then create it
             for ii, _val in enumerate(dest):
                 kys = dest[:ii+1]
-                # print(dest[:ii+1])
                 if kys[-1] not in reduce(operator.getitem, kys[:-1], out_doc):
                     reduce(operator.getitem, kys[:-1], out_doc)[kys[-1]] = {}
             reduce(operator.getitem, dest[:-1], out_doc)[dest[-1]] = parameters
 
-    print(json.dumps(out_doc, indent=2))
+    # print(json.dumps(out_doc, indent=2))
     return out_doc
 
-def pyport(args):
+def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
+           file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None,
+           debug=False):
     '''Run the program with arguments.'''
 
     # If we only wanted the version, that's all we're gonna do
-    if 'version' in args and args['version']:
+    if version:
         print('Converter version is: %s.%s.%s' % (
             SIEMENS_TO_ISMRMRD_VERSION_MAJOR,
             SIEMENS_TO_ISMRMRD_VERSION_MINOR,
@@ -657,62 +625,76 @@ def pyport(args):
 
     # Embedded files are parameter maps and stylesheets included with this
     # program
-    if 'list' in args and args['list']:
+    if list_embed:
         print('Embedded Files:')
-        for file in sorted(get_list_of_embedded_files()):
-            print('\t%s' % file)
+        for f in sorted(get_list_of_embedded_files()):
+            print('\t%s' % f)
         return
 
     # Extract specified parameter map if requested
-    if 'extract' in args and args['extract'] is not None:
-        logging.info('Extract specified parameter map if we asked for it...')
-        raise NotImplementedError()
+    if extract is not None:
+        # Make everything look like a list so we can iterate over it
+        if not isinstance(extract, list):
+            extract = [extract]
+
+        # Save the files!
+        for paramMap in extract:
+            # will raise ValueError if file not valid!
+            xml = get_embedded_file(paramMap)
+
+            # For now just print it out
+            print(ET.tostring(xml).decode())
+        return
 
     # If we are going any further, we're going to need a file...
-    if 'file' not in args or args['file'] is None:
+    if file is None:
         raise ValueError('Missing Siemens DAT filename')
 
     # Check if Siemens file can be opened, if not, we're in trouble
-    if not os.path.isfile(args['file']):
+    if not os.path.isfile(file):
         msg = ('Provided Siemens file (%s) can not be opened or does not '
-               'exist' % args['file'])
+               'exist' % file)
         raise IOError(msg)
     # else...
-    logging.info('Siemens file is: %s', args['file'])
+    logging.info('Siemens file is: %s', file)
 
 
     # Deal with loading in either embedded or user-supplied param maps and
     # stylesheets
-    if args['pMapStyle'] is None:
+    if pMapStyle is None:
         # No user specified stylesheet
-        if args['user_stylesheet'] is None:
+        if user_stylesheet is None:
             parammap_xsl_content = get_embedded_file(
                 'IsmrmrdParameterMap_Siemens.xsl')
         else:
-            if os.path.isfile(args['user_stylesheet']):
-                parammap_xsl_content = get_embedded_file(
-                    args['user_stylesheet'])
+            if os.path.isfile(user_stylesheet):
+                parammap_xsl_content = get_embedded_file(user_stylesheet)
             else:
-                logging.error('Parameter XSL stylesheet (%s) does not exist.',
-                              args['user_stylesheet'])
-                return ERR_STATE
+                msg = ('Parameter XSL stylesheet (%s) does not exist.'
+                       '' % user_stylesheet)
+                raise IOError(msg)
+
     else:
         # If the user specified both an embedded and user-supplied stylesheet
-        if args['user_stylesheet'] is not None:
-            logging.error(('Cannot specify a user-supplied parameter map XSL'
-                           ' stylesheet AND embedded stylesheet'))
-            return ERR_STATE
+        if user_stylesheet is not None:
+            msg = ('Cannot specify a user-supplied parameter map XSL '
+                   'stylesheet AND embedded stylesheet')
+            raise ValueError(msg)
         # else...
         # The user specified an embedded stylesheet only
-        parammap_xsl_content = ET.parse(args['pMapStyle'])
-        logging.info('Parameter XSL stylesheet is: %s', args['pMapStyle'])
+        if os.path.isfile(pMapStyle):
+            parammap_xsl_content = ET.parse(pMapStyle)
+            logging.info('Parameter XSL stylesheet is: %s', pMapStyle)
+        else:
+            msg = '%s does not exist or can\'t be opened!' % pMapStyle
+            raise IOError(msg)
 
 
     # Grab the ISMRMRD schema
     schema_file_name_content = get_ismrmrd_schema()
 
     # Now let's get to the dirty work...
-    with open(args['file'], 'br') as siemens_dat:
+    with open(file, 'br') as siemens_dat:
 
         VBFILE = False
         ParcRaidHead = {}
@@ -728,38 +710,37 @@ def pyport(args):
 
         elif ParcRaidHead['hdSize_'] != 0:
             # This is a VB line data file
-            logging.error(('Only VD line files with MrParcRaidFileHeader.'
-                           'hdSize_ == 0 (MR_PARC_RAID_ALLDATA) supported.'))
-            return ERR_STATE
+            msg = ('Only VD line files with MrParcRaidFileHeader.'
+                   'hdSize_ == 0 (MR_PARC_RAID_ALLDATA) supported.')
+            raise NotImplementedError(msg)
 
-        if (not VBFILE) and (args['measNum'] > ParcRaidHead['count_']):
+        if (not VBFILE) and (measNum > ParcRaidHead['count_']):
             logging.error(('The file you are trying to convert has only %d'
                            'measurements.', ParcRaidHead['count_']))
             logging.error('You are trying to convert measurement number: %d',
-                          args['measNum'])
-            return ERR_STATE
+                          measNum)
+            raise ValueError()
 
         # if it is a VB scan
-        if (VBFILE and (args['measNum'] != 1)):
+        if (VBFILE and (measNum != 1)):
             logging.error(('The file you are trying to convert is a VB file'
                            ' and it has only one measurement.'))
             logging.error('You tried to convert measurement number: %d',
-                          args['measNum'])
-            return ERR_STATE
+                          measNum)
+            raise ValueError()
 
 
         parammap_file_content = getparammap_file_content(
-            args['pMap'], args['user_map'], VBFILE)
+            pMap, user_map, VBFILE)
 
         logging.info('This file contains %d measurement(s). ',
                      ParcRaidHead['count_'])
 
-        ParcFileEntries = readParcFileEntries(siemens_dat, ParcRaidHead,
-                                              VBFILE)
+        ParcFileEntries = readParcFileEntries(
+            siemens_dat, ParcRaidHead, VBFILE)
 
         # find the beginning of the desired measurement
-        siemens_dat.seek(ParcFileEntries[args['measNum'] - 1]['off_'],
-                         os.SEEK_SET)
+        siemens_dat.seek(ParcFileEntries[measNum - 1]['off_'], os.SEEK_SET)
 
         dma_length, num_buffers = np.fromfile(
             siemens_dat, dtype=np.uint32, count=2) #pylint: disable=E1101
@@ -767,8 +748,8 @@ def pyport(args):
         buffers = readMeasurementHeaderBuffers(siemens_dat, num_buffers)
 
         # We need to be on a 32 byte boundary after reading the buffers
-        position_in_meas = siemens_dat.tell() - ParcFileEntries[args[
-            'measNum'] - 1]['off_']
+        position_in_meas = siemens_dat.tell() - ParcFileEntries[
+            measNum-1]['off_']
         if np.mod(position_in_meas, 32) != 0:
             siemens_dat.seek(32 - np.mod(position_in_meas, 32), os.SEEK_CUR)
 
@@ -790,10 +771,10 @@ def pyport(args):
         protocol_name = ''
 
         # print(ET.tostring(parammap_file_content).decode())
-        xml_config, protocol_name, baseLineString = readXmlConfig(
-            args['debug'], parammap_file_content, num_buffers,
-            buffers, wip_double, trajectory, dwell_time_0, max_channels,
-            radial_views, baseLineString, protocol_name)
+        dict_config, protocol_name, baseLineString = readXmlConfig(
+            debug, parammap_file_content, num_buffers, buffers, wip_double,
+            trajectory, dwell_time_0, max_channels, radial_views,
+            baseLineString, protocol_name)
 
         # whether this scan is a adjustment scan
         isAdjustCoilSens = False
@@ -812,9 +793,9 @@ def pyport(args):
 
         logging.info('Baseline: %s', baseLineString)
 
-        if args['debug']:
+        if debug:
             with open('xml_raw.xml', 'w') as f:
-                f.write(xml_config)
+                f.write(xmltodict.unparse(dict_config, pretty=True))
 
         # TODO
         # ISMRMRD::IsmrmrdHeader header;
@@ -841,7 +822,7 @@ def pyport(args):
 
         # Last scan not encountered AND not reached end of measurement without
         # acqend
-        while (~(last_mask & 1) and (((ParcFileEntries[args['measNum'] - 1]['off_'] + ParcFileEntries[args['measNum'] - 1]['len_']) - siemens_dat.tell()) > sScanHeader.sizeof())):
+        while (~(last_mask & 1) and (((ParcFileEntries[measNum - 1]['off_'] + ParcFileEntries[measNum - 1]['len_']) - siemens_dat.tell()) > sScanHeader.sizeof())):
 
             position_in_meas = siemens_dat.tell()
             scanhead = sScanHeader()
@@ -933,7 +914,7 @@ if __name__ == '__main__':
                         default='output.h5')
     parser.add_argument('-g', dest='outputGroup',
                         help='<ISMRMRD output group>', default='dataset')
-    parser.add_argument('-l', dest='list', action='store_true',
+    parser.add_argument('-l', dest='list_embed', action='store_true',
                         help='<List embedded files>', default=True)
     parser.add_argument('-e', dest='extract', help='<Extract embedded file>')
     parser.add_argument('-X', dest='debug', help='<Debug XML flag>',
