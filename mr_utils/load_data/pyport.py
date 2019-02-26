@@ -640,7 +640,7 @@ def ProcessParameterMap(doc_root, parammap_file_content):
     print(json.dumps(out_doc, indent=2))
     return out_doc
 
-def main(args):
+def pyport(args):
     '''Run the program with arguments.'''
 
     # If we only wanted the version, that's all we're gonna do
@@ -952,6 +952,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     print(args)
-    status = main(vars(args))
+    status = pyport(vars(args))
     if status == ERR_STATE:
         pass

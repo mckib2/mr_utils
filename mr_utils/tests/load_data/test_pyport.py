@@ -27,7 +27,7 @@ class PyPortTestCase(unittest.TestCase):
 
     def test_display_version(self):
         '''Make sure we're displaying versions of stuffs.'''
-        self.assert_stdout(pyport.main, {'version': True},
+        self.assert_stdout(pyport, {'version': True},
                            ('Converter version is: 1.0.1\nBuilt against '
                             'ISMRMRD version: 0.0.0\n'))
 
@@ -42,19 +42,19 @@ class PyPortTestCase(unittest.TestCase):
                'IsmrmrdParameterMap_Siemens_PreZeros.xsl\n\t'
                'IsmrmrdParameterMap_Siemens_T1Mapping_SASHA.xsl\n\t'
                'IsmrmrdParameterMap_Siemens_VB17.xml\n')
-        self.assert_stdout(pyport.main, {'list': True}, out)
+        self.assert_stdout(pyport, {'list': True}, out)
 
     def test_require_filename(self):
         '''If we don't have a filename, we need to stop!'''
         with self.assertRaises(ValueError):
-            pyport.main({})
+            pyport({})
         with self.assertRaises(ValueError):
-            pyport.main({'file': None})
+            pyport({'file': None})
 
     def test_is_filename_a_file(self):
         '''Make sure we can get to the file if given filename.'''
         with self.assertRaises(IOError):
-            pyport.main({'file': 'this.is.a.fake.file.dat'})
+            pyport({'file': 'this.is.a.fake.file.dat'})
 
     # def test_pyport(self):
     #     '''Standard parameters with bSSFP data set.'''
