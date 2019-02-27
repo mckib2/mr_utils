@@ -5,6 +5,8 @@ better and faster, but right now I'm just trying to get it working after the
 debacle with ply...
 '''
 
+from itertools import islice
+
 import numpy as np
 
 def findp(p, config):
@@ -16,7 +18,7 @@ def findp(p, config):
     All of these tag assignments are ad hoc -- just to get something to work.
     '''
     if p in ['MEAS', 'YAPS', 'HEADER', 'IRIS', 'DERIVED', 'DICOM',
-             'RECOMPOSE'] or p[:1] in ['s']:
+             'RECOMPOSE', ''] or p[:1] in ['s']:
         tag = 'ParamMap'
     elif p[:2] in ['as']:
         tag = 'ParamArray'
@@ -45,21 +47,17 @@ def find_matching_braces(s, lsym='{', rsym='}', qlsym='"', qrsym='"'):
     matches = {}
     pstack = []
 
-    disabled = False
+    it = iter(enumerate(s))
+    for ii, c in it:
 
-    for ii, c in enumerate(s):
+        # Skip comments (denoted by qlsym COMMENT qrsym)
+        if c == qlsym:
+            idx = s[ii+1:].find(qrsym) + 1
+            islice(it, idx+1, idx+1)
 
-        # Don't pay any mind to things in double quotes
-        if disabled and c == qrsym:
-            disabled = False
-        elif not disabled and c == qlsym:
-            disabled = True
-            continue
-
-        elif not disabled and c == lsym:
+        if c == lsym:
             pstack.append(ii)
-
-        elif not disabled and c == rsym:
+        elif c == rsym:
             if not pstack:
                 raise IndexError('No matching closing parens at: ' + str(ii))
                 # matches[0] = ii
@@ -83,6 +81,7 @@ def xprot_get_val(config_buffer, val):
     path = val.split('.')
 
     # For each path element, thin the possible config region to look in
+    cur_buf = config_buffer
     for p in path:
 
         # I don't know how to deal with indices currently, so we're ignoring
@@ -92,34 +91,35 @@ def xprot_get_val(config_buffer, val):
         # { { { # } }, { # } }, etc...
         # We are missing dReadout, etc, so this may be the case.
         if p.isnumeric():
-            print('SKIPPING NUMERIC %s' % p)
+            # print('SKIPPING NUMERIC %s' % p)
+            # raise NotImplementedError()
             continue
 
-        idx0, tag = findp(p, config_buffer)
+        idx0, tag = findp(p, cur_buf)
         if idx0 < 0:
             msg = '%s not found!' % p
             raise KeyError(msg)
-        matches = find_matching_braces(config_buffer)
+        matches = find_matching_braces(cur_buf)
 
         # Find the first opening brace after this point
-        idx1 = config_buffer[idx0:].find('{')
+        idx1 = cur_buf[idx0:].find('{')
         idx2 = idx0 + idx1
-        config_buffer = config_buffer[idx2:matches[idx2]+1]
+        cur_buf = cur_buf[idx2:matches[idx2]+1]
 
     # Chop off front and end braces and then cast to correct value
-    config_buffer = config_buffer[1:-1]
+    cur_buf = cur_buf[1:-1]
     if tag == 'ParamLong':
-        val = np.fromstring(config_buffer, dtype=int, sep=' ')
+        val = np.fromstring(cur_buf, dtype=int, sep=' ')
     elif tag == 'ParamDouble':
         # There's a precision tag that needs to be removed
-        config_buffer = config_buffer.replace('<Precision> 6', '')
-        val = np.fromstring(config_buffer, dtype=float, sep=' ')
+        cur_buf = cur_buf.replace('<Precision> 6', '')
+        val = np.fromstring(cur_buf, dtype=float, sep=' ')
     elif tag == 'ParamString':
         # Take care of empty space and hone into quotiation marks
-        idx0 = config_buffer.find('"')
-        idx1 = config_buffer.rfind('"')
-        config_buffer = config_buffer[idx0+1:idx1]
-        val = config_buffer.strip()
+        idx0 = cur_buf.find('"')
+        idx1 = cur_buf.rfind('"')
+        cur_buf = cur_buf[idx0+1:idx1]
+        val = cur_buf.strip()
 
     return val
 
