@@ -6,11 +6,16 @@ find the correct one.
 
 Histogram constraints using l2-metric is used.  Coefficient values are solved
 using scipy.optimize.minimize.
+
+What's interesting is that we perform better than sorting especially at small
+N.  So patch based processing with reordering has the potential to be really
+good.
 '''
 
 from itertools import combinations
-from functools import reduce
+from functools import reduce, partial
 import operator as op
+from multiprocessing import Pool
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,18 +60,26 @@ def obj(c00, N, locs, bins, lims):
 
 def get_xhat(N, locs, bins, lims):
     '''Compute xhat for given coefficient locations.'''
-    c00 = np.ones(k)
-    res = minimize(obj, c00, args=(N, locs, bins, lims,))
+
+    # Assume the coefficient is always one for now while we figure the math out
+    # c00 = np.ones(k)
+    # res = minimize(obj, c00, args=(N, locs, bins, lims,))
     c0 = np.zeros(N)
-    c0[locs] = res['x']
+    # c0[locs] = res['x']
+    c0[locs] = 1
     xhat = idct(c0)
     xhat /= np.linalg.norm(xhat)
     return xhat
 
+def err_fun(cc, N, bins, lims):
+    '''Error function for parallel loop.'''
+    xhat = get_xhat(N, [*cc], bins, lims)
+    return dH(Hy, density(xhat, bins, lims), mode='l2')
+
 if __name__ == '__main__':
 
     # Assume there is a k-sparse representation,
-    N = 20 # these choices of N,k give unique solution most of the time
+    N = 30 # these choices of N,k give unique solution most of the time
     k = 5
     cx = np.zeros(N)
     idx_true = np.random.choice(np.arange(N), k, False)
@@ -82,14 +95,22 @@ if __name__ == '__main__':
     lims = (-.5, .5)
     Hy, bins = np.histogram(y, bins=N, range=lims)
 
-    # we need to search through all N choose k possible k-sparse signals
-    err = np.zeros(comb(N, k, exact=True))
-    for ii, cc in tqdm(enumerate(
-            combinations(range(N), k)), total=err.size, leave=False):
+    # Let's try to do things in parallel -- more than twice as fast!
+    err_fun_partial = partial(err_fun, N=N, bins=bins, lims=lims)
+    with Pool() as pool:
+        res = list(tqdm(pool.imap(err_fun_partial, combinations(range(N), k),
+                                  chunksize=1000),
+                        total=comb(N, k, exact=True), leave=False))
+    err = np.array(res)
 
-        # We have the k locations, now we need to find the values
-        xhat = get_xhat(N, [*cc], bins, lims)
-        err[ii] = dH(Hy, density(xhat, bins, lims), mode='l2')
+    # # we need to search through all N choose k possible k-sparse signals
+    # err = np.zeros(comb(N, k, exact=True))
+    # for ii, cc in tqdm(enumerate(
+    #         combinations(range(N), k)), total=err.size, leave=False):
+    #
+    #     # We have the k locations, now we need to find the values
+    #     xhat = get_xhat(N, [*cc], bins, lims)
+    #     err[ii] = dH(Hy, density(xhat, bins, lims), mode='l2')
 
     # Choose the winner
     winner_idx = np.where(err == err.min())[0]
