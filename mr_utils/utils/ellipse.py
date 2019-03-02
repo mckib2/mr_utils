@@ -20,9 +20,10 @@ def get_semiaxes(c):
     num *= (A + C + np.array([1, -1])*np.sqrt((A - C)**2 + B2))
     AB = -1*np.sqrt(num)/den
 
-    # Return semi-major axis first
-    if AB[0] > AB[1]:
-        return(AB[1], AB[0])
+    # # Return semi-major axis first
+    # if AB[0] > AB[1]:
+        # print(AB)
+        # return(AB[1], AB[0])
     return(AB[0], AB[1])
 
 def get_center(c):
@@ -35,6 +36,19 @@ def get_center(c):
     xc = (2*C*D - B*E)/den
     yc = (2*A*E - B*D)/den
     return(xc, yc)
+
+def rotate_points(x, y, phi, p=(0, 0)):
+    '''Rotate points x, y through angle phi w.r.t. point p.
+
+    x, y -- Points to be rotated.
+    phi -- Angle in radians to rotate points.
+    p -- Point to rotate around.
+    '''
+    x = x.flatten()
+    y = y.flatten()
+    xr = (x - p[0])*np.cos(phi) - (y - p[0])*np.sin(phi) + p[0]
+    yr = (y - p[1])*np.cos(phi) + (x - p[1])*np.sin(phi) + p[1]
+    return(xr, yr)
 
 def rotate_coefficients(c, phi):
     '''Rotate coefficients of implicit equations through angle phi.
@@ -55,6 +69,63 @@ def rotate_coefficients(c, phi):
     Dr = D*cp - E*sp
     Er = D*sp + E*cp
     return np.array([Ar, Br, Cr, Dr, Er, F])
+
+def do_planet_rotation(I):
+    '''Rotate complex points to fit vertical ellipse centered at (xc, 0).
+
+    I -- Complex points from SSFP experiment.
+    '''
+
+    # Represent complex number in 2d plane
+    x = I.real.flatten()
+    y = I.imag.flatten()
+
+    # Fit ellipse and find initial guess at what rotation will make it
+    # vertical with center at (xc, 0).  The arctan term rotates the ellipse
+    # to be horizontal, then we need to decide whether to add +/- 90 degrees
+    # to get it vertical.  We want xc to be positive, so we must choose the
+    # rotation to get it vertical.
+    c = fit_ellipse_halir(x, y)
+    phi = -.5*np.arctan2(c[1], (c[0] - c[2])) + np.pi/2
+    xr, yr = rotate_points(x, y, phi)
+
+    # If xc is negative, then we chose the wrong rotation! Do -90 deg
+    cr = fit_ellipse_halir(xr, yr)
+    if get_center(cr)[0] < 0:
+        # print('X IS NEGATIVE!')
+        phi = -.5*np.arctan2(c[1], (c[0] - c[2])) - np.pi/2
+        xr, yr = rotate_points(x, y, phi)
+
+    # Fit the rotated ellipse and bring yc to 0
+    cr = fit_ellipse_halir(xr, yr)
+    yr -= get_center(cr)[1]
+    cr = fit_ellipse_halir(xr, yr)
+    # print(get_center(cr))
+
+    # With noisy measurements, sometimes the fit is incorrect in the above
+    # steps and the ellipse ends up horizontal.  We can realize this by finding
+    # the major and minor semiaxes of the ellipse.  The first axis returned
+    # should be the smaller if we were correct, if not, do above steps again
+    # with an extra factor of +/- 90 deg to get the ellipse standing up
+    # vertically.
+    ax = get_semiaxes(c)
+    if ax[0] > ax[1]:
+        # print('FLIPPITY FLOPPITY!')
+        xr, yr = rotate_points(x, y, phi + np.pi/2)
+        cr = fit_ellipse_halir(xr, yr)
+        if get_center(cr)[0] < 0:
+            # print('X IS STILL NEGATIVE!')
+            phi -= np.pi/2
+            xr, yr = rotate_points(x, y, phi)
+        else:
+            phi += np.pi/2
+
+        cr = fit_ellipse_halir(xr, yr)
+        yr -= get_center(cr)[1]
+        cr = fit_ellipse_halir(xr, yr)
+        # print(get_center(cr))
+
+    return(xr, yr, cr, phi)
 
 def check_fit(C, x, y):
     '''General quadratic polynomial function.
