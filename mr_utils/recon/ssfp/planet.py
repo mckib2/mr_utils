@@ -122,8 +122,8 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     b = (val*xcAA + np.sqrt(xcAA**2 - (xc2 + BB2)*(AA2 - BB2)))/(xc2 + BB2)
     b2 = b**2
     a = BB/(xc*np.sqrt(1 - b2) + b*BB)
-    if a > 1:
-        a = 1 - 1e-8
+    # if a > 1:
+    #     a = 1 - 1e-8
     ab = a*b
     Meff = xc*(1 - b2)/(1 - ab)
 
