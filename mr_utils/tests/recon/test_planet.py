@@ -43,5 +43,6 @@ class TestPLANET(unittest.TestCase):
 
     def test_no_noise_case(self):
         '''Make sure we perform in ideal conditions.'''
-        _Meff, T1, T2 = PLANET(self.I, self.alpha, self.TR, T1s=self.T1s, disp=True)
+        _Meff, T1, T2 = PLANET(self.I, self.alpha, self.TR, T1s=self.T1s,
+                               disp=True)
         self.assertTrue(np.allclose([T1, T2], [self.T1, self.T2]))

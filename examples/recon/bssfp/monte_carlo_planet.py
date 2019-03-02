@@ -17,7 +17,7 @@ if __name__ == '__main__':
     T1s = np.linspace(.2, 2, 100)
     alpha = np.deg2rad(30)
 
-    iters = 1
+    iters = 100
     misses = 0
     asserts = 0
     df_err = np.zeros(iters)*np.nan
@@ -26,7 +26,7 @@ if __name__ == '__main__':
         T1_true = np.random.choice(T1s)
         T2_true = np.random.uniform(.01, .8*T1_true)
         for ii, pc in enumerate(pcs):
-            I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
+            I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc) + np.random.normal(0, 1e-8)
         try:
             Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=True)
             df = 0

@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
     # Assume there is a k-sparse representation,
     N = 30 # these choices of N,k give unique solution most of the time
-    k = 5
+    k = 3
     cx = np.zeros(N)
     idx_true = np.random.choice(np.arange(N), k, False)
     cx[idx_true] = 1# + np.random.normal(0, 1, k)
