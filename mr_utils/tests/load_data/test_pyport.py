@@ -6,7 +6,7 @@ import io
 import xml.etree.ElementTree as ET
 
 from mr_utils.load_data import pyport
-from mr_utils.load_data.pyport import get_embedded_file
+from mr_utils.load_data.s2i.xml_fun import get_embedded_file
 
 class PyPortTestCase(unittest.TestCase):
     '''Sanity check test cases.'''
