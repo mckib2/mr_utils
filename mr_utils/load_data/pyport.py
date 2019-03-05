@@ -1,11 +1,52 @@
-'''Python port of siemens_to_ismrmrd.'''
+'''Python port of siemens_to_ismrmrd.
+
+Notes:
+    The XProtocol parser (xprot_get_val) is a string-search based
+    implementation, not an actual parser, so it's really slow, but does get
+    the job done very well.  Next steps would be to figure out how to speed
+    this up or rewrite the parser to work with everything.  I was working on a
+    parser but was stuck on how to handle some of Siemens' very strange
+    syntax.
+
+    There are several different XML libraries being used.  xml.etree was my
+    preference, so that's what I started with.  I needed to use xmltodict to
+    convert between dictionaries and xml, because it's quicker/easier to have
+    a dictionary hold the config information as we move along.  It turns out
+    that schema verification is not supported by xml.etree, so that's when I
+    pulled in lxml.etree -- so there's some weirdness trying to get xml.etree
+    and lxml.etree to play together nicely.  The last  one is pybx -- a
+    bizarrely complicated library that the ismrmrd python library uses.  I hate
+    the thing and think it's overly complicated for what we need to use it for.
+
+    One of the ideas I had was to pull down the schema/parammaps from the
+    interwebs so it would always be current.  While this is a neat feature that
+    probably no one will use, it would speed up the raw data conversion to use
+    a local copy instead, even if that means pulling it down the first time and
+    keeping it.
+
+    The script to read in an ismrmrd dset provided in ismrmrd-python-tools is
+    great at illustrating how to do it, but is incredibly slow, especiailly if
+    you want to remove oversampling in readout direction.  Next steps are to
+    figure out how to quickly read in and process these datasets.  I'm kind of
+    put off from using this data format because of how unweildy it is, but I
+    suppose it's better to be an open standards player...
+
+    File organization is not very good.  This single file needs to be split up
+    a lot.
+
+    The only datasets I have are cartesian VB17.  So there's currently little
+    support for anything else.
+
+    Command-line interface has not been looked at in a long time, might not be
+    working still.
+'''
 
 import argparse
 import os
 import logging
 import operator
 from functools import reduce
-# import json
+import warnings
 import urllib.request
 import xml.etree.ElementTree as ET
 import lxml.etree as lET
@@ -13,7 +54,9 @@ import lxml.etree as lET
 import numpy as np
 import xmltodict
 from tqdm import tqdm
-from ismrmrd import Dataset, Acquisition, xsd
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    from ismrmrd import Dataset, Acquisition, xsd
 from ismrmrd.constants import ACQ_IS_NOISE_MEASUREMENT, \
 ACQ_IS_PARALLEL_CALIBRATION, ACQ_LAST_IN_MEASUREMENT, ACQ_IS_DUMMYSCAN_DATA, \
 ACQ_IS_SURFACECOILCORRECTIONSCAN_DATA, ACQ_IS_HPFEEDBACK_DATA, \
@@ -21,9 +64,7 @@ ACQ_IS_RTFEEDBACK_DATA, ACQ_IS_NAVIGATION_DATA, ACQ_IS_PHASECORR_DATA, \
 ACQ_IS_REVERSE, ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING, \
 ACQ_LAST_IN_REPETITION, ACQ_LAST_IN_SLICE, ACQ_FIRST_IN_SLICE
 
-# from mr_utils.load_data.xprot_parser import XProtParser
 from mr_utils.load_data.xprot_parser_strsearch import xprot_get_val
-# from mr_utils.load_data.parser.infoparser import InfoParser
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
@@ -39,8 +80,6 @@ MDH_DMA_LENGTH_MASK = 0x01FFFFFF
 MDH_ENABLE_FLAGS_MASK = 0xFC000000
 MYSTERY_BYTES_EXPECTED = 160
 
-ERR_STATE = -1
-
 class ChannelHeaderAndData(object):
     '''Struct to hold channel data.'''
 
@@ -53,7 +92,7 @@ class ChannelHeaderAndData(object):
         '''Show my contents.'''
 
         self.header.display()
-        print('data:', self.data.shape)
+        print('data:', len(self.data))
 
 class sChannelHeader(object):
     '''Struct to hold channel header data.'''
@@ -1162,60 +1201,20 @@ def getAcquisition(flash_pat_ref_scan, trajectory, dwell_time_0, max_channels,
 
     return ismrmrd_acq
 
-def parseXML(debug_xml, parammap_xsl_content, schema_file_name_content,
+def parseXML(debug_xml, parammap_xsl_content, _schema_file_name_content,
              xml_config):
     '''Apply XSLT.'''
 
-    # xsltStylesheetPtr cur = NULL;
-
-    # xmlDocPtr doc, res, xml_doc;
-
-    # const char *params[16 + 1];
-
-    # nbparams = 0
-    # params[nbparams] = NULL;
-
-    # xmlSubstituteEntitiesDefault(1);
-
-    # xmlLoadExtDtdDefaultValue = 1
-
-    # xml_doc = xmlParseMemory(parammap_xsl_content.c_str(),
-    #                          parammap_xsl_content.size());
     xml_doc = parammap_xsl_content
 
     if xml_doc is None:
         msg = 'Error when parsing xsl parameter stylesheet...'
         raise RuntimeError(msg)
 
-    # cur = xsltParseStylesheetDoc(xml_doc);
     cur = lET.XSLT(lET.fromstring(ET.tostring(xml_doc))) #pylint: disable=I1101
-
-    # doc = xmlParseMemory(xml_config.c_str(), xml_config.size());
-    doc = lET.fromstring(xml_config.encode())
-
-    # res = xsltApplyStylesheet(cur, doc, params);
+    doc = lET.fromstring(xml_config.encode()) #pylint: disable=I1101
     res = cur(doc)
-
-    # xmlChar *out_ptr = NULL;
-    # int xslt_length = 0;
-    # int xslt_result = xsltSaveResultToString(&out_ptr, &xslt_length, res,
-    #                                          cur);
-    # if (xslt_result < 0) {
-    #     std::cerr << "Failed to save converted doc to string" << std::endl;
-    # }
-    # std::string xml_result = std::string((char *) out_ptr, xslt_length);
     xml_result = lET.tostring(res) #pylint: disable=I1101
-
-    # if (xml_file_is_valid(xml_result, schema_file_name_content) <= 0) {
-    #     std::stringstream sstream;
-    #     sstream <<
-    #             "Generated XML is not valid according to the ISMRMRD schema";
-    #     throw std::runtime_error(sstream.str());
-    #     if (debug_xml) {
-    #         std::ofstream o("processed.xml");
-    #         o.write(xml_result.c_str(), xml_result.size());
-    #     }
-    # }
 
     # This is not working...
     # xmlschema_doc = lET.fromstring(ET.tostring(schema_file_name_content)) #pylint: disable=I1101
@@ -1259,16 +1258,19 @@ def fill_ismrmrd_header(h, study_date, study_time):
 
         if study_date_needed or study_time_needed:
             # ISMRMRD::StudyInformation study;
-            print(dir(h.studyInformation))
+            print(type(h))
+            print(dir(h))
+            # How do we create a study and how do we add it to the header, h?
+
 
             if study_date_needed and study_date != '':
                 # study.studyDate.set(study_date)
-                setattr(h.studyInformation.studyDate, study_date)
+                # setattr(h.studyInformation.studyDate, study_date)
                 logging.info('Study date: %s', study_date)
 
             if study_time_needed and study_time != '':
                 # study.studyTime.set(study_time)
-                setattr(h.studyInformation.studyTime, study_time)
+                # h.studyInformation.append(studyTime), study_time)
                 logging.info('Study time: %s', study_time)
 
 
@@ -1514,7 +1516,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
 
             position_in_meas = siemens_dat.tell()
-            scanhead, mdh = readScanHeader(siemens_dat, VBFILE)
+            scanhead, _mdh = readScanHeader(siemens_dat, VBFILE)
             # mdh.display()
 
             if not siemens_dat:
@@ -1524,20 +1526,22 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
 
             dma_length = scanhead.ulFlagsAndDMALength[0] & MDH_DMA_LENGTH_MASK
-            mdh_enable_flags = scanhead.ulFlagsAndDMALength[0] \
+            _mdh_enable_flags = scanhead.ulFlagsAndDMALength[0] \
                 & MDH_ENABLE_FLAGS_MASK
 
             # Check if this is sync data, if so, it must be handled differently
             if scanhead.aulEvalInfoMask[0] & (1 << 5):
+                print('dma_length = %d' % dma_length)
+                print('sync_data_packets = %d' % sync_data_packets)
                 raise NotImplementedError()
-                last_scan_counter = acquisitions - 1
-                # TODO:
-                # auto waveforms = readSyncdata(siemens_dat, VBFILE,
+                # last_scan_counter = acquisitions - 1
+                # # TODO:
+                # # auto waveforms = readSyncdata(siemens_dat, VBFILE,
                 #  acquisitions, dma_length,scanhead,header,last_scan_counter);
-                # for (auto& w : waveforms)
-                #     ismrmrd_dataset->appendWaveform(w);
-                sync_data_packets += 1
-                continue
+                # # for (auto& w : waveforms)
+                # #     ismrmrd_dataset->appendWaveform(w);
+                # sync_data_packets += 1
+                # continue
 
             if first_call:
                 time_stamp = scanhead.ulTimeStamp
@@ -1703,5 +1707,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
     status = pyport(vars(args))
-    if status == ERR_STATE:
-        pass

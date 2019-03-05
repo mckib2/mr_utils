@@ -8,7 +8,7 @@ go ahead and use scipy.io.loadmat directly.
 
 import warnings
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=ImportWarning)
+    warnings.filterwarnings('ignore', category=ImportWarning)
     from scipy.io import loadmat
 import logging
 
