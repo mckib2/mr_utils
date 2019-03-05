@@ -232,14 +232,19 @@ class sScanHeader(object):
         self.ushApplicationMask = 0
         self.ulCRC = 0
 
-def get_ismrmrd_schema():
+def get_ismrmrd_schema(method='ET'):
     '''Download XSD file from ISMRMD git repo.'''
     # We do it this way so we always have the latest version of the schema
     url = ('https://raw.githubusercontent.com/ismrmrd/ismrmrd/master/'
            'schema/ismrmrd.xsd')
     with urllib.request.urlopen(url) as f:
-        schema = f.read().decode('utf-8')
-    return ET.fromstring(schema)
+        schema = f.read()
+
+    if method == 'ET':
+        return ET.fromstring(schema.decode('utf-8'))
+    if method == 'lET':
+        return lET.fromstring(schema) #pylint: disable=I1101
+    raise ValueError('method not implemented for parsing schema!')
 
 def get_list_of_embedded_files():
     '''List of files to go try to find from the git repo.'''
@@ -1212,15 +1217,19 @@ def parseXML(debug_xml, parammap_xsl_content, schema_file_name_content,
     #     }
     # }
 
-    ## Comment out for now
-    # xmlschema = lET.XMLSchema(lET.fromstring(ET.tostring( #pylint: disable=I1101
-    #     schema_file_name_content)))
-    # if not xmlschema.validate(res):
-    #     if debug_xml:
-    #         with open('processed.xml', 'w') as f:
-    #             f.write(xml_result)
-    #     msg = 'Generated XML is not valid according to the ISMRMRD schema'
-    #     raise RuntimeError(msg)
+    # This is not working...
+    # xmlschema_doc = lET.fromstring(ET.tostring(schema_file_name_content)) #pylint: disable=I1101
+    # xmlschema_doc = lET.parse('mr_utils/load_data/parameter_maps/schema.xsd')
+    # Doing tostring() from an ET object removes some of the namespace info
+    # and makes lET yell about making it an xmlSchema, so just download it
+    # again and parse it as an lET for now...
+    xmlschema = lET.XMLSchema(get_ismrmrd_schema(method='lET')) #pylint: disable=I1101
+    if not xmlschema.validate(res):
+        if debug_xml:
+            with open('processed.xml', 'w') as f:
+                f.write(xml_result)
+        msg = 'Generated XML is not valid according to the ISMRMRD schema'
+        raise RuntimeError(msg)
 
     return xml_result
 
@@ -1609,8 +1618,10 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
             msg = 'WARNING: Unexpected error.  Please check the result.'
             raise SystemError(msg)
 
-        # ismrmrd_dataset.write_xml_header(
-        #     xmltodict.unparse(dict_config, pretty=True))
+        # ismrmrd_dataset.write_xml_header(xmltodict.unparse(dict_config))
+        # THIS IS THE WRONG HEADER!  Only doing this because we can't get
+        # the ISMRMRD object to load it if we try to make our own.  Might be
+        # some funkiness with pyxb vs letree vs etree...
         ismrmrd_dataset.write_xml_header(header.toxml())
 
         # Mystery bytes. There seems to be 160 mystery bytes at the end of the
