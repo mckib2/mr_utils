@@ -8,10 +8,18 @@ from functools import reduce
 # import json
 import urllib.request
 import xml.etree.ElementTree as ET
+import lxml.etree as lET
 
 import numpy as np
 import xmltodict
 from tqdm import tqdm
+from ismrmrd import Dataset, Acquisition, xsd
+from ismrmrd.constants import ACQ_IS_NOISE_MEASUREMENT, \
+ACQ_IS_PARALLEL_CALIBRATION, ACQ_LAST_IN_MEASUREMENT, ACQ_IS_DUMMYSCAN_DATA, \
+ACQ_IS_SURFACECOILCORRECTIONSCAN_DATA, ACQ_IS_HPFEEDBACK_DATA, \
+ACQ_IS_RTFEEDBACK_DATA, ACQ_IS_NAVIGATION_DATA, ACQ_IS_PHASECORR_DATA, \
+ACQ_IS_REVERSE, ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING, \
+ACQ_LAST_IN_REPETITION, ACQ_LAST_IN_SLICE, ACQ_FIRST_IN_SLICE
 
 # from mr_utils.load_data.xprot_parser import XProtParser
 from mr_utils.load_data.xprot_parser_strsearch import xprot_get_val
@@ -278,7 +286,7 @@ def getparammap_file_content(parammap_file, usermap_file, VBFILE):
             # If the user did not specify any parameter map file
             if usermap_file is None:
                 parammap_file_content = get_embedded_file(
-                    'IsmrmrdParameterMap_Siemens_VB17.xml')
+                    'IsmrmrdParameterMap_Siemens_VB17.xml') # this is XML
                 logging.info(('Parameter map file is: '
                               'IsmrmrdParameterMap_Siemens_VB17.xml'))
 
@@ -300,7 +308,7 @@ def getparammap_file_content(parammap_file, usermap_file, VBFILE):
                 raise RuntimeError()
 
             # The user specified an embedded parameter map file only
-            parammap_file_content = get_embedded_file(parammap_file)
+            parammap_file_content = get_embedded_file(parammap_file) # XML
             logging.info('Parameter map file is: %s', parammap_file)
     else:
         if parammap_file is None:
@@ -849,10 +857,10 @@ def readChannelHeaders(siemens_dat, VBFILE, scanhead):
     '''Read the headers for the channels.'''
 
     nchannels = scanhead.ushUsedChannels
-    channels = []
+    nsamples = scanhead.ushSamplesInScan
+    # channels = np.zeros((nchannels, scanhead.ushSamplesInScan))
+    channels = np.empty(nchannels, dtype=object)
     for c in range(nchannels):
-
-        chan = ChannelHeaderAndData()
 
         if VBFILE:
             # siemens_dat.read(reinterpret_cast<char *>(&mdh), sizeof(sMDH));
@@ -916,32 +924,362 @@ def readChannelHeaders(siemens_dat, VBFILE, scanhead):
                     siemens_dat, dtype=np.uint16, count=2)
 
             # Now put all required fields from MDH into channel header
-            chan.header.ulTypeAndChannelLength = 0
-            chan.header.lMeasUID = mdh.lMeasUID
-            chan.header.ulScanCounter = mdh.ulScanCounter
-            chan.header.ulReserved1 = 0
-            chan.header.ulSequenceTime = 0
-            chan.header.ulUnused2 = 0
-            chan.header.ulChannelId = mdh.ushChannelId
-            chan.header.ulUnused3 = 0
-            chan.header.ulCRC = 0
+            channels[c] = ChannelHeaderAndData()
+            channels[c].header.ulTypeAndChannelLength = 0
+            channels[c].header.lMeasUID = mdh.lMeasUID
+            channels[c].header.ulScanCounter = mdh.ulScanCounter
+            channels[c].header.ulReserved1 = 0
+            channels[c].header.ulSequenceTime = 0
+            channels[c].header.ulUnused2 = 0
+            channels[c].header.ulChannelId = mdh.ushChannelId
+            channels[c].header.ulUnused3 = 0
+            channels[c].header.ulCRC = 0
 
         else:
             # siemens_dat.read(reinterpret_cast<char *>(&channels[c].header),
             #     sizeof(sChannelHeader));
             raise NotImplementedError()
 
-        nsamples = scanhead.ushSamplesInScan
-        chan.data = np.fromfile(
+        channels[c].data = np.fromfile(
             siemens_dat, dtype=np.complex64, count=nsamples)
-        channels.append(chan)
 
     return channels
 
 
+def getAcquisition(flash_pat_ref_scan, trajectory, dwell_time_0, max_channels,
+                   _isAdjustCoilSens, _isAdjQuietCoilSens, _isVB, traj,
+                   scanhead, channels):
+    '''Create ISMRMRD acqusition object for the current channel data.'''
+
+    ismrmrd_acq = Acquisition()
+    # The number of samples, channels and trajectory dimensions is set below
+
+    # Acquisition header values are zero by default
+    ismrmrd_acq.measurement_uid = scanhead.lMeasUID
+    ismrmrd_acq.scan_counter = scanhead.ulScanCounter
+    ismrmrd_acq.acquisition_time_stamp = scanhead.ulTimeStamp
+    ismrmrd_acq.physiology_time_stamp[0] = scanhead.ulPMUTimeStamp #pylint: disable=E1101
+    ismrmrd_acq.available_channels = max_channels
+    # Mask to indicate which channels are active. Support for 1024 channels
+    # uint64_t channel_mask[16];
+    ismrmrd_acq.discard_pre = scanhead.sCutOff.ushPre
+    ismrmrd_acq.discard_post = scanhead.sCutOff.ushPost
+    ismrmrd_acq.center_sample = scanhead.ushKSpaceCentreColumn
+
+    # std::cout << "isAdjustCoilSens, isVB : " << isAdjustCoilSens << " "
+    #           << isVB << std::endl;
+
+    # Is this is noise?
+    if scanhead.aulEvalInfoMask[0] & (1 << 25):
+        raise NotImplementedError()
+        # ismrmrd_acq.sample_time_us() = compute_noise_sample_in_us(
+        #     scanhead.ushSamplesInScan, isAdjustCoilSens, isAdjQuietCoilSens,
+        #     isVB)
+    else:
+        ismrmrd_acq.sample_time_us = dwell_time_0 / 1000.0
+
+    # std::cout << "ismrmrd_acq.sample_time_us(): "
+    #           << ismrmrd_acq.sample_time_us() << std::endl;
+
+    ismrmrd_acq.position[0] = scanhead.sSliceData.sSlicePosVec.flSag #pylint: disable=E1101
+    ismrmrd_acq.position[1] = scanhead.sSliceData.sSlicePosVec.flCor #pylint: disable=E1101
+    ismrmrd_acq.position[2] = scanhead.sSliceData.sSlicePosVec.flTra #pylint: disable=E1101
+
+    # Convert Siemens quaternions to direction cosines.
+    # In the Siemens convention the quaternion corresponds to a rotation
+    # matrix with columns P R S
+    # Siemens stores the quaternion as (W,X,Y,Z)
+    quat = np.zeros(4)
+    quat[0] = scanhead.sSliceData.aflQuaternion[1] # X
+    quat[1] = scanhead.sSliceData.aflQuaternion[2] # Y
+    quat[2] = scanhead.sSliceData.aflQuaternion[3] # Z
+    quat[3] = scanhead.sSliceData.aflQuaternion[0] # W
+    # ISMRMRD::ismrmrd_quaternion_to_directions(quat,
+    #                                           ismrmrd_acq.phase_dir(),
+    #                                           ismrmrd_acq.read_dir(),
+    #                                           ismrmrd_acq.slice_dir());
+
+
+    ismrmrd_acq.patient_table_position[0] = scanhead.lPTABPosX #pylint: disable=E1101
+    ismrmrd_acq.patient_table_position[1] = scanhead.lPTABPosY #pylint: disable=E1101
+    ismrmrd_acq.patient_table_position[2] = scanhead.lPTABPosZ #pylint: disable=E1101
+
+    # This doesn't seem to get used...
+    # fixedE1E2 = True
+    # if scanhead.aulEvalInfoMask[0] & (1 << 25):
+    #     fixedE1E2 = False # noise
+    # if scanhead.aulEvalInfoMask[0] & (1 << 1):
+    #     fixedE1E2 = False # navigator, rt feedback
+    # if scanhead.aulEvalInfoMask[0] & (1 << 2):
+    #     fixedE1E2 = False # hp feedback
+    # if scanhead.aulEvalInfoMask[0] & (1 << 51):
+    #     fixedE1E2 = False # dummy
+    # if scanhead.aulEvalInfoMask[0] & (1 << 5):
+    #     fixedE1E2 = False # synch data
+
+    ismrmrd_acq.idx.average = scanhead.sLC.ushAcquisition #pylint: disable=E1101
+    ismrmrd_acq.idx.contrast = scanhead.sLC.ushEcho #pylint: disable=E1101
+    ismrmrd_acq.idx.kspace_encode_step_1 = scanhead.sLC.ushLine #pylint: disable=E1101
+    ismrmrd_acq.idx.kspace_encode_step_2 = scanhead.sLC.ushPartition #pylint: disable=E1101
+    ismrmrd_acq.idx.phase = scanhead.sLC.ushPhase #pylint: disable=E1101
+    ismrmrd_acq.idx.repetition = scanhead.sLC.ushRepetition #pylint: disable=E1101
+    ismrmrd_acq.idx.segment = scanhead.sLC.ushSeg #pylint: disable=E1101
+    ismrmrd_acq.idx.set = scanhead.sLC.ushSet #pylint: disable=E1101
+    ismrmrd_acq.idx.slice = scanhead.sLC.ushSlice #pylint: disable=E1101
+    ismrmrd_acq.idx.user[0] = scanhead.sLC.ushIda #pylint: disable=E1101
+    ismrmrd_acq.idx.user[1] = scanhead.sLC.ushIdb #pylint: disable=E1101
+    ismrmrd_acq.idx.user[2] = scanhead.sLC.ushIdc #pylint: disable=E1101
+    ismrmrd_acq.idx.user[3] = scanhead.sLC.ushIdd #pylint: disable=E1101
+    ismrmrd_acq.idx.user[4] = scanhead.sLC.ushIde #pylint: disable=E1101
+    # TODO: remove this once the GTPlus can properly autodetect partial fourier
+    ismrmrd_acq.idx.user[5] = scanhead.ushKSpaceCentreLineNo #pylint: disable=E1101
+    ismrmrd_acq.idx.user[6] = scanhead.ushKSpaceCentrePartitionNo #pylint: disable=E1101
+
+    # *************************************************************************
+    # the user_int[0] and user_int[1] are used to store user defined parameters
+    # *************************************************************************
+    ismrmrd_acq.user_int[0] = int(scanhead.aushIceProgramPara[0]) #pylint: disable=E1101
+    ismrmrd_acq.user_int[1] = int(scanhead.aushIceProgramPara[1]) #pylint: disable=E1101
+    ismrmrd_acq.user_int[2] = int(scanhead.aushIceProgramPara[2]) #pylint: disable=E1101
+    ismrmrd_acq.user_int[3] = int(scanhead.aushIceProgramPara[3]) #pylint: disable=E1101
+    ismrmrd_acq.user_int[4] = int(scanhead.aushIceProgramPara[4]) #pylint: disable=E1101
+    ismrmrd_acq.user_int[5] = int(scanhead.aushIceProgramPara[5]) #pylint: disable=E1101
+    ismrmrd_acq.user_int[6] = int(scanhead.aushIceProgramPara[6]) #pylint: disable=E1101
+    # TODO: in the newer version of ismrmrd, add field to store
+    # time_since_perp_pulse
+    ismrmrd_acq.user_int[7] = int(scanhead.ulTimeSinceLastRF) #pylint: disable=E1101
+
+    ismrmrd_acq.user_float[0] = float(scanhead.aushIceProgramPara[8]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[1] = float(scanhead.aushIceProgramPara[9]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[2] = float(scanhead.aushIceProgramPara[10]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[3] = float(scanhead.aushIceProgramPara[11]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[4] = float(scanhead.aushIceProgramPara[12]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[5] = float(scanhead.aushIceProgramPara[13]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[6] = float(scanhead.aushIceProgramPara[14]) #pylint: disable=E1101
+    ismrmrd_acq.user_float[7] = float(scanhead.aushIceProgramPara[15]) #pylint: disable=E1101
+
+    if scanhead.aulEvalInfoMask[0] & (1 << 25):
+        ismrmrd_acq.setFlag(ACQ_IS_NOISE_MEASUREMENT)
+    if scanhead.aulEvalInfoMask[0] & (1 << 28):
+        ismrmrd_acq.setFlag(ACQ_FIRST_IN_SLICE)
+    if scanhead.aulEvalInfoMask[0] & (1 << 29):
+        ismrmrd_acq.setFlag(ACQ_LAST_IN_SLICE)
+    if scanhead.aulEvalInfoMask[0] & (1 << 11):
+        ismrmrd_acq.setFlag(ACQ_LAST_IN_REPETITION)
+
+    # if a line is both image and ref, then do not set the ref flag
+    if scanhead.aulEvalInfoMask[0] & (1 << 23):
+        ismrmrd_acq.setFlag(ACQ_IS_PARALLEL_CALIBRATION_AND_IMAGING)
+    else:
+        if scanhead.aulEvalInfoMask[0] & (1 << 22):
+            ismrmrd_acq.setFlag(ACQ_IS_PARALLEL_CALIBRATION)
+
+
+    if scanhead.aulEvalInfoMask[0] & (1 << 24):
+        ismrmrd_acq.setFlag(ACQ_IS_REVERSE)
+    if scanhead.aulEvalInfoMask[0] & (1 << 11):
+        ismrmrd_acq.setFlag(ACQ_LAST_IN_MEASUREMENT)
+    if scanhead.aulEvalInfoMask[0] & (1 << 21):
+        ismrmrd_acq.setFlag(ACQ_IS_PHASECORR_DATA)
+    if scanhead.aulEvalInfoMask[0] & (1 << 1):
+        ismrmrd_acq.setFlag(ACQ_IS_NAVIGATION_DATA)
+    if scanhead.aulEvalInfoMask[0] & (1 << 1):
+        ismrmrd_acq.setFlag(ACQ_IS_RTFEEDBACK_DATA)
+    if scanhead.aulEvalInfoMask[0] & (1 << 2):
+        ismrmrd_acq.setFlag(ACQ_IS_HPFEEDBACK_DATA)
+    if scanhead.aulEvalInfoMask[0] & (1 << 51):
+        ismrmrd_acq.setFlag(ACQ_IS_DUMMYSCAN_DATA)
+    if scanhead.aulEvalInfoMask[0] & (1 << 10):
+        ismrmrd_acq.setFlag(ACQ_IS_SURFACECOILCORRECTIONSCAN_DATA)
+    if scanhead.aulEvalInfoMask[0] & (1 << 5):
+        ismrmrd_acq.setFlag(ACQ_IS_DUMMYSCAN_DATA)
+    # if scanhead.aulEvalInfoMask[0] & (1ULL << 1):
+    #     ismrmrd_acq.setFlag(ISMRMRD_ACQ_LAST_IN_REPETITION)
+
+    if scanhead.aulEvalInfoMask[0] & (1 << 46):
+        ismrmrd_acq.setFlag(ACQ_LAST_IN_MEASUREMENT)
+
+    if flash_pat_ref_scan and ismrmrd_acq.isFlagSet(
+            ACQ_IS_PARALLEL_CALIBRATION):
+        # For some sequences the PAT Reference data is collected using
+        # a different encoding space, e.g. EPI scans with FLASH PAT Reference
+        # enabled by command line option
+        # TODO: it is likely that the dwell time is not set properly for this
+        # type of acquisition
+        ismrmrd_acq.encoding_space_ref = 1
+
+    # Spiral and not noise, we will add the trajectory to the data
+    if trajectory == 'TRAJECTORY_SPIRAL' and not ismrmrd_acq.isFlagSet(
+            ACQ_IS_NOISE_MEASUREMENT):
+
+
+        # from above we have the following
+        # traj_dim[0] = dimensionality (2)
+        # traj_dim[1] = ngrad i.e. points per interleaf
+        # traj_dim[2] = no. of interleaves
+        # and
+        # traj.getData() is a float * pointer to the trajectory stored
+        # kspace_encode_step_1 is the interleaf number
+
+        # Set the acquisition number of samples, channels and trajectory
+        # dimensions this reallocates the memory
+        traj_dim = traj.getDims()
+        ismrmrd_acq.resize(scanhead.ushSamplesInScan, scanhead.ushUsedChannels,
+                           traj_dim[0])
+
+        traj_samples_to_copy = ismrmrd_acq.number_of_samples() #pylint: disable=E1101
+        if traj_dim[1] < traj_samples_to_copy:
+            traj_samples_to_copy = traj_dim[1]
+            ismrmrd_acq.discard_post = \
+                ismrmrd_acq.number_of_samples() - traj_samples_to_copy #pylint: disable=E1101
+
+        # NEED TO DO THESE LINES:
+        # float *t_ptr = &traj.getDataPtr()[traj_dim[0] * traj_dim[1]
+        # * ismrmrd_acq.idx().kspace_encode_step_1];
+        # memcpy((void *) ismrmrd_acq.getTrajPtr(), t_ptr, sizeof(float)
+        # * traj_dim[0] * traj_samples_to_copy);
+        raise NotImplementedError()
+    else: # No trajectory
+        # Set the acquisition number of samples, channels and trajectory
+        # dimensions; this reallocates the memory
+        ismrmrd_acq.resize(scanhead.ushSamplesInScan, scanhead.ushUsedChannels)
+
+    for c in range(ismrmrd_acq.active_channels): #pylint: disable=E1101
+        ismrmrd_acq.data[:] = channels[c].data
+        # memcpy((complex_float_t *) &(ismrmrd_acq.getDataPtr()[c
+        #  ismrmrd_acq.number_of_samples()]),
+        #        &channels[c].data[0], ismrmrd_acq.number_of_samples()
+        # * sizeof(complex_float_t))
+
+
+    if np.mod(scanhead.ulScanCounter, 1000) == 0:
+        logging.info('wrote scan: %d', scanhead.ulScanCounter)
+
+    return ismrmrd_acq
+
+def parseXML(debug_xml, parammap_xsl_content, schema_file_name_content,
+             xml_config):
+    '''Apply XSLT.'''
+
+    # xsltStylesheetPtr cur = NULL;
+
+    # xmlDocPtr doc, res, xml_doc;
+
+    # const char *params[16 + 1];
+
+    # nbparams = 0
+    # params[nbparams] = NULL;
+
+    # xmlSubstituteEntitiesDefault(1);
+
+    # xmlLoadExtDtdDefaultValue = 1
+
+    # xml_doc = xmlParseMemory(parammap_xsl_content.c_str(),
+    #                          parammap_xsl_content.size());
+    xml_doc = parammap_xsl_content
+
+    if xml_doc is None:
+        msg = 'Error when parsing xsl parameter stylesheet...'
+        raise RuntimeError(msg)
+
+    # cur = xsltParseStylesheetDoc(xml_doc);
+    cur = lET.XSLT(lET.fromstring(ET.tostring(xml_doc))) #pylint: disable=I1101
+
+    # doc = xmlParseMemory(xml_config.c_str(), xml_config.size());
+    doc = lET.fromstring(xml_config.encode())
+
+    # res = xsltApplyStylesheet(cur, doc, params);
+    res = cur(doc)
+
+    # xmlChar *out_ptr = NULL;
+    # int xslt_length = 0;
+    # int xslt_result = xsltSaveResultToString(&out_ptr, &xslt_length, res,
+    #                                          cur);
+    # if (xslt_result < 0) {
+    #     std::cerr << "Failed to save converted doc to string" << std::endl;
+    # }
+    # std::string xml_result = std::string((char *) out_ptr, xslt_length);
+    xml_result = lET.tostring(res) #pylint: disable=I1101
+
+    # if (xml_file_is_valid(xml_result, schema_file_name_content) <= 0) {
+    #     std::stringstream sstream;
+    #     sstream <<
+    #             "Generated XML is not valid according to the ISMRMRD schema";
+    #     throw std::runtime_error(sstream.str());
+    #     if (debug_xml) {
+    #         std::ofstream o("processed.xml");
+    #         o.write(xml_result.c_str(), xml_result.size());
+    #     }
+    # }
+
+    ## Comment out for now
+    # xmlschema = lET.XMLSchema(lET.fromstring(ET.tostring( #pylint: disable=I1101
+    #     schema_file_name_content)))
+    # if not xmlschema.validate(res):
+    #     if debug_xml:
+    #         with open('processed.xml', 'w') as f:
+    #             f.write(xml_result)
+    #     msg = 'Generated XML is not valid according to the ISMRMRD schema'
+    #     raise RuntimeError(msg)
+
+    return xml_result
+
+
+def fill_ismrmrd_header(h, study_date, study_time):
+    '''Add dates/times to ISMRMRD header.'''
+    try:
+
+        # ---------------------------------
+        # fill more info into the ismrmrd header
+        # ---------------------------------
+        # study
+        study_date_needed = False
+        study_time_needed = False
+
+        if h.studyInformation:
+            if not h.studyInformation.studyDate:
+                study_date_needed = True
+
+            if not h.studyInformation.studyTime:
+                study_time_needed = True
+
+        else:
+            study_date_needed = True
+            study_time_needed = True
+
+
+        if study_date_needed or study_time_needed:
+            # ISMRMRD::StudyInformation study;
+            print(dir(h.studyInformation))
+
+            if study_date_needed and study_date != '':
+                # study.studyDate.set(study_date)
+                setattr(h.studyInformation.studyDate, study_date)
+                logging.info('Study date: %s', study_date)
+
+            if study_time_needed and study_time != '':
+                # study.studyTime.set(study_time)
+                setattr(h.studyInformation.studyTime, study_time)
+                logging.info('Study time: %s', study_time)
+
+
+            # h.studyInformation.set(study)
+
+        # ---------------------------------
+        # go back to string
+        # ---------------------------------
+
+    except Exception as e:
+        print(e)
+        return False
+
+    return h
+
 def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
            file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None,
-           debug=False, header_only=False, output='output.h5'):
+           debug=False, header_only=False, output='output.h5',
+           flash_pat_ref_scan=False, append_buffers=False,
+           study_date_user_supplied=''):
     '''Run the program with arguments.'''
 
     # If we only wanted the version, that's all we're gonna do
@@ -998,7 +1336,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         # No user specified stylesheet
         if user_stylesheet is None:
             parammap_xsl_content = get_embedded_file(
-                'IsmrmrdParameterMap_Siemens.xsl')
+                'IsmrmrdParameterMap_Siemens.xsl') # this is XML
         else:
             if os.path.isfile(user_stylesheet):
                 parammap_xsl_content = get_embedded_file(user_stylesheet)
@@ -1016,7 +1354,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         # else...
         # The user specified an embedded stylesheet only
         if os.path.isfile(pMapStyle):
-            parammap_xsl_content = ET.parse(pMapStyle)
+            parammap_xsl_content = ET.parse(pMapStyle) # this is XML
             logging.info('Parameter XSL stylesheet is: %s', pMapStyle)
         else:
             msg = '%s does not exist or can\'t be opened!' % pMapStyle
@@ -1024,7 +1362,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
 
     # Grab the ISMRMRD schema
-    schema_file_name_content = get_ismrmrd_schema()
+    schema_file_name_content = get_ismrmrd_schema() # this is XML
 
     # Now let's get to the dirty work...
     with open(file, 'br') as siemens_dat:
@@ -1104,6 +1442,8 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         protocol_name = ''
 
         # print(ET.tostring(parammap_file_content).decode())
+        # dict_config is xml_config, but dict_config is a dictionary
+        # and xml_config is a string in the c version
         dict_config, protocol_name, baseLineString = readXmlConfig(
             debug, parammap_file_content, num_buffers, buffers, wip_double,
             trajectory, dwell_time_0, max_channels, radial_views,
@@ -1130,26 +1470,26 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
             with open('xml_raw.xml', 'w') as f:
                 f.write(xmltodict.unparse(dict_config, pretty=True))
 
-        # TODO
+
         # ISMRMRD::IsmrmrdHeader header;
-        # {
-        #     std::string config = parseXML(debug_xml, parammap_xsl_content,
-        #                             schema_file_name_content, xml_config);
-        #     ISMRMRD::deserialize(config.c_str(), header);
-        # }
-        # //Append buffers to xml_config if requested
-        # if (append_buffers) {
-        #     append_buffers_to_xml_header(buffers, num_buffers, header);
-        # }
-        #
-        # // Free memory used for MeasurementHeaderBuffers
-        #
-        # auto ismrmrd_dataset = boost::make_shared
-        # <ISMRMRD::Dataset>(ismrmrd_file.c_str(), ismrmrd_group.c_str(), true)
+        config = parseXML(debug, parammap_xsl_content,
+                          schema_file_name_content,
+                          xmltodict.unparse(dict_config))
+        header = xsd.CreateFromDocument(config)
+
+        # Append buffers to xml_config if requested
+        if append_buffers:
+            raise NotImplementedError()
+            # append_buffers_to_xml_header(buffers, num_buffers, header)
+
+
+        ismrmrd_dataset = Dataset('tmp.h5', 'dataset', create_if_needed=True)
         # # If this is a spiral acquisition, we will calculate the trajectory
         # # and add it to the individual profilesISMRMRD::NDArray<float> traj;
         # auto traj = getTrajectory(wip_double, trajectory, dwell_time_0,
         #                           radial_views);
+        traj = None
+
 
         last_mask = 0
         acquisitions = 1
@@ -1200,12 +1540,14 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 study_time = '%d:%02d:%02d' % (hours, mins, secs)
                 print('STUDY TIME IS:', study_time)
 
-                ## This is some header validation stuff that I'm putting off
-                # # if some of the ismrmrd header fields are not filled, here
-                # # is a place to take some further actions
-                # if not fill_ismrmrd_header(
-                #     header, study_date_user_supplied, study_time):
-                #     logging.error('Failed to further fill XML header')
+                # If some of the ismrmrd header fields are not filled, here
+                # is a place to take some further actions
+                tmp = fill_ismrmrd_header(
+                    header, study_date_user_supplied, study_time)
+                if tmp is False:
+                    logging.error('Failed to further fill XML header')
+                else:
+                    header = tmp
 
                 # std::stringstream sstream;
                 # ISMRMRD::serialize(header,sstream);
@@ -1241,11 +1583,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 first_call = False
 
             # Allocate data for channels
-            # print('BEFORE CHANNEL: pos = %d' % siemens_dat.tell())
             channels = readChannelHeaders(siemens_dat, VBFILE, scanhead)
-            # print('AFTER CHANNEL: pos = %d' % siemens_dat.tell())
-            # for ch in channels:
-            #     ch.display()
 
             if not siemens_dat:
                 msg = 'Error reading data at acqusition %s' % acquisitions
@@ -1254,18 +1592,16 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
             acquisitions += 1
             last_mask = scanhead.aulEvalInfoMask[0]
-            print('IN LOOP: last_mask = %d' % last_mask)
-
             if last_mask & 1:
                 logging.info('Last scan reached...')
                 break
 
 
-
-        #     ismrmrd_dataset->appendAcquisition(
-        #             getAcquisition(flash_pat_ref_scan, trajectory,
-        #             dwell_time_0, max_channels, isAdjustCoilSens,
-        #             isAdjQuietCoilSens, isVB, traj, scanhead, channels));
+            # dataset.append(channels)
+            ismrmrd_dataset.append_acquisition(getAcquisition(
+                flash_pat_ref_scan, trajectory, dwell_time_0, max_channels,
+                isAdjustCoilSens, isAdjQuietCoilSens, isVB, traj, scanhead,
+                channels))
 
         # End of the while loop
 
@@ -1273,7 +1609,9 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
             msg = 'WARNING: Unexpected error.  Please check the result.'
             raise SystemError(msg)
 
-        # ismrmrd_dataset->writeHeader(xml_config);
+        # ismrmrd_dataset.write_xml_header(
+        #     xmltodict.unparse(dict_config, pretty=True))
+        ismrmrd_dataset.write_xml_header(header.toxml())
 
         # Mystery bytes. There seems to be 160 mystery bytes at the end of the
         # data.
@@ -1311,7 +1649,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                    '' % additional_bytes)
             logging.warning(msg)
 
-        return 0
+        return ismrmrd_dataset
 
 
 if __name__ == '__main__':
@@ -1339,17 +1677,17 @@ if __name__ == '__main__':
     parser.add_argument('-e', dest='extract', help='<Extract embedded file>')
     parser.add_argument('-X', dest='debug', help='<Debug XML flag>',
                         default=True)
-    parser.add_argument('-F', dest='flashPatRef', help='<FLASH PAT REF flag>',
-                        default=True)
+    parser.add_argument('-F', dest='flash_pat_ref_scan',
+                        help='<FLASH PAT REF flag>', default=True)
     parser.add_argument('-H', dest='headerOnly',
                         help='<HEADER ONLY flag (create xml header only)>',
                         default=True)
-    parser.add_argument('-B', dest='bufferAppend',
-                        help=('<Append Siemens protocol buffers (bas64) to '
+    parser.add_argument('-B', dest='append_buffers',
+                        help=('<Append Siemens protocol buffers (base64) to '
                               'user parameters>'), default=True)
-    parser.add_argument('--studyDate',
+    parser.add_argument('--studyDate', dest='study_date_user_supplied',
                         help=('<User can supply study date, in the format of '
-                              'yyyy-mm-dd>'))
+                              'yyyy-mm-dd>'), default='')
 
     args = parser.parse_args()
     print(args)
