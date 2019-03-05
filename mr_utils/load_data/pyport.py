@@ -8,7 +8,6 @@ from functools import reduce
 # import json
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import timedelta
 
 import numpy as np
 import xmltodict
@@ -29,7 +28,8 @@ ISMRMRD_VERSION_MINOR = 0
 ISMRMRD_VERSION_PATCH = 0
 
 MDH_DMA_LENGTH_MASK = 0x01FFFFFF
-MDH_ENABLE_FLAGS_MASK  = 0xFC000000
+MDH_ENABLE_FLAGS_MASK = 0xFC000000
+MYSTERY_BYTES_EXPECTED = 160
 
 ERR_STATE = -1
 
@@ -40,6 +40,12 @@ class ChannelHeaderAndData(object):
         self.header = sChannelHeader()
         # std::vector<complex_float_t> data;
         self.data = []
+
+    def display(self):
+        '''Show my contents.'''
+
+        self.header.display()
+        print('data:', self.data.shape)
 
 class sChannelHeader(object):
     '''Struct to hold channel header data.'''
@@ -60,7 +66,23 @@ class sChannelHeader(object):
         self.ulUnused3 = 0
         self.ulCRC = 0
 
+    def display(self):
+        '''Show my innards.'''
+
+        print('tsChannelHeader:')
+        print('\tsChannelHeader.ulTypeAndChannelLength',
+              self.ulTypeAndChannelLength)
+        print('\tsChannelHeader.lMeasUID', self.lMeasUID)
+        print('\tsChannelHeader.ulScanCounter', self.ulScanCounter)
+        print('\tsChannelHeader.ulReserved1', self.ulReserved1)
+        print('\tsChannelHeader.ulSequenceTime', self.ulSequenceTime)
+        print('\tsChannelHeader.ulUnused2', self.ulUnused2)
+        print('\tsChannelHeader.ulChannelId', self.ulChannelId)
+        print('\tsChannelHeader.ulUnused3', self.ulUnused3)
+        print('\tsChannelHeader.ulCRC', self.ulCRC)
+
 class mdhLC(object):
+    '''Filler.'''
     def __init__(self):
         self.ushLine = 0
         self.ushAcquisition = 0
@@ -78,17 +100,20 @@ class mdhLC(object):
         self.ushIde = 0
 
 class mdhCutOff(object):
+    '''Filler.'''
     def __init__(self):
         self.ushPre = 0
         self.ushPost = 0
 
 class mdhSlicePosVec(object):
+    '''Filler.'''
     def __init__(self):
         self.flCor = 0
         self.flSag = 0
         self.flTra = 0
 
 class mdhSliceData(object):
+    '''Filler.'''
     def __init__(self):
         self.sSlicePosVec = mdhSlicePosVec()
         self.aflQuaternion = np.zeros(4)
@@ -126,6 +151,39 @@ class sMDH(object):
 
         self.ushChannelId = 0
         self.ushPTABPosNeg = 0
+
+    def display(self):
+        '''Give a look into your soul.'''
+
+        print('MDH:')
+        print('\tmdh.ulFlagsAndDMALength', self.ulFlagsAndDMALength)
+        print('\tmdh.lMeasUID', self.lMeasUID)
+
+        print('\tmdh.ulScanCounter', self.ulScanCounter)
+
+        print('\tmdh.ulTimeStamp', self.ulTimeStamp)
+
+        print('\tmdh.ulPMUTimeStamp', self.ulPMUTimeStamp)
+        print('\tmdh.aulEvalInfoMask', self.aulEvalInfoMask)
+        print('\tmdh.ushSamplesInScan', self.ushSamplesInScan)
+        print('\tmdh.ushUsedChannels', self.ushUsedChannels)
+
+        print('\tmdh.sLC', self.sLC)
+        print('\tmdh.sCutOff', self.sCutOff)
+        print('\tmdh.ushKSpaceCentreColumn', self.ushKSpaceCentreColumn)
+        print('\tmdh.ushCoilSelect', self.ushCoilSelect)
+
+        print('\tmdh.fReadOutOffcentre', self.fReadOutOffcentre)
+        print('\tmdh.ulTimeSinceLastRF', self.ulTimeSinceLastRF)
+        print('\tmdh.ushKSpaceCentreLineNo', self.ushKSpaceCentreLineNo)
+        print('\tmdh.ushKSpaceCentrePartitionNo',
+              self.ushKSpaceCentrePartitionNo)
+        print('\tmdh.aushIceProgramPara', self.aushIceProgramPara)
+        print('\tmdh.aushFreePara', self.aushFreePara)
+        print('\tmdh.sSliceData', self.sSliceData)
+        print('\tmdh.ushChannelId', self.ushChannelId)
+
+        print('\tmdh.ushPTABPosNeg', self.ushPTABPosNeg)
 
 
 class sScanHeader(object):
@@ -205,6 +263,7 @@ def get_embedded_file(file):
     return contents
 
 def check_positive(value):
+    '''Filler.'''
     ivalue = int(value)
     if ivalue < 1:
         raise argparse.ArgumentTypeError(
@@ -212,6 +271,7 @@ def check_positive(value):
     return ivalue
 
 def getparammap_file_content(parammap_file, usermap_file, VBFILE):
+    '''Filler.'''
 
     if VBFILE:
         if parammap_file is None:
@@ -341,6 +401,7 @@ def readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE):
     return ParcFileEntries
 
 def readMeasurementHeaderBuffers(siemens_dat, num_buffers):
+    '''Filler.'''
     buffers = []
     logging.info('Number of parameter buffers: %s', str(num_buffers))
     for _b in range(num_buffers):
@@ -676,6 +737,7 @@ def ProcessParameterMap(config_buffer, parammap_file_content):
 
 
 def readScanHeader(siemens_dat, VBFILE):
+    '''Read the header from the scan.'''
 
     # Make the things we're going to fill up
     scanhead = sScanHeader()
@@ -687,13 +749,17 @@ def readScanHeader(siemens_dat, VBFILE):
     # If we're VB, then we have an MDH to deal with
     if VBFILE:
 
-        # Read everything in to the MDH skipping the first field and the last
-        # two fields.
+        # Read everything in to the MDH skipping the first field -- you know,
+        # cause we just read it up above
         # siemens_dat.read(reinterpret_cast<char *>(&mdh) + sizeof(uint32_t),
         #     sizeof(sMDH) - sizeof(uint32_t));
-        (mdh.lMeasUID, mdh.ulScanCounter, mdh.ulTimeStamp,
+
+        mdh.lMeasUID = np.fromfile(
+            siemens_dat, dtype=np.int32, count=1)
+
+        (mdh.ulScanCounter, mdh.ulTimeStamp,
          mdh.ulPMUTimeStamp) = np.fromfile(
-             siemens_dat, dtype=np.uint32, count=4)
+             siemens_dat, dtype=np.uint32, count=3)
 
         mdh.aulEvalInfoMask = np.fromfile(
             siemens_dat, dtype=np.uint32, count=2)
@@ -714,7 +780,7 @@ def readScanHeader(siemens_dat, VBFILE):
             siemens_dat, dtype=np.uint16, count=2)
 
         mdh.fReadOutOffcentre = np.fromfile(
-            siemens_dat, dtype=np.single, count=1)
+            siemens_dat, dtype=np.float32, count=1)
 
         mdh.ulTimeSinceLastRF = np.fromfile(
             siemens_dat, dtype=np.uint32, count=1)
@@ -731,10 +797,13 @@ def readScanHeader(siemens_dat, VBFILE):
         (mdh.sSliceData.sSlicePosVec.flSag,
          mdh.sSliceData.sSlicePosVec.flCor,
          mdh.sSliceData.sSlicePosVec.flTra) = np.fromfile(
-             siemens_dat, dtype=np.single, count=3)
+             siemens_dat, dtype=np.float32, count=3)
 
         mdh.sSliceData.aflQuaternion = np.fromfile(
-            siemens_dat, dtype=np.single, count=4)
+            siemens_dat, dtype=np.float32, count=4)
+
+        mdh.ushChannelId, mdh.ushPTABPosNeg = np.fromfile(
+            siemens_dat, dtype=np.uint16, count=2)
 
 
         scanhead.lMeasUID = mdh.lMeasUID
@@ -781,7 +850,7 @@ def readChannelHeaders(siemens_dat, VBFILE, scanhead):
 
     nchannels = scanhead.ushUsedChannels
     channels = []
-    for _c in range(nchannels):
+    for c in range(nchannels):
 
         chan = ChannelHeaderAndData()
 
@@ -789,58 +858,62 @@ def readChannelHeaders(siemens_dat, VBFILE, scanhead):
             # siemens_dat.read(reinterpret_cast<char *>(&mdh), sizeof(sMDH));
             mdh = sMDH()
 
-            mdh.ulFlagsAndDMALength = np.fromfile(
-                siemens_dat, dtype=np.uint32, count=1)
+            if c > 0:
+                mdh.ulFlagsAndDMALength = np.fromfile(
+                    siemens_dat, dtype=np.uint32, count=1)
 
-            (mdh.lMeasUID, mdh.ulScanCounter, mdh.ulTimeStamp,
-             mdh.ulPMUTimeStamp) = np.fromfile(
-                 siemens_dat, dtype=np.uint32, count=4)
+                mdh.lMeasUID = np.fromfile(
+                    siemens_dat, dtype=np.int32, count=1)
 
-            mdh.aulEvalInfoMask = np.fromfile(
-                siemens_dat, dtype=np.uint32, count=2)
+                (mdh.ulScanCounter, mdh.ulTimeStamp,
+                 mdh.ulPMUTimeStamp) = np.fromfile(
+                     siemens_dat, dtype=np.uint32, count=3)
 
-            mdh.ushSamplesInScan, mdh.ushUsedChannels = np.fromfile(
-                siemens_dat, dtype=np.uint16, count=2)
+                mdh.aulEvalInfoMask = np.fromfile(
+                    siemens_dat, dtype=np.uint32, count=2)
 
-            (mdh.sLC.ushLine, mdh.sLC.ushAcquisition, mdh.sLC.ushSlice,
-             mdh.sLC.ushPartition, mdh.sLC.ushEcho, mdh.sLC.ushPhase,
-             mdh.sLC.ushRepetition, mdh.sLC.ushSet, mdh.sLC.ushSeg,
-             mdh.sLC.ushIda, mdh.sLC.ushIdb, mdh.sLC.ushIdc, mdh.sLC.ushIdd,
-             mdh.sLC.ushIde) = np.fromfile(
-                 siemens_dat, dtype=np.uint16, count=14)
+                mdh.ushSamplesInScan, mdh.ushUsedChannels = np.fromfile(
+                    siemens_dat, dtype=np.uint16, count=2)
 
-            mdh.sCutOff.ushPre, mdh.sCutOff.ushPost = np.fromfile(
-                siemens_dat, dtype=np.uint16, count=2)
+                (mdh.sLC.ushLine, mdh.sLC.ushAcquisition, mdh.sLC.ushSlice,
+                 mdh.sLC.ushPartition, mdh.sLC.ushEcho, mdh.sLC.ushPhase,
+                 mdh.sLC.ushRepetition, mdh.sLC.ushSet, mdh.sLC.ushSeg,
+                 mdh.sLC.ushIda, mdh.sLC.ushIdb, mdh.sLC.ushIdc,
+                 mdh.sLC.ushIdd, mdh.sLC.ushIde) = np.fromfile(
+                     siemens_dat, dtype=np.uint16, count=14)
 
-            mdh.ushKSpaceCentreColumn, mdh.ushCoilSelect = np.fromfile(
-                siemens_dat, dtype=np.uint16, count=2)
+                mdh.sCutOff.ushPre, mdh.sCutOff.ushPost = np.fromfile(
+                    siemens_dat, dtype=np.uint16, count=2)
 
-            mdh.fReadOutOffcentre = np.fromfile(
-                siemens_dat, dtype=np.single, count=1)
+                mdh.ushKSpaceCentreColumn, mdh.ushCoilSelect = np.fromfile(
+                    siemens_dat, dtype=np.uint16, count=2)
 
-            mdh.ulTimeSinceLastRF = np.fromfile(
-                siemens_dat, dtype=np.uint32, count=1)
+                mdh.fReadOutOffcentre = np.fromfile(
+                    siemens_dat, dtype=np.float32, count=1)
 
-            (mdh.ushKSpaceCentreLineNo,
-             mdh.ushKSpaceCentrePartitionNo) = np.fromfile(
-                 siemens_dat, dtype=np.uint16, count=2)
+                mdh.ulTimeSinceLastRF = np.fromfile(
+                    siemens_dat, dtype=np.uint32, count=1)
 
-            mdh.aushIceProgramPara = np.fromfile(
-                siemens_dat, dtype=np.uint16, count=4)
+                (mdh.ushKSpaceCentreLineNo,
+                 mdh.ushKSpaceCentrePartitionNo) = np.fromfile(
+                     siemens_dat, dtype=np.uint16, count=2)
 
-            mdh.aushFreePara = np.fromfile(
-                siemens_dat, dtype=np.uint16, count=4)
+                mdh.aushIceProgramPara = np.fromfile(
+                    siemens_dat, dtype=np.uint16, count=4)
 
-            (mdh.sSliceData.sSlicePosVec.flSag,
-             mdh.sSliceData.sSlicePosVec.flCor,
-             mdh.sSliceData.sSlicePosVec.flTra) = np.fromfile(
-                 siemens_dat, dtype=np.single, count=3)
+                mdh.aushFreePara = np.fromfile(
+                    siemens_dat, dtype=np.uint16, count=4)
 
-            mdh.sSliceData.aflQuaternion = np.fromfile(
-                siemens_dat, dtype=np.single, count=4)
+                (mdh.sSliceData.sSlicePosVec.flSag,
+                 mdh.sSliceData.sSlicePosVec.flCor,
+                 mdh.sSliceData.sSlicePosVec.flTra) = np.fromfile(
+                     siemens_dat, dtype=np.float32, count=3)
 
-            mdh.ushChannelId, mdh.ushPTABPosNeg = np.fromfile(
-                siemens_dat, dtype=np.uint16, count=2)
+                mdh.sSliceData.aflQuaternion = np.fromfile(
+                    siemens_dat, dtype=np.float32, count=4)
+
+                mdh.ushChannelId, mdh.ushPTABPosNeg = np.fromfile(
+                    siemens_dat, dtype=np.uint16, count=2)
 
             # Now put all required fields from MDH into channel header
             chan.header.ulTypeAndChannelLength = 0
@@ -859,7 +932,8 @@ def readChannelHeaders(siemens_dat, VBFILE, scanhead):
             raise NotImplementedError()
 
         nsamples = scanhead.ushSamplesInScan
-        chan.data = np.fromfile(siemens_dat, dtype=np.csingle, count=nsamples)
+        chan.data = np.fromfile(
+            siemens_dat, dtype=np.complex64, count=nsamples)
         channels.append(chan)
 
     return channels
@@ -1059,7 +1133,8 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         # TODO
         # ISMRMRD::IsmrmrdHeader header;
         # {
-        #     std::string config = parseXML(debug_xml, parammap_xsl_content, schema_file_name_content, xml_config);
+        #     std::string config = parseXML(debug_xml, parammap_xsl_content,
+        #                             schema_file_name_content, xml_config);
         #     ISMRMRD::deserialize(config.c_str(), header);
         # }
         # //Append buffers to xml_config if requested
@@ -1069,9 +1144,12 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         #
         # // Free memory used for MeasurementHeaderBuffers
         #
-        # auto ismrmrd_dataset = boost::make_shared<ISMRMRD::Dataset>(ismrmrd_file.c_str(), ismrmrd_group.c_str(), true);
-        # //If this is a spiral acquisition, we will calculate the trajectory and add it to the individual profilesISMRMRD::NDArray<float> traj;
-        # auto traj = getTrajectory(wip_double, trajectory, dwell_time_0, radial_views);
+        # auto ismrmrd_dataset = boost::make_shared
+        # <ISMRMRD::Dataset>(ismrmrd_file.c_str(), ismrmrd_group.c_str(), true)
+        # # If this is a spiral acquisition, we will calculate the trajectory
+        # # and add it to the individual profilesISMRMRD::NDArray<float> traj;
+        # auto traj = getTrajectory(wip_double, trajectory, dwell_time_0,
+        #                           radial_views);
 
         last_mask = 0
         acquisitions = 1
@@ -1082,11 +1160,13 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         # acqend
         pfe = ParcFileEntries[measNum-1]
         sScanSize = sScanHeader.sizeof()
-        while (not last_mask) and (((pfe['off_'] + pfe['len_']) - siemens_dat.tell()) > sScanSize):
+        while (not last_mask & 1) and (((pfe['off_'] + pfe['len_']) \
+                - siemens_dat.tell()) > sScanSize):
 
 
             position_in_meas = siemens_dat.tell()
             scanhead, mdh = readScanHeader(siemens_dat, VBFILE)
+            # mdh.display()
 
             if not siemens_dat:
                 logging.error(
@@ -1100,6 +1180,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
             # Check if this is sync data, if so, it must be handled differently
             if scanhead.aulEvalInfoMask[0] & (1 << 5):
+                raise NotImplementedError()
                 last_scan_counter = acquisitions - 1
                 # TODO:
                 # auto waveforms = readSyncdata(siemens_dat, VBFILE,
@@ -1117,6 +1198,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 mins, secs = divmod(timeInSeconds, 60)
                 hours, mins = divmod(mins, 60)
                 study_time = '%d:%02d:%02d' % (hours, mins, secs)
+                print('STUDY TIME IS:', study_time)
 
                 ## This is some header validation stuff that I'm putting off
                 # # if some of the ismrmrd header fields are not filled, here
@@ -1159,7 +1241,11 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 first_call = False
 
             # Allocate data for channels
+            # print('BEFORE CHANNEL: pos = %d' % siemens_dat.tell())
             channels = readChannelHeaders(siemens_dat, VBFILE, scanhead)
+            # print('AFTER CHANNEL: pos = %d' % siemens_dat.tell())
+            # for ch in channels:
+            #     ch.display()
 
             if not siemens_dat:
                 msg = 'Error reading data at acqusition %s' % acquisitions
@@ -1168,15 +1254,18 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
             acquisitions += 1
             last_mask = scanhead.aulEvalInfoMask[0]
+            print('IN LOOP: last_mask = %d' % last_mask)
 
-            if scanhead.aulEvalInfoMask[0] & 1:
+            if last_mask & 1:
                 logging.info('Last scan reached...')
                 break
 
 
+
         #     ismrmrd_dataset->appendAcquisition(
-        #             getAcquisition(flash_pat_ref_scan, trajectory, dwell_time_0, max_channels, isAdjustCoilSens,
-        #                            isAdjQuietCoilSens, isVB, traj, scanhead, channels));
+        #             getAcquisition(flash_pat_ref_scan, trajectory,
+        #             dwell_time_0, max_channels, isAdjustCoilSens,
+        #             isAdjQuietCoilSens, isVB, traj, scanhead, channels));
 
         # End of the while loop
 
@@ -1188,40 +1277,41 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
         # Mystery bytes. There seems to be 160 mystery bytes at the end of the
         # data.
-        mystery_bytes = (pfe['.off_'] + pfe['.len_']) - siemens_dat.tell()
+        mystery_bytes = (pfe['off_'] + pfe['len_']) - siemens_dat.tell()
 
         if mystery_bytes > 0:
             if mystery_bytes != MYSTERY_BYTES_EXPECTED:
                 # Something in not quite right
-                # std::cerr << "WARNING: Unexpected number of mystery bytes detected: " << mystery_bytes << std::endl;
-                # std::cerr << "ParcFileEntries[" << measurement_number - 1 << "].off_ = "
-                #           << ParcFileEntries[measurement_number - 1].off_ << std::endl;
-                # std::cerr << "ParcFileEntries[" << measurement_number - 1 << "].len_ = "
-                #           << ParcFileEntries[measurement_number - 1].len_ << std::endl;
-                # std::cerr << "siemens_dat.tellg() = " << siemens_dat.tellg() << std::endl;
-                # std::cerr << "Please check the result." << std::endl;
-                pass
+                msg = 'WARNING: Unexpected number of mystery bytes detected: '
+                logging.error('%s%d', msg, mystery_bytes)
+                msg = 'ParcFileEntries[%d].off_ = %d' %(measNum-1, pfe['off_'])
+                logging.error(msg)
+                msg = 'ParcFileEntries[%d].len_ = %d' %(measNum-1, pfe['len_'])
+                logging.error(msg)
+                msg = 'siemens_dat.tellg() = %d' % siemens_dat.tell()
+                logging.error(msg)
+                logging.error('Please check the result.')
+
             else:
                 # Read the mystery bytes
-                # char mystery_data[MYSTERY_BYTES_EXPECTED];
-                # siemens_dat.read(reinterpret_cast<char *>(&mystery_data), mystery_bytes);
-                # # After this we have to be on a 512 byte boundary
-                # if siemens_dat.tellg() % 512) {
-                #     siemens_dat.seekg(512 - (siemens_dat.tellg() % 512), std::ios::cur);
-                # }
-                pass
+                _mystery_data = np.fromfile(siemens_dat, count=mystery_bytes)
+                # After this we have to be on a 512 byte boundary
+                offset = np.mod(siemens_dat.tell(), 512)
+                if offset:
+                    siemens_dat.seek(512 - offset, os.SEEK_CUR)
 
-        #
-        # size_t end_position = siemens_dat.tellg();
-        # siemens_dat.seekg(0, std::ios::end);
-        # size_t eof_position = siemens_dat.tellg();
-        # if (end_position != eof_position && ParcRaidHead.count_ == measurement_number) {
-        #     size_t additional_bytes = eof_position - end_position;
-        #     std::cerr << "WARNING: End of file was not reached during conversion. There are " <<
-        #               additional_bytes << " additional bytes at the end of file." << std::endl;
-        # }
-        #
-        # return 0;
+
+        end_position = siemens_dat.tell()
+        siemens_dat.seek(0, os.SEEK_END)
+        eof_position = siemens_dat.tell()
+        if end_position != eof_position and ParcRaidHead['count_'] == measNum:
+            additional_bytes = eof_position - end_position
+            msg = ('WARNING: End of file was not reached during conversion. '
+                   'There are %d additional bytes at the end of file.'
+                   '' % additional_bytes)
+            logging.warning(msg)
+
+        return 0
 
 
 if __name__ == '__main__':
