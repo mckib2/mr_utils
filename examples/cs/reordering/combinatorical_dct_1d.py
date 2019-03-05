@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import dct, idct
 from scipy.special import comb
 from scipy.optimize import linear_sum_assignment as lsa
-from scipy.optimize import minimize
+# from scipy.optimize import minimize
 from scipy.spatial.distance import cdist
 from tqdm import tqdm
 
@@ -58,7 +58,7 @@ def obj(c00, N, locs, bins, lims):
     c0[locs] = c00
     return dH(Hy, density(idct(c0), bins, lims))
 
-def get_xhat(N, locs, bins, lims):
+def get_xhat(N, locs, _bins, _lims):
     '''Compute xhat for given coefficient locations.'''
 
     # Assume the coefficient is always one for now while we figure the math out
