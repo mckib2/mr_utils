@@ -1,4 +1,7 @@
-'''fill_ismrmrd_header'''
+'''fill_ismrmrd_header
+
+This is currently not working and silently failing.
+'''
 
 import logging
 
@@ -27,8 +30,8 @@ def fill_ismrmrd_header(h, study_date, study_time):
 
         if study_date_needed or study_time_needed:
             # ISMRMRD::StudyInformation study;
-            print(type(h))
-            print(dir(h))
+            # print(type(h))
+            # print(dir(h))
             # How do we create a study and how do we add it to the header, h?
 
 

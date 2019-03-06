@@ -3,6 +3,10 @@
 This is a way engineered to Get the Job Done(TM).  It could be made a lot
 better and faster, but right now I'm just trying to get it working after the
 debacle with ply...
+
+The lookup table seems like a good idea, but having a little trouble getting it
+to work properly.  Currently it's supressing a lot of fields that don't exist,
+it's just not letting us display the warning that it doesn't exist.
 '''
 
 from itertools import islice
@@ -70,19 +74,51 @@ def find_matching_braces(s, lsym='{', rsym='}', qlsym='"', qrsym='"'):
     return matches
 
 
-def xprot_get_val(config_buffer, val):
+def xprot_get_val(config_buffer, val, p_to_buf_table=None, return_table=False):
     '''Get value from config buffer.
 
     config_buffer -- String containing the XProtocol innards.
     val -- Dot separated path to search for.
+    p_to_buf_table --
+    return_table --
     '''
+
+    if p_to_buf_table is None:
+        p_to_buf_table = dict()
+    else:
+        p_to_buf_table = p_to_buf_table.copy()
 
     # Split the path
     path = val.split('.')
 
+    # See if there's already entries in the table to help you find the specific
+    # region we're looking for.  We want to find the longest path in the table.
+    lpath = len(path)
+    for ii in range(lpath):
+        if ii == 0:
+            key = val
+        else:
+            key = '.'.join(path[:-ii])
+        if key in p_to_buf_table:
+             # truncate the buffer to what we don't know
+            config_buffer = p_to_buf_table[key]
+
+            # only need end elements of the path
+            path = path[ii+1:]
+            if not path:
+                path = val.split('.')[ii:]
+
+            # print(path)
+            break
+
+
     # For each path element, thin the possible config region to look in
     cur_buf = config_buffer
-    for p in path:
+    write_table = True
+    for ii, p in enumerate(path):
+
+        # Key for the lookup table
+        key = '.'.join(path[:-ii-1])
 
         # I don't know how to deal with indices currently, so we're ignoring
         # them.  Think this may be pointing to the XProtocol section where they
@@ -91,20 +127,32 @@ def xprot_get_val(config_buffer, val):
         # { { { # } }, { # } }, etc...
         # We are missing dReadout, etc, so this may be the case.
         if p.isnumeric():
+            write_table = False
             # print('SKIPPING NUMERIC %s' % p)
             # raise NotImplementedError()
             continue
 
         idx0, tag = findp(p, cur_buf)
         if idx0 < 0:
+            # Update table -- this will never be a good answer
+            if write_table:
+                p_to_buf_table[key] = ''
+
             msg = '%s not found!' % p
             raise KeyError(msg)
+
+        # Update the table
+        if write_table and key not in p_to_buf_table:
+            p_to_buf_table[key] = cur_buf
+
+        # Match braces
         matches = find_matching_braces(cur_buf)
 
         # Find the first opening brace after this point
         idx1 = cur_buf[idx0:].find('{')
         idx2 = idx0 + idx1
         cur_buf = cur_buf[idx2:matches[idx2]+1]
+
 
     # Chop off front and end braces and then cast to correct value
     cur_buf = cur_buf[1:-1]
@@ -121,11 +169,10 @@ def xprot_get_val(config_buffer, val):
         cur_buf = cur_buf[idx0+1:idx1]
         val = cur_buf.strip()
 
+    if return_table:
+        # print('VAL:', val)
+        return val, p_to_buf_table
     return val
 
 if __name__ == '__main__':
-
-    with open('config_buffer.xprot', 'r') as f:
-        config_buffer = f.read()
-
-        xprot_get_val(config_buffer, 'MEAS.sRXSPEC.alDwellTime')
+    pass

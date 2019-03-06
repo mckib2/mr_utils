@@ -43,6 +43,7 @@ import os
 import logging
 import warnings
 import xml.etree.ElementTree as ET
+from ctypes import c_uint32
 
 import numpy as np
 import xmltodict
@@ -152,7 +153,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         VBFILE = False
         ParcRaidHead = {}
         ParcRaidHead['hdSize_'], ParcRaidHead['count_'] = np.fromfile(
-            siemens_dat, dtype=np.uint32, count=2) #pylint: disable=E1101
+            siemens_dat, dtype=c_uint32, count=2)
 
         if ParcRaidHead['hdSize_'] > 32:
             VBFILE = True
@@ -196,7 +197,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         siemens_dat.seek(ParcFileEntries[measNum - 1]['off_'], os.SEEK_SET)
 
         dma_length, num_buffers = np.fromfile(
-            siemens_dat, dtype=np.uint32, count=2) #pylint: disable=E1101
+            siemens_dat, dtype=c_uint32, count=2)
 
         buffers = readMeasurementHeaderBuffers(siemens_dat, num_buffers)
 
@@ -264,7 +265,12 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
             raise NotImplementedError()
             # append_buffers_to_xml_header(buffers, num_buffers, header)
 
-
+        # For debugging purposes, let's go ahead and kill it first instead of
+        # appending - that led to some weirdness...
+        if os.path.isfile('tmp.h5'):
+            msg = 'TMP file already exists!  Removing and creating anew!'
+            logging.warning(msg)
+            os.remove('tmp.h5')
         ismrmrd_dataset = Dataset('tmp.h5', 'dataset', create_if_needed=True)
         # # If this is a spiral acquisition, we will calculate the trajectory
         # # and add it to the individual profilesISMRMRD::NDArray<float> traj;

@@ -2,6 +2,7 @@
 
 import logging
 import os
+from ctypes import c_uint32
 
 import numpy as np
 
@@ -22,7 +23,7 @@ def readMeasurementHeaderBuffers(siemens_dat, num_buffers):
 
         logging.info('Buffer Name: %s', tmp_bufname)
         buf['name'] = tmp_bufname
-        buflen = np.fromfile(siemens_dat, dtype=np.uint32, count=1)[0] #pylint: disable=E1101
+        buflen = np.fromfile(siemens_dat, dtype=c_uint32, count=1)[0]
         bytebuf = siemens_dat.read(buflen)
         buf['buf'] = bytebuf.decode(
             'utf-8', errors='replace').replace('\uFFFD', 'X')

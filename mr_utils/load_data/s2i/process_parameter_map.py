@@ -24,6 +24,8 @@ def ProcessParameterMap(config_buffer, parammap_file_content):
         msg = 'Malformed parameter map (parameters section not found)'
         raise ValueError(msg)
 
+    lookup = {}
+    do_lookup = False # Let's not do it for now
     for p in tqdm(doc['siemens']['parameters']['p'], leave=False):
 
         if ('s' not in p) or ('d' not in p):
@@ -45,7 +47,8 @@ def ProcessParameterMap(config_buffer, parammap_file_content):
 
         # Go get the parameters!
         try:
-            parameters = xprot_get_val(config_buffer, source)
+            parameters = xprot_get_val(
+                config_buffer, source, lookup, do_lookup)
 
             # We can't serialize numpy arrays, so make 'em into lists
             if isinstance(parameters, np.ndarray):
@@ -58,6 +61,7 @@ def ProcessParameterMap(config_buffer, parammap_file_content):
 
         except KeyError:
             tqdm.write('Search path: %s not found.' % source)
+
 
         # Again, not sure what index is about, but here you go...
         if index is not None:
