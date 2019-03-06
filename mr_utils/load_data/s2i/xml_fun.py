@@ -23,6 +23,8 @@ def get_ismrmrd_schema(method='ET'):
 
 def get_list_of_embedded_files():
     '''List of files to go try to find from the git repo.'''
+
+    # Probably better to pull from repo and cache then have a static list...
     files = ['IsmrmrdParameterMap.xml',
              'IsmrmrdParameterMap.xsl',
              'IsmrmrdParameterMap_Siemens.xml',

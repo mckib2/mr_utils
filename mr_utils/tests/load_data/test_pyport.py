@@ -14,6 +14,7 @@ class PyPortTestCase(unittest.TestCase):
     def setUp(self):
         self.emptydat = 'mr_utils/tests/load_data/empty.dat'
         self.sample = 'mr_utils/tests/load_data/test.dat'
+        self.sample_3d = 'mr_utils/tests/load_data/test_3d.dat'
 
     @unittest.mock.patch('sys.stdout', new_callable=io.StringIO)
     def assert_stdout(self, fun, args, expected_output, mock_stdout=None):
@@ -127,8 +128,8 @@ class PyPortTestCase(unittest.TestCase):
         else:
             nslices = 1
 
-        if enc.encodingLimits.repetition is not None:
-            nreps = enc.encodingLimits.repetition.maximum + 1
+        if enc.encodingLimits.average is not None:
+            nreps = enc.encodingLimits.average.maximum + 1
         else:
             nreps = 1
 
@@ -155,7 +156,7 @@ class PyPortTestCase(unittest.TestCase):
         # Initialiaze a storage array
         all_data = np.zeros(
             (nreps, ncontrasts, nslices, ncoils, eNz, eNy, rNx),
-            dtype=np.complex64)
+            dtype=np.complex64) #pylint: disable=E1101
 
         # Loop through the rest of the acquisitions and stuff
         for acqnum in range(firstacq, dset.number_of_acquisitions()):
@@ -175,28 +176,28 @@ class PyPortTestCase(unittest.TestCase):
                 acq.data[:] = transform.transform_image_to_kspace(xline, [1])
 
             # Stuff into the buffer
-            rep = acq.idx.repetition
-            contrast = acq.idx.contrast
-            slice = acq.idx.slice
-            y = acq.idx.kspace_encode_step_1
-            z = acq.idx.kspace_encode_step_2
-            all_data[rep, contrast, slice, :, z, y, :] = acq.data
+            rep = acq.idx.average #pylint: disable=E1101
+            contrast = acq.idx.contrast #pylint: disable=E1101
+            slise = acq.idx.slice #pylint: disable=E1101
+            y = acq.idx.kspace_encode_step_1 #pylint: disable=E1101
+            z = acq.idx.kspace_encode_step_2 #pylint: disable=E1101
+            all_data[rep, contrast, slise, :, z, y, :] = acq.data
 
         # Reconstruct images
         images = np.zeros(
-            (nreps, ncontrasts, nslices, eNz, eNy, rNx), dtype=np.float32)
+            (nreps, ncontrasts, nslices, eNz, eNy, rNx), dtype=np.float32) #pylint: disable=E1101
         for rep in range(nreps):
             for contrast in range(ncontrasts):
-                for slice in range(nslices):
+                for slise in range(nslices):
                     # FFT
                     if eNz > 1:
                         #3D
                         im = transform.transform_kspace_to_image(
-                            all_data[rep, contrast, slice, ...], [1, 2, 3])
+                            all_data[rep, contrast, slise, ...], [1, 2, 3])
                     else:
                         #2D
                         im = transform.transform_kspace_to_image(
-                            all_data[rep, contrast, slice, :, 0, ...], [1, 2])
+                            all_data[rep, contrast, slise, :, 0, ...], [1, 2])
 
                     # Sum of squares
                     im = np.sqrt(np.sum(np.abs(im) ** 2, 0))
@@ -204,32 +205,13 @@ class PyPortTestCase(unittest.TestCase):
                     # Stuff into the output
                     if eNz > 1:
                         #3D
-                        images[rep, contrast, slice, ...] = im
+                        images[rep, contrast, slise, ...] = im
                     else:
                         #2D
-                        images[rep, contrast, slice, 0, ...] = im
+                        images[rep, contrast, slise, 0, ...] = im
 
         # Show an image
         show.imshow(np.squeeze(images[0, 0, 0, ...]))
-
-
-    # def test_pyport(self):
-    #     '''Standard parameters with bSSFP data set.'''
-    #
-    #     args = {
-    #         'version': False,
-    #         'list': True,
-    #         'extract': None,
-    #         'user_stylesheet': None,
-    #         'file': self.sample,
-    #         'pMapStyle': None,
-    #         'measNum': 1,
-    #         'pMap': None,
-    #         'user_map': None,
-    #         'debug': False
-    #     }
-    #
-    #     pyport.main(args)
 
 if __name__ == '__main__':
     unittest.main()

@@ -56,8 +56,6 @@ from mr_utils.load_data.s2i import readMeasurementHeaderBuffers, parseXML
 from mr_utils.load_data.s2i import readChannelHeaders, getAcquisition
 from mr_utils.load_data.s2i import xml_fun, readXmlConfig
 
-# logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
-
 def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
            file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None,
            debug=False, header_only=False, output='output.h5',
@@ -283,7 +281,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         # Last scan not encountered AND not reached end of measurement without
         # acqend
         pfe = ParcFileEntries[measNum-1]
-        sScanSize = sScanHeader.sizeof()
+        sScanSize = sScanHeader.itemsize
         while (not last_mask & 1) and (((pfe['off_'] + pfe['len_']) \
                 - siemens_dat.tell()) > sScanSize):
 
@@ -299,12 +297,12 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
 
 
             dma_length = \
-                scanhead.ulFlagsAndDMALength[0] & defs.MDH_DMA_LENGTH_MASK
+                scanhead['ulFlagsAndDMALength'] & defs.MDH_DMA_LENGTH_MASK
             _mdh_enable_flags = \
-                scanhead.ulFlagsAndDMALength[0] & defs.MDH_ENABLE_FLAGS_MASK
+                scanhead['ulFlagsAndDMALength'] & defs.MDH_ENABLE_FLAGS_MASK
 
             # Check if this is sync data, if so, it must be handled differently
-            if scanhead.aulEvalInfoMask[0] & (1 << 5):
+            if scanhead['aulEvalInfoMask'][0] & (1 << 5):
                 print('dma_length = %d' % dma_length)
                 print('sync_data_packets = %d' % sync_data_packets)
                 raise NotImplementedError()
@@ -318,7 +316,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 # continue
 
             if first_call:
-                time_stamp = scanhead.ulTimeStamp
+                time_stamp = scanhead['ulTimeStamp']
 
                 # convert to acqusition date and time
                 timeInSeconds = time_stamp*2.5/1e3
@@ -357,14 +355,14 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 ## Create an ISMRMRD dataset
 
             # This check only makes sense in VD line files.
-            if not VBFILE and (scanhead.lMeasUID != pfe['measId_']):
+            if not VBFILE and (scanhead['lMeasUID'] != pfe['measId_']):
                 # Something must have gone terribly wrong. Bail out.
                 if first_call:
                     msg = ('Corrupted or retro-recon dataset detected '
                            '(scanhead.lMeasUID != ParcFileEntries[%d].measId_'
                            'Fix the scanhead.lMeasUID...' % (measNum-1))
                     logging.error(msg)
-                scanhead.lMeasUID = pfe['measId_']
+                scanhead['lMeasUID'] = pfe['measId_']
 
             if first_call:
                 first_call = False
@@ -378,7 +376,7 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 break
 
             acquisitions += 1
-            last_mask = scanhead.aulEvalInfoMask[0]
+            last_mask = scanhead['aulEvalInfoMask'][0]
             if last_mask & 1:
                 logging.info('Last scan reached...')
                 break
