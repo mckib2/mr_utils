@@ -1,24 +1,28 @@
-import ply.lex as lex
-import ply.yacc as yacc
-import json,operator
+'''Parse XProtocol Siemens' proprietary format.'''
+
+# import json
+import operator
 from functools import reduce
 
+import ply.lex as lex
+import ply.yacc as yacc
+
 class XProtLexer(object):
+    '''Define tokens and rules.'''
 
     tokens = (
-        'RANGLE','LANGLE','LBRACE','RBRACE','PERIOD',
+        'RANGLE', 'LANGLE', 'LBRACE', 'RBRACE', 'PERIOD',
 
-        'XPROT','NAME','ID','USERVERSION','EVASTRTAB','PARAMCARDLAYOUT','REPR',
-        'CONTROL','PARAM','POS','DEPENDENCY','DLL','CONTEXT','VISIBLE',
-        'PROTOCOLCOMPOSER','INFILE','PARAMMAP','PARAMSTRING','PARAMLONG',
-        'PARAMBOOL','PARAMCHOICE','PARAMDOUBLE','PARAMARRAY','PIPE',
-        'PIPESERVICE','PARAMFUNCTOR','EVENT','METHOD','CONNECTION',
+        'XPROT', 'NAME', 'ID', 'USERVERSION', 'EVASTRTAB', 'PARAMCARDLAYOUT',
+        'REPR', 'CONTROL', 'PARAM', 'POS', 'DEPENDENCY', 'DLL', 'CONTEXT',
+        'VISIBLE', 'PROTOCOLCOMPOSER', 'INFILE', 'PARAMMAP', 'PARAMSTRING',
+        'PARAMLONG', 'PARAMBOOL', 'PARAMCHOICE', 'PARAMDOUBLE', 'PARAMARRAY',
+        'PIPE', 'PIPESERVICE', 'PARAMFUNCTOR', 'EVENT', 'METHOD', 'CONNECTION',
 
-        'LIMITRANGE','DEFAULT','MINSIZE','MAXSIZE','LIMIT','PRECISION','UNIT',
-        'CLASS','LABEL','COMMENTTAG','TOOLTIP',
+        'LIMITRANGE', 'DEFAULT', 'MINSIZE', 'MAXSIZE', 'LIMIT', 'PRECISION',
+        'UNIT', 'CLASS', 'LABEL', 'COMMENTTAG', 'TOOLTIP',
 
-        'QUOTED_STRING','INTEGER','FLOAT',
-
+        'QUOTED_STRING', 'INTEGER', 'FLOAT',
     )
 
     # Regular expression rules for simple tokens
@@ -53,7 +57,7 @@ class XProtLexer(object):
     t_PARAMARRAY = r'ParamArray'
     t_PIPE = r'Pipe'
     t_PIPESERVICE = r'PipeService'
-    t_PARAMFUNCTOR  = r'ParamFunctor'
+    t_PARAMFUNCTOR = r'ParamFunctor'
     t_EVENT = r'Event'
     t_METHOD = r'Method'
     t_CONNECTION = r'Connection'
@@ -75,30 +79,30 @@ class XProtLexer(object):
     t_FLOAT = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))'
 
     # Comments are ignored
-    def t_COMMENT(t):
+    def t_COMMENT(t):  #pylint: disable=E0213
         r'\#.*'
-        pass
+        pass  #pylint: disable=W0107
 
     # Define a rule so we can track line numbers
-    def t_newline(t):
+    def t_newline(t):  #pylint: disable=E0213
         r'\n+'
-        t.lexer.lineno += len(t.value)
+        t.lexer.lineno += len(t.value)  #pylint: disable=E1101
 
 
     # A string containing ignored characters
     t_ignore = ' \t'
 
     # Error handling rule
-    def t_error(t):
-        # print('Illegal character %s on line %s' % (t.value[0],t.lexer.lineno))
+    def t_error(t):  #pylint: disable=E0213,C0111
+        #print('Illegal character %s on line %s' % (t.value[0],t.lexer.lineno))
         t.lexer.skip(1)
 
     # Build the lexer
     lexer = lex.lex()
 
 
-
 class XProtParser(object):
+    '''Parse the XProtocol.  Just do it.'''
 
     def __init__(self):
         self.structure = {}
@@ -128,7 +132,7 @@ class XProtParser(object):
         self.prev_prev_prev_key = None
 
 
-        self.stack = [ 'Params' ]
+        self.stack = ['Params']
         self.xml = ''
 
     def parse(self,xprot):
@@ -163,14 +167,14 @@ class XProtParser(object):
             '''evastrtableline : INTEGER QUOTED_STRING
             | INTEGER'''
             if len(p) == 3:
-                self.structure['XProtocol']['EVAStringTable'].append({ p[1]: p[2] })
+                self.structure['XProtocol']['EVAStringTable'].append({p[1]: p[2]})
             elif len(p) == 2:
-                self.structure['XProtocol']['EVAStringTable'].append({ p[1]: None })
+                self.structure['XProtocol']['EVAStringTable'].append({p[1]: None})
 
         def p_paramcardlayout(p):
             '''paramcardlayout : LANGLE PARAMCARDLAYOUT PERIOD QUOTED_STRING RANGLE LBRACE paramcardlayoutcontents RBRACE'''
             # Make the QUOTED_STRING the parent so we can look it up easily
-            self.structure['XProtocol']['ParamCardLayout'] = { p[4]: self.structure['XProtocol']['ParamCardLayout'] }
+            self.structure['XProtocol']['ParamCardLayout'] = {p[4]: self.structure['XProtocol']['ParamCardLayout']}
 
         def p_paramcardlayoutcontents(p):
             '''paramcardlayoutcontents : paramcardlayoutline paramcardlayoutcontents
@@ -190,9 +194,9 @@ class XProtParser(object):
             '''controlinnards : LANGLE PARAM RANGLE QUOTED_STRING LANGLE POS RANGLE INTEGER INTEGER LANGLE REPR RANGLE QUOTED_STRING
             | LANGLE PARAM RANGLE QUOTED_STRING LANGLE POS RANGLE INTEGER INTEGER'''
             if len(p) == 14:
-                self.control = ('Control', { 'Param': p[4], 'Pos': (p[8],p[9]), 'Repr': p[13] })
+                self.control = ('Control', {'Param': p[4], 'Pos': (p[8], p[9]), 'Repr': p[13]})
             else:
-                self.control = ('Control', { 'Param': p[4], 'Pos': (p[8],p[9]) })
+                self.control = ('Control', {'Param': p[4], 'Pos': (p[8], p[9])})
 
         def p_dependencies(p):
             '''dependencies : dependencies dependency
@@ -216,12 +220,12 @@ class XProtParser(object):
             | listofquotedstrings'''
             if len(p) > 10:
                 ## TODO: Seems like there could be multiple of each...
-                self.dependency = { 'string_list': self.stringlist, 'Dll': p[5], 'Context': (p[9],p[13]) }
+                self.dependency = {'string_list': self.stringlist, 'Dll': p[5], 'Context': (p[9], p[13])}
             elif len(p) == 10:
-                self.dependency = { 'string_list': self.stringlist, 'Dll': p[5], 'Context': p[9] }
+                self.dependency = {'string_list': self.stringlist, 'Dll': p[5], 'Context': p[9]}
             elif len(p) == 6:
                 # Either Context, DLL, or Visible, singly
-                self.dependency = { 'string_list': self.stringlist, p[3]: p[5] }
+                self.dependency = {'string_list': self.stringlist, p[3]: p[5]}
 
         def p_listofquotedstrings(p):
             '''listofquotedstrings : QUOTED_STRING listofquotedstrings
@@ -243,7 +247,7 @@ class XProtParser(object):
             | protocolcomposercontents LANGLE DLL RANGLE QUOTED_STRING
             | empty'''
             if len(p) == 6:
-                self.protcomposers.append({ p[3]: p[5] })
+                self.protcomposers.append({p[3]: p[5]})
 
         def p_paramsorvalues(p):
             '''paramsorvalues : tag param paramsorvalues
@@ -270,10 +274,10 @@ class XProtParser(object):
             | LANGLE METHOD PERIOD QUOTED_STRING
             | LANGLE CONNECTION PERIOD QUOTED_STRING'''
             # print('open',p[4])
-            key = p[4].replace('\"','')
+            key = p[4].replace('\"', '')
 
             # Use the stack to generate multilevel key to the param dictionary
-            d = reduce(operator.getitem,self.stack,self.structure['XProtocol'])
+            d = reduce(operator.getitem, self.stack, self.structure['XProtocol'])
             if key in d:
                 raise ValueError('Key already exists!')
             d[key] = {}
@@ -283,7 +287,7 @@ class XProtParser(object):
             '''close : RANGLE LBRACE paramsorvalues RBRACE'''
             # print('I have opened and closed')
             if len(self.values):
-                d = reduce(operator.getitem,self.stack[:-1],self.structure['XProtocol'])[self.stack[-1]]
+                d = reduce(operator.getitem, self.stack[:-1], self.structure['XProtocol'])[self.stack[-1]]
 
                 # If we have a definition of defaults and then followed by
                 # braces giving the values:
@@ -298,7 +302,7 @@ class XProtParser(object):
                     d = self.values
                 # print(self.stack,self.values)
             # print('values',self.values)
-            popped = self.stack.pop()
+            _popped = self.stack.pop()
             # print('close',popped)
             self.values = []
 
@@ -311,7 +315,7 @@ class XProtParser(object):
             self.is_param = False
 
             if len(p) == 3 and self.tag_value is not None:
-                self.values.append({ self.tag_value: p[2] })
+                self.values.append({self.tag_value: p[2]})
                 self.tag_value = None
             elif len(p) == 3:
                 self.values.append(p[2])
@@ -350,14 +354,14 @@ class XProtParser(object):
 
         # get the lexer and token mappings to pass to yacc
         xprotLex = XProtLexer()
-        lexer = xprotLex.lexer
-        tokens = xprotLex.tokens
+        lexer = xprotLex.lexer  #pylint: disable=W0612
+        tokens = xprotLex.tokens  #pylint: disable=W0612
 
         # Build the parser
         parser = yacc.yacc()
 
         # load in the data
-        result = parser.parse(xprot)
+        _result = parser.parse(xprot)
         # print(json.dumps(self.structure,indent=2))
         # print(json.dumps(self.structure['XProtocol']['ParamRoot'],indent=2))
         # print(json.dumps(self.param_data,indent=2))

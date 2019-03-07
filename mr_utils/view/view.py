@@ -138,8 +138,9 @@ def view(
             if not list(load_opts):
                 keys = mat_keys(image, no_print=True)
                 if len(keys) == 1:
-                    logging.info('No key supplied, but one key for mat \
-                        dictionary found (%s), using it...', keys[0])
+                    logging.info(('No key supplied, but one key for mat'
+                                  'dictionary found (%s), using it...'),
+                                 keys[0])
                     data = load_mat(image, key=keys[0])
 
             # If we can't help the user out, just load it as normal
@@ -233,8 +234,8 @@ def view(
 
             # We don't actually care whether we do this is in kspace or imspace
             if not is_imspace:
-                logging.info('PCA doesn\'t care that image might not be in \
-                    image space.')
+                logging.info(('PCA doesn\'t care that image might not be in'
+                              'image space.'))
 
             if 'n_components' not in coil_combine_opts:
                 n_components = int(data.shape[coil_combine_axis]/2)
@@ -286,8 +287,8 @@ def view(
             tmp = np.delete(data.shape[:], montage_axis)
             movie_axis = np.argmin(tmp)
 
-            logging.info('Guessing axis %d is montage, axis %d will be \
-                movie...', montage_axis, movie_axis)
+            logging.info(('Guessing axis %d is montage, axis %d will be '
+                          'movie...'), montage_axis, movie_axis)
 
 
     # fft and fftshift will require fft_axes.  If the user didn't give us

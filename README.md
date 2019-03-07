@@ -38,6 +38,1268 @@ pip3 install -e ./
 
 You'll need to manually install the ismrmrd-python-tools as it's currently not available on pypi. You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
 
+# BART
+## examples.bart.bartholomew_calibration_matrix
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/bart/bartholomew_calibration_matrix.py)
+
+```
+NAME
+    examples.bart.bartholomew_calibration_matrix - Generate a calibration matrix using BART.
+
+```
+
+
+## examples.bart.bartholomew_pics
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/bart/bartholomew_pics.py)
+
+```
+NAME
+    examples.bart.bartholomew_pics - "non-Cartesian MRI using BART"
+
+DESCRIPTION
+    Adapted from:
+        https://mrirecon.github.io/bart/examples.html
+
+```
+
+
+# COILS
+## examples.coils.gs_coil_combine
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/coils/gs_coil_combine.py)
+
+```
+NAME
+    examples.coils.gs_coil_combine - Comparison of coil combination methods applied in conjunction to GS recon.
+
+DESCRIPTION
+    Notes:
+        Seems to be a tradeoff between Recon->Walsh and Walsh->Recon:
+            - Walsh->Recon seems to do better with getting edges
+            - (try SSIM measure to verify?)
+            - Recon->Walsh seems to do better with noise
+    
+        Generally...
+            Recon->Walsh has lower RMSE than Walsh->Recon
+            SOS RMSE is inbetween Recon->Walsh and Walsh->Recon
+            Inati is terrible for some reason
+            Seems like number of coil doesn't do a lot????
+    
+        TODO:
+            - Monte Carlo MSE for several SNR values
+            - Discover trends (if any) for number of coils
+            - Do the same for knee data
+                - Pay particular attention to smoothness in phase
+            - Look into why width increases with noise...
+            - Fix noise
+
+
+```
+
+
+## examples.coils.pca_coil_compression
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/coils/pca_coil_compression.py)
+
+```
+NAME
+    examples.coils.pca_coil_compression - Kind of neat - seeing how phase changes with coil sensitivity...
+
+
+```
+
+
+# CS
+## examples.cs.amp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/amp.py)
+
+```
+NAME
+    examples.cs.amp - Approximate message passing algorithm example.
+
+DESCRIPTION
+    This is a sanity check example to make sure we can recreate the results from
+    the reference implementation.  See mr_utils.cs.amp2d for details.
+
+
+```
+
+
+## examples.cs.binary_2d_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_2d_iht.py)
+
+```
+NAME
+    examples.cs.binary_2d_iht - # Not sure if this works...
+
+
+```
+
+
+## examples.cs.binary_convex
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_convex.py)
+
+```
+NAME
+    examples.cs.binary_convex - Example of solving CS binary reconstruction problem using scipy.minimize.
+
+DESCRIPTION
+    I don't think this is the best way of solving this, you can get much better
+    reconstructions using a simple gradient descent algorithm.  Nonetheless, I'd
+    never seen anyone do it this way, so I said, "What the heck?!"
+
+FUNCTIONS
+    grad(x, A, y, lamb, beta=2.220446049250313e-16)
+        d/dx_i || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+        beta -- Small, nonnegative constant, e.g., make 1/(x+beta) defined.
+    
+    obj(x, A, y, lamb)
+        || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+
+
+```
+
+
+## examples.cs.binary_cosamp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_cosamp.py)
+
+```
+NAME
+    examples.cs.binary_cosamp - Simple binary CS reconstruction using CoSaMP.
+
+
+```
+
+
+## examples.cs.binary_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_iht.py)
+
+```
+NAME
+    examples.cs.binary_iht - Simple binary CS reconstruction using iterative hard thresholding.
+
+DESCRIPTION
+    Encoding matrix, A, is random (normal distribution) and the signal is of
+    course sparse in the signal domain.
+
+
+```
+
+
+## examples.cs.binary_ist
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_ist.py)
+
+```
+NAME
+    examples.cs.binary_ist - Binary CS reconstruction using iterative soft thresholding.
+
+DESCRIPTION
+    Identical to set up of binary IHT example.
+
+
+```
+
+
+## examples.cs.binary_niht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_niht.py)
+
+```
+NAME
+    examples.cs.binary_niht - Binary CS reconstruction using normalized iterative hard thresholding.
+
+DESCRIPTION
+    Same setup as binary IHT example.
+
+
+```
+
+
+## examples.cs.convex
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/convex.py)
+
+```
+NAME
+    examples.cs.convex - # How is this different from binary_convex.py?
+
+FUNCTIONS
+    grad(x, A, y, lamb, beta=2.220446049250313e-16)
+        d/dx_i || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+        beta -- Small, nonnegative constant, e.g., make 1/(x+beta) defined.
+    
+    obj(x, A, y, lamb)
+        || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+
+
+```
+
+
+## examples.cs.dft_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/dft_iht.py)
+
+```
+NAME
+    examples.cs.dft_iht - Example of complex valued binary CS reconstruction using IHT.
+
+DESCRIPTION
+    Signal is 1-sparse, a single atom from DFT dictionary.
+
+
+```
+
+
+## examples.cs.radial_binary_2d_fd_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/radial_binary_2d_fd_iht.py)
+
+```
+NAME
+    examples.cs.radial_binary_2d_fd_iht
+
+FUNCTIONS
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+
+
+```
+
+
+## examples.cs.radial_binary_2d_fd_iht_uft
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/radial_binary_2d_fd_iht_uft.py)
+
+```
+NAME
+    examples.cs.radial_binary_2d_fd_iht_uft - # THIS DOESN'T WORK YET, BY THE WAY...
+
+FUNCTIONS
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+
+
+```
+
+
+## examples.cs.reordering.adluru
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/adluru.py)
+
+```
+NAME
+    examples.cs.reordering.adluru - Reconstruct binary smiley using ported Adluru code.
+
+DESCRIPTION
+    Use Cartesian undersampling pattern (undersample in phase-encode dimension).
+    I'm not in love in with the port I did of Ganesh's code, I would use the other
+    convex TV implementation I did (mr_utils.cs.GD_TV) or proximal gradient
+    descent (mr_utils.cs.proximal_GD).  I could only get this to work if I enforce
+    data consistency every iteration, which makes me suspect something is wrong
+    with the implementation...
+
+
+```
+
+
+## examples.cs.reordering.assignment_problem
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/assignment_problem.py)
+
+```
+NAME
+    examples.cs.reordering.assignment_problem - Reordering assignment by minimum weight matching.
+
+DESCRIPTION
+    This is a simplistic example where we assume a k-sparse signal under the DCT.
+    We then take a bunch of random measurements which is not sparse under the DCT.
+    Then we match y to x by casting it as the assignment problem and using an
+    out-of-the-box scipy solver to do it for us.  Once we've found the assignments,
+    we use this as the reordering of y to make it look like x, which was by
+    assumption k-sparse!  Assigned y has many nonzero components, but the most
+    significant k match those of x.
+    
+    The point of this exercise is to show that given even random data, we can make
+    it match a signal we know to be k-sparse, and thus be approximately k-sparse
+    itself.
+
+
+```
+
+
+## examples.cs.reordering.basinhopping_coefficient_values
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/basinhopping_coefficient_values.py)
+
+```
+NAME
+    examples.cs.reordering.basinhopping_coefficient_values - Demonstrate basinhopping to solve for coefficient values.
+
+DESCRIPTION
+    Counting xk in x is a nonlinear operation (can't be represented by matrix
+    multiplies) as far as I can tell.  The closes I could come is the count
+    function in this file that unfortunely needs an element by element inverse.
+    You could run all the elements of down the diagonal of an x.size by x.size
+    matrix, then you get:
+        trace [X*a - xk*a + 1]^-1
+    
+    But remember that the offdiagonal elements are not truly zero, so the matrix is
+    ill-conditioned and does not give you thing answer (I tried it...).  So unless
+    there's a way to force all off of-diagonal elements to be zero (by masking?)
+    then you're stuck with trying to solve the coefficient value problem
+    numerically.
+    
+    Thus this example: given the location of the coefficients, we use the
+    basinhopping algorithm to find the best coefficient values we can.  We even
+    dispense with histogram/kernel density estimators in this example in favor
+    of the simple object function:
+        || sort(xhat) - sort(x) ||_2^2
+    
+    which has the advantage of being stupid easy, although the gradient w.r.t c
+    could be tricky to come up with since we're sorting xhat...  But that was
+    always the problem, right?  Finding analytical solutions to combinatorial
+    problems is hard.  So jump and around some basins and try to get some
+    reasonable values -- that seems like a descent enough idea.
+    
+    Results:
+        Given that we know where the coefficients are, we actually do a great job
+        of beating the sort(x), even when we don't find the optimal coefficient
+        values -- many local minima appear to beat sorting.  Sorted coefficients
+        have very large coefficients and the die off approximately exponentially,
+        whereas our coefficient values don't die off -- they are quite large for
+        all k, and then if the perfect coefficient values are not found, then they
+        die off (exponentially), usually below the coefficient level of sort(x),
+        however, this is not always the case (if we don't solve for good
+        coefficient values).
+    
+        Large k is a funny choice (because sort(x) generally dies off pretty
+        quickly), but will find coefficients such that after k, the coefficients
+        are less than sort(x), and the first k coefficients are much larger than
+        sort(x).
+    
+    Notes on computation:
+        Large N is hard on the linear_sum_assignment problem.
+        Large k is hard on basinhopping.  Haven't tried tweaking anything on
+        basinhopping, might be a fun afternoon activity...
+
+FUNCTIONS
+    count(x, xk, a=1e+20)
+        Count number of xk in x.
+        
+        x -- Array with elements xk.
+        xk -- Specific xk to count how many of.
+        
+        This is asymptotically true as a -> inf.
+    
+    count_all(x, x_ref, c_eq_ref, a=1e+20)
+        Count all.
+    
+    forward(x)
+        Forward transform.
+    
+    inverse(c)
+        Inverse transform.
+    
+    obj(ck, idx, x_ref)
+        Objective function for basinhopping.
+
+
+```
+
+
+## examples.cs.reordering.bulkup_and_whitledown
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/bulkup_and_whitledown.py)
+
+```
+NAME
+    examples.cs.reordering.bulkup_and_whitledown - A couple strategies for manipulating sparse coefficients.
+
+DESCRIPTION
+    This seems to depend a lot on the transform you want to be sparse in.  We
+    choose the DCT amnd CDF 9/7 wavelet for this example.
+    
+    For the DCT, both techniques appear better than no reordering and are about
+    equivalent.
+    
+    These techniques seem to do much better (for proper choice of k) with the
+    wavelet transform.  Both of these can perform much better than no reordering
+    at all.
+
+
+```
+
+
+## examples.cs.reordering.cardiac_radial_scr_gd
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cardiac_radial_scr_gd.py)
+
+```
+NAME
+    examples.cs.reordering.cardiac_radial_scr_gd - Spatially total variation constrained cardiac reconstruction.
+
+DESCRIPTION
+    Using Ganesh's cardiac example, reconstruct comparing using reordered and not.
+    
+    This replicates figures in paper:
+        G.Adluru, E.V.R. DiBella. "Reordering for improved constrained
+        reconstruction from undersampled k-space data". International Journal of
+        Biomedical Imaging vol. 2008, Article ID 341684, 12 pages, 2008.
+        doi:10.1155/2008/341684.
+    
+    We assume we know the exact reordering to begin with (this is a ridiculous
+    assumption, by the way).  Also, it seems to be weird data (look at log of
+    kspace data, strange).  That along with the fact that recon fails when
+    orthonormal fourier encoding is used (uft.forward_ortho), it makes me think
+    that this is strange data and we should be using another example data set.
+
+
+```
+
+
+## examples.cs.reordering.cardiac_radial_scr_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cardiac_radial_scr_iht.py)
+
+```
+NAME
+    examples.cs.reordering.cardiac_radial_scr_iht
+
+
+```
+
+
+## examples.cs.reordering.cardiac_scr_reordering_comparison
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cardiac_scr_reordering_comparison.py)
+
+```
+NAME
+    examples.cs.reordering.cardiac_scr_reordering_comparison - Comparison of reordering methods on cardiac reconstruction.
+
+DESCRIPTION
+    Compares:
+        None
+        Bulk up
+        Whittle down
+        sort2d
+        colwise
+        rowwise
+    
+    Uses selective updating, as that really seems to get the job done.
+    
+    Needs tunable params:
+        level -- levels of decomposition for wavelet transform
+        percent_to_keep -- how selective the update is
+        maxiter -- how long to run the recon
+        alpha -- step size
+        k -- percent of coefficients to bulk up/whittle
+    
+    In general, sort2d seems to win everytime, but they all perform similarly.
+    Perhaps if you had a strange transform that sorting didn't work with, you'd
+    want to give bulk/whittle a try, otherwise, it doesn't seem like it's worth
+    the hassle.
+    
+    If the prior is the true image, then sort2d wins by a landslide, followed by
+    col-wise, row-wise, a tie with Bulk/Whittle, and then the not-sorted image.
+    If the prior is the corrupted image, then Bulk trends lower for longer.
+    
+    It's kind of a mixed bag and hard to say with so many tuning parameters and
+    the need for cross validation.
+    
+    Note: there's something strange with the cardiac data, so might want to try
+    out a different data set.  See fourier transform, strange phase.
+
+
+```
+
+
+## examples.cs.reordering.cartesian_pe_fd_grad_desc
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cartesian_pe_fd_grad_desc.py)
+
+```
+NAME
+    examples.cs.reordering.cartesian_pe_fd_grad_desc - Gradient descent reconstruction of undersampled binary smiley face.
+
+DESCRIPTION
+    Smiley face is known to be sparse in finite differences domain (hence 'fd' in
+    filename).  Cartesian undersampling in the phase encode direction.
+
+
+```
+
+
+## examples.cs.reordering.cartesian_pe_fd_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cartesian_pe_fd_iht.py)
+
+```
+NAME
+    examples.cs.reordering.cartesian_pe_fd_iht
+
+
+```
+
+
+## examples.cs.reordering.cholesky_precond
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cholesky_precond.py)
+
+```
+NAME
+    examples.cs.reordering.cholesky_precond - Try to leverage prexisting sorting strategies.
+
+FUNCTIONS
+    reverse_cuthill_mckee(...)
+        reverse_cuthill_mckee(graph, symmetric_mode=False)
+        
+        Returns the permutation array that orders a sparse CSR or CSC matrix
+        in Reverse-Cuthill McKee ordering.  
+        
+        It is assumed by default, ``symmetric_mode=False``, that the input matrix 
+        is not symmetric and works on the matrix ``A+A.T``. If you are 
+        guaranteed that the matrix is symmetric in structure (values of matrix 
+        elements do not matter) then set ``symmetric_mode=True``.
+        
+        Parameters
+        ----------
+        graph : sparse matrix
+            Input sparse in CSC or CSR sparse matrix format.
+        symmetric_mode : bool, optional
+            Is input matrix guaranteed to be symmetric.
+        
+        Returns
+        -------
+        perm : ndarray
+            Array of permuted row and column indices.
+        
+        Notes
+        -----
+        .. versionadded:: 0.15.0
+        
+        References
+        ----------
+        E. Cuthill and J. McKee, "Reducing the Bandwidth of Sparse Symmetric Matrices",
+        ACM '69 Proceedings of the 1969 24th national conference, (1969).
+        
+        Examples
+        --------
+        >>> from scipy.sparse import csr_matrix
+        >>> from scipy.sparse.csgraph import reverse_cuthill_mckee
+        
+        >>> graph = [
+        ... [0, 1 , 2, 0],
+        ... [0, 0, 0, 1],
+        ... [2, 0, 0, 3],
+        ... [0, 0, 0, 0]
+        ... ]
+        >>> graph = csr_matrix(graph)
+        >>> print(graph)
+          (0, 1)    1
+          (0, 2)    2
+          (1, 3)    1
+          (2, 0)    2
+          (2, 3)    3
+        
+        >>> reverse_cuthill_mckee(graph)
+        array([3, 2, 1, 0], dtype=int32)
+
+
+```
+
+
+## examples.cs.reordering.combinatorical_dct_1d
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/combinatorical_dct_1d.py)
+
+```
+NAME
+    examples.cs.reordering.combinatorical_dct_1d - Do the search through all possible k-sparse to match densities in 1d.
+
+DESCRIPTION
+    Here we consider the 1d case of signals known to be k-spare under the DCT.
+    We do a brute force search through all possible k-sparse signals to try to
+    find the correct one.
+    
+    Histogram constraints using l2-metric is used.  Coefficient values are solved
+    using scipy.optimize.minimize.
+    
+    What's interesting is that we perform better than sorting especially at small
+    N.  So patch based processing with reordering has the potential to be really
+    good.
+
+FUNCTIONS
+    density(x0, bins, lims)
+        Return density estimate of x0.
+    
+    err_fun(cc, N, bins, lims)
+        Error function for parallel loop.
+    
+    get_xhat(N, locs, _bins, _lims)
+        Compute xhat for given coefficient locations.
+    
+    kthCombination(k, l, r)
+        Get the kth combination.
+    
+    nCr(n, r)
+        nCr function.
+    
+    obj(c00, N, locs, bins, lims)
+        Objective: choose c0 to minimize difference between histograms.
+    
+    reduce(...)
+        reduce(function, sequence[, initial]) -> value
+        
+        Apply a function of two arguments cumulatively to the items of a sequence,
+        from left to right, so as to reduce the sequence to a single value.
+        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
+        of the sequence in the calculation, and serves as a default when the
+        sequence is empty.
+
+
+```
+
+
+## examples.cs.reordering.full_example
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/full_example.py)
+
+```
+NAME
+    examples.cs.reordering.full_example - Search all coefficient combinations and use basinhopping at each step.
+
+DESCRIPTION
+    Exhaustively search each possible class of k-sparse signals.  For each class,
+    solve for coefficient values that minimize the histogram error using a global
+    optimization technique.  In this case, we choose the basinhopping algorithm.
+    
+    I also introduce the notion that we might not expect the coefficient locations
+    to be in the high frequency locations -- since the sorted signal removes high
+    frequencies.  So we can restrict the effective search space from n choose k to
+    something like n/r choose k, where r is a reduction factor (r > 1).
+
+FUNCTIONS
+    forward(x)
+        Forward transform.
+    
+    inverse(c)
+        Inverse transform.
+
+
+```
+
+
+## examples.cs.reordering.minimal_example
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/minimal_example.py)
+
+```
+NAME
+    examples.cs.reordering.minimal_example - Make a minimal example showing how this is supposed to work.
+
+DESCRIPTION
+    Should be small enough for us to exhaustively search for the best solution as
+    to show that we can do better than montonically sorting.  We will consider a
+    simple 1d signal known to be sparse under the discrete cosine transform after
+    reordering.
+
+
+```
+
+
+## examples.cs.reordering.paper_results
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/paper_results.py)
+
+```
+NAME
+    examples.cs.reordering.paper_results - Generate figures for paper.
+
+FUNCTIONS
+    H_metric(H1, H2, mode='chi2')
+        Histogram metrics.
+        
+        H1, H2 -- 1d histograms with matched bins.
+        mode -- Metric to use.
+        
+        Modes:
+            l2 -- Euclidean distance
+            l1 -- Manhattan distance
+            vcos -- Vector cosine distance
+            intersect -- Histogram intersection distance
+            chi2 -- Chi square distance
+            jsd -- Jensen-Shannan Divergence
+            emd -- Earth Mover's Distance
+    
+    plot_coeffs(c, *kargs)
+        Plot sorted coefficients, c.
+
+
+```
+
+
+## examples.cs.reordering.random_search_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/random_search_reordering.py)
+
+```
+NAME
+    examples.cs.reordering.random_search_reordering - Example demonstrating how difficult it is to find an effective reordering.
+
+DESCRIPTION
+    We use a wavelet transformation and try k different random permutations.
+
+FUNCTIONS
+    T(x0)
+        Wavelet transform.
+
+
+```
+
+
+## examples.cs.reordering.time_curves
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/time_curves.py)
+
+```
+NAME
+    examples.cs.reordering.time_curves - Load some time curves from real data to examine histograms.
+
+CLASSES
+    builtins.object
+        Sparsify
+    
+    class Sparsify(builtins.object)
+     |  Picklable sparsifying transform object.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, prior)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  forward_dct(self, x)
+     |      Sparsifying transform, discrete cosine transform.
+     |  
+     |  forward_fd(self, x)
+     |      Sparsifying transform, finite differences.
+     |  
+     |  inverse_dct(self, x)
+     |      Inverse sparsifying transform, discrete cosine transform.
+     |  
+     |  inverse_fd(self, x)
+     |      Inverse sparsifying transform, finite differences.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+
+```
+
+
+## examples.cs.selective_updates
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/selective_updates.py)
+
+```
+NAME
+    examples.cs.selective_updates - Selectively update the image estimate each iteration.
+
+DESCRIPTION
+    Golden anlge radially sampled binary smiley face.  Choose proximal gradient
+    descent enforcing sparsity in the wavelet domain.
+    
+    The idea is that we only want to update the locations that we're sure need to
+    updated.  The way I've chosen to do this is to look at the difference between
+    the previous iteration and next iteration and choose a percentage of the
+    locations with the highest change to be updated.  Selectively updating seems
+    to do a better job of not producing signal in empty space, but reduces
+    homogeneity inside the face and we loose definition of eyes and mouth.
+    Reordering also might help -- I'm most interested in this as a way to come up
+    with a good prior, either for reordering or location contrained reconstruction.
+    
+    Also, choosing to reorder slows us down quite a bit...  Need to work on that.
+
+
+```
+
+
+## examples.cs.threshold_real_imag
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/threshold_real_imag.py)
+
+```
+NAME
+    examples.cs.threshold_real_imag - Example demonstrating the differences between thresholding methods.
+
+DESCRIPTION
+    We can:
+        Threshold the complex signal
+        Threshold the real/imag parts separately.
+
+
+```
+
+
+## examples.cs.tv_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/tv_iht.py)
+
+```
+NAME
+    examples.cs.tv_iht - Total variation example using iterative hard thresholding.
+
+DESCRIPTION
+    This is actually a dumb example, because the assumption we make a square wave
+    which turns out to be a binary signal in finite differences domain, but it's
+    treated as the sample problem as binary_iht.py.  Sorry about that.
+    The measurements should actually be taken in the nonsparse domain (i.e.,
+    y = As instead of y = Ax).
+
+
+```
+
+
+## examples.cs.tv_riht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/tv_riht.py)
+
+```
+NAME
+    examples.cs.tv_riht - # I don't think this works yet
+
+
+```
+
+
+# FIELD_MAP
+## examples.field_map.fast_field_mapping
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/field_map/fast_field_mapping.py)
+
+```
+NAME
+    examples.field_map.fast_field_mapping - In vivo proof of concept for fast field mapping for fMRI.
+
+DESCRIPTION
+    Data:
+        10 slices through cerebral cortex, 128x64 (2x in readout), 120 time points,
+        4 virtaul coils from 12 channel head coil.  Each successive time point is
+        phase-cycled an additional 360/16 = 22.5 degrees leading to 16 groups of
+        phase-cycles over the entire 5 minute long readout.  120/5 = 24 time points
+        a minute or .4 time points per second or 2.5 seconds per time point.
+    
+    Experiment:
+        Two 10 second blocks -- fixation and flickering checkerboard.  Randomized
+        onset with 15 iterations (total 5 minutes).
+    
+    Considerations:
+        Motion in the brain (due to blood flow?) makes distant time points hard to
+        compare as pixels don't line up.  To deal with this, short time lengths (N)
+        will be used over which we assume there is negligable motion in the brain.
+        These are the regions over which parameter maps will be generated.
+    
+    Method:
+        Over N time points, use geometric solution to the elliptical signal model
+        to compute banding-free images for these N time points and average all GS
+        solutions together.  Small variations due to blood-oxygenation level
+        changes induced by the checkerboard are assumed to be averaged over the N
+        time points, leaving us with a biased estimator for the banding-free
+        images.  How to correct for bias?  Using the averaged GS solutions, we
+        compute T1, T2, and alpha maps that we assume to be valid over the N points
+        in question.  Then we use these parameter maps to solve for the
+        off-resonance maps at each time point n in the set of N time points.  We
+        take these off-resonance maps to have BOLD-weighted contrast.
+
+
+```
+
+
+## examples.field_map.gs_field_mapping
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/field_map/gs_field_mapping.py)
+
+```
+NAME
+    examples.field_map.gs_field_mapping - Example showing how to generate a field map using gs_field_map().
+
+
+```
+
+
+# GADGETRON
+## examples.gadgetron.bssfp_grappa
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/bssfp_grappa.py)
+
+```
+NAME
+    examples.gadgetron.bssfp_grappa - Simple example demonstrating how to send data to gadgetron.
+
+DESCRIPTION
+    We will use the gadgetron client and assume a profiles.config file is already
+    created and located in the root directory as described in readme.  Gadgetron
+    should be running on a network machine with IP address and port listed in
+    profiles.config.
+    
+    We will load in example undersampled (R=2) bSSFP data and send it to
+    Gadgetron to reconstruct using GRAPPA.
+
+
+```
+
+
+## examples.gadgetron.example_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/example_config.py)
+
+```
+NAME
+    examples.gadgetron.example_config - Example of how to programmatically generate a config file.
+
+
+```
+
+
+## examples.gadgetron.gs_recon_gadget
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/gs_recon_gadget.py)
+
+```
+NAME
+    examples.gadgetron.gs_recon_gadget - Make a Gadgetron chain that includes a python gadget.
+
+
+```
+
+
+## examples.gadgetron.python_gadgets
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/python_gadgets.py)
+
+```
+NAME
+    examples.gadgetron.python_gadgets - Send data to Gadgetron to be processed using python Gadgets.
+
+
+```
+
+
+## examples.gadgetron.send_python_script_to_remote
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/send_python_script_to_remote.py)
+
+```
+NAME
+    examples.gadgetron.send_python_script_to_remote - Remote Gadgetron execution of custom Python Gadget.
+
+DESCRIPTION
+    Example demonstrating how to use the Gadgetron client to send a python Gadget
+    to the remote Gadgetron server and use it in a Gadget chain.
+    
+    The idea is to "bundle" all of the dependencies of the script together so
+    that there is no extra setup/installation step before the remote machine is
+    able to run the custom python Gadget.
+
+```
+
+
+# MUSIC
+## examples.music.compression
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/music/compression.py)
+
+```
+NAME
+    examples.music.compression - Fun little experiment for audio compression.
+
+DESCRIPTION
+    The idea is to use our reordering trick for sparse signals and apply it to
+    audio waveforms.  The new thing we're doing here is using permutation ranks
+    to be a sort of "key" that we can look the permutation up with.  The reason
+    we might want to use permutation rank instead of the permutation is because
+    it takes less storage -- instead of storing an integer for every sample of the
+    waveform, store an (potentially quite large but not as large as storing an
+    integer for every waveform) integer representing the permutation.  This means
+    we get some compression out of the deal, since we could transmit less and
+    still get the same audio quality.
+    
+    The sad part is that permutation ranking and unranking goes by the factorial
+    of the length of the permutation -- even for the most efficient algorithms. So
+    we're restricted to very short block lengths over which to reorder, and it
+    might not be worth it for all the trouble we had to go through to ge the
+    ranks in the first place and the space we need to now take up storing many
+    incredibly large integers.
+    
+    Maybe an idea to piggyback on other forms of compression?
+    
+    Notes:
+        Finite differences (when you start dropping a lot of smaller coefficients)
+        gets square-wave-like with very noticable artifacts.  Perhaps low-pass
+        filtering might help?
+    
+        DCT seems to be very robust and does a great job, even when block lengths
+        are small (chunk_size=16).
+    
+        I've only tried db1 wavelets, don't work as well as DCT.
+
+
+```
+
+
+# OPTIMIZATION
+## examples.optimization.gradient_comparison
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/optimization/gradient_comparison.py)
+
+```
+NAME
+    examples.optimization.gradient_comparison - Comparison of complex step numerical gradient techniques.
+
+DESCRIPTION
+    For a simple quadratic function, we'll find the numerical derivative using
+    several variations of the complex step method.
+
+
+```
+
+
+# RECON
+## examples.recon.bssfp.bssfp_difference_constraint
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/bssfp_difference_constraint.py)
+
+```
+NAME
+    examples.recon.bssfp.bssfp_difference_constraint - Acquire pairs of points that are close together (i.e., dtheta small).
+
+DESCRIPTION
+    Given a spectral profile, d(theta), any two points sampled along d(theta), say
+    m0 and m1, do not constrain d(theta) to a single possible profile.  Normally,
+    we sample at theta=0 and theta=180 degrees and then do a sum of squares for
+    optimal SNR banding reduction.  However, if we choose dtheta small, then we can
+    constrain d(theta) by two points plus the approximate derivative,
+    d/dtheta d(theta), at (theta1 - theta0)/2.
+    
+    This script attempts to show that this will limit possible realizations of
+    d(theta) further than just taking two points 180 degrees apart.  We will also
+    try to apply the elliptical signal model with pairs of points taken at small
+    theta intervals.
+
+
+```
+
+
+## examples.recon.bssfp.bssfp_regression
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/bssfp_regression.py)
+
+```
+NAME
+    examples.recon.bssfp.bssfp_regression - Find T1, T2, theta given N bSSFP acquisitons.
+
+FUNCTIONS
+    M0fun(x, y, T1, T2, theta, TR, alpha)
+        Residual for M0 estimation.
+    
+    fun(x, y, TR, alpha, M0)
+        Residual.
+
+
+```
+
+
+## examples.recon.bssfp.bssfp_regression_dictionary
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/bssfp_regression_dictionary.py)
+
+```
+NAME
+    examples.recon.bssfp.bssfp_regression_dictionary - Given two phase cycles, look up T1, T2, theta, M0.
+
+
+```
+
+
+## examples.recon.bssfp.monte_carlo_planet
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/monte_carlo_planet.py)
+
+```
+NAME
+    examples.recon.bssfp.monte_carlo_planet - Example about how to use PLANET and some if its error characteristics.
+
+
+```
+
+
+## examples.recon.bssfp.planet_alpha_sensitivity
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/planet_alpha_sensitivity.py)
+
+```
+NAME
+    examples.recon.bssfp.planet_alpha_sensitivity - Recreate sensitivity plots from PLANET paper.
+
+
+```
+
+
+## examples.recon.bssfp.planet_noisy_case
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/planet_noisy_case.py)
+
+```
+NAME
+    examples.recon.bssfp.planet_noisy_case - Example about how to use PLANET with noisy data.
+
+DESCRIPTION
+    So as far as I can tell, this implementation is failing whenever there is any
+    noise, no matter how small.  It's probably due to how the ellipse is being
+    rotated.
+
+
+```
+
+
+## examples.recon.fmri.transition_band_bssfp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/fmri/transition_band_bssfp.py)
+
+```
+NAME
+    examples.recon.fmri.transition_band_bssfp - Demonstration of bSSFP fMRI using field maps.
+
+FUNCTIONS
+    bssfp_acq(T1s, T2s, PD, field_map, TR=0.005, alpha=0.17453292519943295, phase_cyc=0)
+        Wrapper to simulate bSSFP acquisition.
+    
+    gre_acq(T1s, T2s, PD, field_map, TR, TE, alpha=1.5707963267948966)
+        Wrapper to simulate spoled GRE acquisition.
+    
+    hrf(times0)
+        Return values for HRF at given times
+        
+        From:
+            http://www.jarrodmillman.com/rcsds/lectures/convolution_background.html
+
+```
+
+
+## examples.recon.reordering.compare_px_vs_patch_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/reordering/compare_px_vs_patch_reordering.py)
+
+```
+NAME
+    examples.recon.reordering.compare_px_vs_patch_reordering
+
+FUNCTIONS
+    do_compare(coil_imspace, recon_flipped)
+    
+    preprocess(data)
+    
+    run_ganesh_tcr(kspace, mask, weight_fidelity, weight_temporal, beta_sqrd, noi, reordering=None)
+
+
+```
+
+
+## examples.recon.tv_denoising.camera_man
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/tv_denoising/camera_man.py)
+
+```
+NAME
+    examples.recon.tv_denoising.camera_man - Apply TV-L1 image denoising with the primal-dual algorithm to simple image.
+
+
+```
+
+
+# UTILS
+## examples.utils.kernel_density_est
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/utils/kernel_density_est.py)
+
+```
+NAME
+    examples.utils.kernel_density_est - Attempting to solve for coefficients which minimize MSE using KDE.
+
+DESCRIPTION
+    What we'd like to do is derive an expression from a standard normal kernel
+    density estimator to find the values of the current coefficient locations.
+    What would be super is if these values minimized the mean square error with
+    the pdf estimate of x.
+
+
+```
+
+
+## examples.utils.package_script
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/utils/package_script.py)
+
+```
+NAME
+    examples.utils.package_script - Demonstrate how to package a mr_util script.
+
+```
+
+
+## examples.utils.rotate_ellipse
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/utils/rotate_ellipse.py)
+
+```
+NAME
+    examples.utils.rotate_ellipse - Example of ellipse rotations.
+
+
+```
+
+
 # MAKE_README
 ## make_readme
 
@@ -486,6 +1748,96 @@ CLASSES
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
+
+
+```
+
+
+## mr_utils.cs.ordinator
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/ordinator.py)
+
+```
+NAME
+    mr_utils.cs.ordinator - Performs combinatorial optimization to find permutation maximizing sparsity.
+
+CLASSES
+    builtins.object
+        pdf_default
+    
+    class pdf_default(builtins.object)
+     |  Picklable object for computing pdfs.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, prior)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  pdf(self, x)
+     |      Estimate the pdf of x.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+FUNCTIONS
+    get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric)
+        Compute xhat for given coefficient locations using basinhopping.
+        
+        locs -- Coefficient location indices.
+        N -- Length of the desired signal (also number of coefficients in total).
+        k -- Desired sparsity level.
+        inverse -- Inverse sparsifying transform.
+        pdf_ref -- Reference pdf of the prior to compare against.
+        pdf -- Function that estimates pixel intensity distribution.
+        pdf_metric -- Function that returns the distance between pdfs.
+    
+    obj(ck, N, locs, inverse, pdf_ref, pdf, pdf_metric)
+        Objective function for basinhopping.
+    
+    ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None, forward=None, disp=False)
+        Find permutation that maximizes sparsity of 1d signal.
+        
+        prior -- Prior signal estimate to base ordering.
+        k -- Desired sparsity level.
+        inverse -- Inverse sparsifying transform.
+        chunksize -- Chunk size for parallel processing pool.
+        pdf -- Function that estimates pixel intensity distribution.
+        pdf_metric -- Function that returns the distance between pdfs.
+        forward -- Sparsifying transform (only required if disp=True).
+        disp -- Whether or not to display coefficient plots at the end.
+        
+        pdf_method=None uses histogram.  pdf_metric=None uses l2 norm. If disp=True
+        then forward transform function must be provided.  Otherwise, forward is
+        not required, only inverse.
+        
+        pdf_method should assume the signal will be bounded between (-1, 1).  We do
+        this by always normalizing a signal before computing pdf or comparing.
+    
+    pdf_metric_default(x, y)
+        Default pdf metric, l2 norm.
+    
+    search_fun(locs, N, k, inverse, pdf_ref, pdf, pdf_metric)
+        Return function for parallel loop.
+        
+        locs -- Coefficient location indices.
+        N -- Length of the desired signal (also number of coefficients in total).
+        k -- Desired sparsity level.
+        inverse -- Inverse sparsifying transform.
+        pdf_ref -- Reference pdf of the prior to compare against.
+        pdf -- Function that estimates pixel intensity distribution.
+        pdf_metric -- Function that returns the distance between pdfs.
+    
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
 
 
 ```
@@ -1293,139 +2645,49 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.load_data.pyport
+    mr_utils.load_data.pyport - Python port of siemens_to_ismrmrd.
 
-CLASSES
-    builtins.object
-        mdhCutOff
-        mdhLC
-        mdhSliceData
-        mdhSlicePosVec
-        sScanHeader
+DESCRIPTION
+    Notes:
+        The XProtocol parser (xprot_get_val) is a string-search based
+        implementation, not an actual parser, so it's really slow, but does get
+        the job done very well.  Next steps would be to figure out how to speed
+        this up or rewrite the parser to work with everything.  I was working on a
+        parser but was stuck on how to handle some of Siemens' very strange
+        syntax.
     
-    class mdhCutOff(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        There are several different XML libraries being used.  xml.etree was my
+        preference, so that's what I started with.  I needed to use xmltodict to
+        convert between dictionaries and xml, because it's quicker/easier to have
+        a dictionary hold the config information as we move along.  It turns out
+        that schema verification is not supported by xml.etree, so that's when I
+        pulled in lxml.etree -- so there's some weirdness trying to get xml.etree
+        and lxml.etree to play together nicely.  The last  one is pybx -- a
+        bizarrely complicated library that the ismrmrd python library uses.  I hate
+        the thing and think it's overly complicated for what we need to use it for.
     
-    class mdhLC(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        One of the ideas I had was to pull down the schema/parammaps from the
+        interwebs so it would always be current.  While this is a neat feature that
+        probably no one will use, it would speed up the raw data conversion to use
+        a local copy instead, even if that means pulling it down the first time and
+        keeping it.
     
-    class mdhSliceData(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        The script to read in an ismrmrd dset provided in ismrmrd-python-tools is
+        great at illustrating how to do it, but is incredibly slow, especiailly if
+        you want to remove oversampling in readout direction.  Next steps are to
+        figure out how to quickly read in and process these datasets.  I'm kind of
+        put off from using this data format because of how unweildy it is, but I
+        suppose it's better to be an open standards player...
     
-    class mdhSlicePosVec(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        The only datasets I have are cartesian VB17.  So there's currently little
+        support for anything else.
     
-    class sScanHeader(builtins.object)
-     |  This is the VD line header
-     |  
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Static methods defined here:
-     |  
-     |  sizeof()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        Command-line interface has not been looked at in a long time, might not be
+        working still.
 
 FUNCTIONS
-    ProcessParameterMap(doc_root, parammap_file_content)
-    
-    check_positive(value)
-    
-    get_embedded_file(file)
-    
-    get_ismrmrd_schema()
-        Download XSD file from ISMRMD git repo.
-    
-    get_list_of_embedded_files()
-        List of files to go try to find from the git repo.
-    
-    getparammap_file_content(parammap_file, usermap_file, VBFILE)
-    
-    main(args)
-    
-    readMeasurementHeaderBuffers(siemens_dat, num_buffers)
-    
-    readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE)
-        struct MrParcRaidFileEntry
-        {
-          uint32_t measId_;
-          uint32_t fileId_;
-          uint64_t off_;
-          uint64_t len_;
-          char patName_[64];
-          char protName_[64];
-        };
-    
-    readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers, wip_double, trajectory, dwell_time_0, max_channels, radial_views, baseLineString, protocol_name)
-    
-    reduce(...)
-        reduce(function, sequence[, initial]) -> value
-        
-        Apply a function of two arguments cumulatively to the items of a sequence,
-        from left to right, so as to reduce the sequence to a single value.
-        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
-        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
-        of the sequence in the calculation, and serves as a default when the
-        sequence is empty.
+    pyport(version=False, list_embed=False, extract=None, user_stylesheet=None, file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None, debug=False, header_only=False, output='output.h5', flash_pat_ref_scan=False, append_buffers=False, study_date_user_supplied='')
+        Run the program with arguments.
 
 ```
 
@@ -1452,6 +2714,364 @@ FUNCTIONS
             bart -- BART twix raw data reader
             s2i -- siemens_to_ismrmrd
             rdi -- rawdatarinator
+
+```
+
+
+## mr_utils.load_data.s2i.channel_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/channel_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.channel_header - Holds header data for a single channel.
+
+```
+
+
+## mr_utils.load_data.s2i.channel_header_and_data
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/channel_header_and_data.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.channel_header_and_data - Struct to hold both header and data for a single channel.
+
+CLASSES
+    builtins.object
+        ChannelHeaderAndData
+    
+    class ChannelHeaderAndData(builtins.object)
+     |  Class to hold channel header and data.
+     |  
+     |  We don't know what the size of the data will be, so we don't create an
+     |  np.dtype for this structure.  Instead, since it's just a top
+     |  level container, we're fine with just a python class.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+```
+
+
+## mr_utils.load_data.s2i.defs
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/defs.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.defs - Constant definitions used by siemens_to_ismrmrd.
+
+```
+
+
+## mr_utils.load_data.s2i.fill_ismrmrd_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/fill_ismrmrd_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.fill_ismrmrd_header - fill_ismrmrd_header
+
+DESCRIPTION
+    This is currently not working and silently failing.
+
+FUNCTIONS
+    fill_ismrmrd_header(h, study_date, study_time)
+        Add dates/times to ISMRMRD header.
+
+
+```
+
+
+## mr_utils.load_data.s2i.get_acquisition
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/get_acquisition.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.get_acquisition - Populate ISMRMRD Acquisition object with data from ChannelHeaderAndData.
+
+FUNCTIONS
+    getAcquisition(flash_pat_ref_scan, trajectory, dwell_time_0, max_channels, _isAdjustCoilSens, _isAdjQuietCoilSens, _isVB, traj, scanhead, channels)
+        Create ISMRMRD acqusition object for the current channel data.
+
+
+```
+
+
+## mr_utils.load_data.s2i.mdh
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/mdh.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.mdh - All MDH related structures.
+
+```
+
+
+## mr_utils.load_data.s2i.parse_xml
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/parse_xml.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.parse_xml - parseXML
+
+FUNCTIONS
+    parseXML(debug_xml, parammap_xsl_content, _schema_file_name_content, xml_config)
+        Apply XSLT.
+
+
+```
+
+
+## mr_utils.load_data.s2i.process_parameter_map
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/process_parameter_map.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.process_parameter_map - ProcessParameterMap
+
+FUNCTIONS
+    ProcessParameterMap(config_buffer, parammap_file_content)
+        Fill in the headers of all parammap_file's fields.
+    
+    reduce(...)
+        reduce(function, sequence[, initial]) -> value
+        
+        Apply a function of two arguments cumulatively to the items of a sequence,
+        from left to right, so as to reduce the sequence to a single value.
+        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
+        of the sequence in the calculation, and serves as a default when the
+        sequence is empty.
+
+
+```
+
+
+## mr_utils.load_data.s2i.read_channel_headers
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_channel_headers.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_channel_headers - Store data and header for each channel.
+
+FUNCTIONS
+    readChannelHeaders(siemens_dat, VBFILE, scanhead)
+        Read the headers for the channels.
+
+```
+
+
+## mr_utils.load_data.s2i.read_measurement_header_buffers
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_measurement_header_buffers.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_measurement_header_buffers - readMeasurementHeaderBuffers
+
+FUNCTIONS
+    readMeasurementHeaderBuffers(siemens_dat, num_buffers)
+        Filler.
+
+
+```
+
+
+## mr_utils.load_data.s2i.read_parc_file_entries
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_parc_file_entries.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_parc_file_entries - readParcFileEntries
+
+FUNCTIONS
+    readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE)
+        struct MrParcRaidFileEntry
+        {
+          uint32_t measId_;
+          uint32_t fileId_;
+          uint64_t off_;
+          uint64_t len_;
+          char patName_[64];
+          char protName_[64];
+        };
+
+
+```
+
+
+## mr_utils.load_data.s2i.read_scan_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_scan_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_scan_header - readScanHeader
+
+FUNCTIONS
+    readScanHeader(siemens_dat, VBFILE)
+        Read the header from the scan.
+
+```
+
+
+## mr_utils.load_data.s2i.read_xml_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_xml_config.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_xml_config - readXmlConfig
+
+FUNCTIONS
+    readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers, wip_double, trajectory, dwell_time_0, max_channels, radial_views, baseLineString, protocol_name)
+        Read in and format header from raw data file.
+
+
+```
+
+
+## mr_utils.load_data.s2i.regex_parser
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/regex_parser.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.regex_parser - Make a parser using regex.
+
+DESCRIPTION
+    Let's see how this goes...
+
+CLASSES
+    builtins.object
+        Parser
+    
+    class Parser(builtins.object)
+     |  Parse XProtocol.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  isconsistent(self)
+     |      Make sure cur_rule is a subset of some rule.
+     |  
+     |  isrule(self)
+     |      Check to see if cur_rule is a rule.
+     |  
+     |  istoken(self)
+     |      Check to see if cur_token is a token.
+     |  
+     |  parse(self, buf)
+     |      Parse buffer into dictionary.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+```
+
+
+## mr_utils.load_data.s2i.scan_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/scan_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.scan_header - Structure to hold the header of a scan.
+
+```
+
+
+## mr_utils.load_data.s2i.xml_fun
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/xml_fun.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.xml_fun - All the XML related functions required by siemens_to_ismrmrd.
+
+FUNCTIONS
+    get_embedded_file(file)
+        Retrieve embedded file from github.
+        
+        file -- Name of embedded file to get.
+    
+    get_ismrmrd_schema(method='ET')
+        Download XSD file from ISMRMD git repo.
+    
+    get_list_of_embedded_files()
+        List of files to go try to find from the git repo.
+    
+    getparammap_file_content(parammap_file, usermap_file, VBFILE)
+        Filler.
+
+
+```
+
+
+## mr_utils.load_data.s2i.xprot_parser_strsearch
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/xprot_parser_strsearch.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.xprot_parser_strsearch - Quick and lazy -- only read what we need from the XProtocol header.
+
+DESCRIPTION
+    This is a way engineered to Get the Job Done(TM).  It could be made a lot
+    better and faster, but right now I'm just trying to get it working after the
+    debacle with ply...
+    
+    The lookup table seems like a good idea, but having a little trouble getting it
+    to work properly.  Currently it's supressing a lot of fields that don't exist,
+    it's just not letting us display the warning that it doesn't exist.
+
+FUNCTIONS
+    find_matching_braces(s, lsym='{', rsym='}', qlsym='"', qrsym='"')
+        Given string s, find indices of matching braces.
+    
+    findp(p, config)
+        Decode the tag and return index.
+        
+        p -- Current path node.
+        config -- The current header portion we're searching in.
+        
+        All of these tag assignments are ad hoc -- just to get something to work.
+    
+    xprot_get_val(config_buffer, val, p_to_buf_table=None, return_table=False)
+        Get value from config buffer.
+        
+        config_buffer -- String containing the XProtocol innards.
+        val -- Dot separated path to search for.
+        p_to_buf_table --
+        return_table --
+
 
 ```
 
@@ -2910,7 +4530,7 @@ CLASSES
 
 ```
 NAME
-    mr_utils.load_data.xprot_parser
+    mr_utils.load_data.xprot_parser - Parse XProtocol Siemens' proprietary format.
 
 CLASSES
     builtins.object
@@ -2918,6 +4538,8 @@ CLASSES
         XProtParser
     
     class XProtLexer(builtins.object)
+     |  Define tokens and rules.
+     |  
      |  Methods defined here:
      |  
      |  t_COMMENT(t)
@@ -3044,6 +4666,8 @@ CLASSES
      |  tokens = ('RANGLE', 'LANGLE', 'LBRACE', 'RBRACE', 'PERIOD', 'XPROT', '...
     
     class XProtParser(builtins.object)
+     |  Parse the XProtocol.  Just do it.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)
@@ -5259,6 +6883,11 @@ FUNCTIONS
             fitting of ellipses." Proc. 6th International Conference in Central
             Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
     
+    do_planet_rotation(I)
+        Rotate complex points to fit vertical ellipse centered at (xc, 0).
+        
+        I -- Complex points from SSFP experiment.
+    
     fit_ellipse_fitzgibon(x, y)
         Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
         
@@ -5326,6 +6955,13 @@ FUNCTIONS
         See:
             http://www.mathamazement.com/Lessons/Pre-Calculus/
             09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
+    
+    rotate_points(x, y, phi, p=(0, 0))
+        Rotate points x, y through angle phi w.r.t. point p.
+        
+        x, y -- Points to be rotated.
+        phi -- Angle in radians to rotate points.
+        p -- Point to rotate around.
 
 
 ```

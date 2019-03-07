@@ -8,3 +8,4 @@ from .convex.gd_fourier_encoded_tv import *
 from .convex.gd_tv import *
 from .convex.proximal_gd import proximal_GD
 from .greedy.cosamp import *
+from .ordinator import ordinator1d

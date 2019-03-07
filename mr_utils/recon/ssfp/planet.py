@@ -5,8 +5,7 @@
 
 import numpy as np
 
-from mr_utils.utils import rotate_coefficients, get_center
-from mr_utils.utils import get_semiaxes
+from mr_utils.utils import get_semiaxes, do_planet_rotation, get_center
 
 def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
            compute_df=False, disp=False):
@@ -67,27 +66,8 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     assert B**2 - 4*A*C < 0, 'Not an ellipse!'
 
     ## Step 2. Rotation of the ellipse to initial vertical conic form.
-    phi = .5*np.arctan(c[1]/(c[0] - c[2]))
-    cr = rotate_coefficients(c, -phi)
+    xr, yr, cr, _phi = do_planet_rotation(I)
     xc, yc = get_center(cr)
-
-    # "Manually unwrap"
-    if not np.allclose(yc, 0):
-        phi0 = phi + np.pi/2
-        cr = rotate_coefficients(c, -phi0)
-        xc, yc = get_center(cr)
-        if not np.allclose(yc, 0):
-            phi0 = phi - np.pi/2
-            cr = rotate_coefficients(c, -phi0)
-            xc, yc = get_center(cr)
-        phi = phi0
-
-    # We want xc to be in the right half-plane (positive, that is)
-    if xc < 0:
-        phi0 = phi + np.pi # flip it across the y-axis
-        cr = rotate_coefficients(c, -phi0)
-        xc, yc = get_center(cr)
-        phi = phi0
 
     # Make sure we got what we wanted:
     assert np.allclose(yc, 0), 'Ellipse rotation failed! yc = %g' % yc
@@ -106,8 +86,7 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
         ax.grid()
         ax.plot(I.real, I.imag, '.')
 
-        Ir = I*np.exp(-1j*phi)
-        ax.plot(Ir.real, Ir.imag, '*')
+        ax.plot(xr, yr, '*')
         eqn = Ar*X**2 + Br*X*Y + Cr*Y**2 + Dr*X + Er*Y + Fr
         ax.contour(X, Y, eqn, [0])
         ax.relim()
@@ -118,7 +97,9 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     ## Step 3. Analytical solution for parameters Meff, T1, T2.
     # Get the semi axes, AA and BB
     AA, BB = get_semiaxes(cr)
-    assert AA < BB, 'Ellipse must be vertical!'
+    # Ellipse must be vertical -- so make the axes look like it
+    if AA > BB:
+        AA, BB = BB, AA
     AA2 = AA**2
     BB2 = BB**2
 
@@ -135,14 +116,17 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
         raise ValueError('Houston, we should never have raised this error...')
 
     # See Appendix
-    xc = np.abs(xc) # THIS IS NOT IN THE APPENDIX but by def in eq [9]
+    # xc = np.abs(xc) # THIS IS NOT IN THE APPENDIX but by def in eq [9]
     xc2 = xc**2
     xcAA = xc*AA
     b = (val*xcAA + np.sqrt(xcAA**2 - (xc2 + BB2)*(AA2 - BB2)))/(xc2 + BB2)
     b2 = b**2
     a = BB/(xc*np.sqrt(1 - b2) + b*BB)
+    # if a > 1:
+    #     a = 1 - 1e-8
     ab = a*b
     Meff = xc*(1 - b2)/(1 - ab)
+
 
     # Sanity checks:
     assert 0 < b < 1, '0 < b < 1 has been violated! b = %g' % b
