@@ -42,8 +42,11 @@ def obj(ck, N, locs, Href, bins, lims, mode, xref):
     c = np.zeros(N)
     c[locs] = ck
     xhat = inverse(c)
-    return np.linalg.norm(np.sort(xhat) - np.sort(xref))**2
-    # return dH(Href, density(xhat, bins, lims), mode=mode)
+    # Compare directly to xref -- this seems the same as comparing histogram?
+    # Just loose some of the binning properties we might like
+    if xref is not None:
+        return np.linalg.norm(np.sort(xhat) - np.sort(xref))**2
+    return dH(Href, density(xhat, bins, lims), mode=mode)
 
 def get_xhat(N, locs, Href, bins, lims, mode, xref):
     '''Compute xhat for given coefficient locations using basinhopping.
