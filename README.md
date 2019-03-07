@@ -38,6 +38,1268 @@ pip3 install -e ./
 
 You'll need to manually install the ismrmrd-python-tools as it's currently not available on pypi. You can find it here: https://github.com/ismrmrd/ismrmrd-python-tools.git
 
+# BART
+## examples.bart.bartholomew_calibration_matrix
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/bart/bartholomew_calibration_matrix.py)
+
+```
+NAME
+    examples.bart.bartholomew_calibration_matrix - Generate a calibration matrix using BART.
+
+```
+
+
+## examples.bart.bartholomew_pics
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/bart/bartholomew_pics.py)
+
+```
+NAME
+    examples.bart.bartholomew_pics - "non-Cartesian MRI using BART"
+
+DESCRIPTION
+    Adapted from:
+        https://mrirecon.github.io/bart/examples.html
+
+```
+
+
+# COILS
+## examples.coils.gs_coil_combine
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/coils/gs_coil_combine.py)
+
+```
+NAME
+    examples.coils.gs_coil_combine - Comparison of coil combination methods applied in conjunction to GS recon.
+
+DESCRIPTION
+    Notes:
+        Seems to be a tradeoff between Recon->Walsh and Walsh->Recon:
+            - Walsh->Recon seems to do better with getting edges
+            - (try SSIM measure to verify?)
+            - Recon->Walsh seems to do better with noise
+    
+        Generally...
+            Recon->Walsh has lower RMSE than Walsh->Recon
+            SOS RMSE is inbetween Recon->Walsh and Walsh->Recon
+            Inati is terrible for some reason
+            Seems like number of coil doesn't do a lot????
+    
+        TODO:
+            - Monte Carlo MSE for several SNR values
+            - Discover trends (if any) for number of coils
+            - Do the same for knee data
+                - Pay particular attention to smoothness in phase
+            - Look into why width increases with noise...
+            - Fix noise
+
+
+```
+
+
+## examples.coils.pca_coil_compression
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/coils/pca_coil_compression.py)
+
+```
+NAME
+    examples.coils.pca_coil_compression - Kind of neat - seeing how phase changes with coil sensitivity...
+
+
+```
+
+
+# CS
+## examples.cs.amp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/amp.py)
+
+```
+NAME
+    examples.cs.amp - Approximate message passing algorithm example.
+
+DESCRIPTION
+    This is a sanity check example to make sure we can recreate the results from
+    the reference implementation.  See mr_utils.cs.amp2d for details.
+
+
+```
+
+
+## examples.cs.binary_2d_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_2d_iht.py)
+
+```
+NAME
+    examples.cs.binary_2d_iht - # Not sure if this works...
+
+
+```
+
+
+## examples.cs.binary_convex
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_convex.py)
+
+```
+NAME
+    examples.cs.binary_convex - Example of solving CS binary reconstruction problem using scipy.minimize.
+
+DESCRIPTION
+    I don't think this is the best way of solving this, you can get much better
+    reconstructions using a simple gradient descent algorithm.  Nonetheless, I'd
+    never seen anyone do it this way, so I said, "What the heck?!"
+
+FUNCTIONS
+    grad(x, A, y, lamb, beta=2.220446049250313e-16)
+        d/dx_i || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+        beta -- Small, nonnegative constant, e.g., make 1/(x+beta) defined.
+    
+    obj(x, A, y, lamb)
+        || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+
+
+```
+
+
+## examples.cs.binary_cosamp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_cosamp.py)
+
+```
+NAME
+    examples.cs.binary_cosamp - Simple binary CS reconstruction using CoSaMP.
+
+
+```
+
+
+## examples.cs.binary_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_iht.py)
+
+```
+NAME
+    examples.cs.binary_iht - Simple binary CS reconstruction using iterative hard thresholding.
+
+DESCRIPTION
+    Encoding matrix, A, is random (normal distribution) and the signal is of
+    course sparse in the signal domain.
+
+
+```
+
+
+## examples.cs.binary_ist
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_ist.py)
+
+```
+NAME
+    examples.cs.binary_ist - Binary CS reconstruction using iterative soft thresholding.
+
+DESCRIPTION
+    Identical to set up of binary IHT example.
+
+
+```
+
+
+## examples.cs.binary_niht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/binary_niht.py)
+
+```
+NAME
+    examples.cs.binary_niht - Binary CS reconstruction using normalized iterative hard thresholding.
+
+DESCRIPTION
+    Same setup as binary IHT example.
+
+
+```
+
+
+## examples.cs.convex
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/convex.py)
+
+```
+NAME
+    examples.cs.convex - # How is this different from binary_convex.py?
+
+FUNCTIONS
+    grad(x, A, y, lamb, beta=2.220446049250313e-16)
+        d/dx_i || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+        beta -- Small, nonnegative constant, e.g., make 1/(x+beta) defined.
+    
+    obj(x, A, y, lamb)
+        || Ax - y ||_2^2 + lambda*|| x ||_1
+        
+        x -- Current image estimate.
+        A -- CS measurement matrix.
+        y -- Measured samples, i.e., y = A.dot(x_true).
+        lamb -- Lambda, tradeoff between fidelity and sparsity constraint terms.
+
+
+```
+
+
+## examples.cs.dft_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/dft_iht.py)
+
+```
+NAME
+    examples.cs.dft_iht - Example of complex valued binary CS reconstruction using IHT.
+
+DESCRIPTION
+    Signal is 1-sparse, a single atom from DFT dictionary.
+
+
+```
+
+
+## examples.cs.radial_binary_2d_fd_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/radial_binary_2d_fd_iht.py)
+
+```
+NAME
+    examples.cs.radial_binary_2d_fd_iht
+
+FUNCTIONS
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+
+
+```
+
+
+## examples.cs.radial_binary_2d_fd_iht_uft
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/radial_binary_2d_fd_iht_uft.py)
+
+```
+NAME
+    examples.cs.radial_binary_2d_fd_iht_uft - # THIS DOESN'T WORK YET, BY THE WAY...
+
+FUNCTIONS
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+
+
+```
+
+
+## examples.cs.reordering.adluru
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/adluru.py)
+
+```
+NAME
+    examples.cs.reordering.adluru - Reconstruct binary smiley using ported Adluru code.
+
+DESCRIPTION
+    Use Cartesian undersampling pattern (undersample in phase-encode dimension).
+    I'm not in love in with the port I did of Ganesh's code, I would use the other
+    convex TV implementation I did (mr_utils.cs.GD_TV) or proximal gradient
+    descent (mr_utils.cs.proximal_GD).  I could only get this to work if I enforce
+    data consistency every iteration, which makes me suspect something is wrong
+    with the implementation...
+
+
+```
+
+
+## examples.cs.reordering.assignment_problem
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/assignment_problem.py)
+
+```
+NAME
+    examples.cs.reordering.assignment_problem - Reordering assignment by minimum weight matching.
+
+DESCRIPTION
+    This is a simplistic example where we assume a k-sparse signal under the DCT.
+    We then take a bunch of random measurements which is not sparse under the DCT.
+    Then we match y to x by casting it as the assignment problem and using an
+    out-of-the-box scipy solver to do it for us.  Once we've found the assignments,
+    we use this as the reordering of y to make it look like x, which was by
+    assumption k-sparse!  Assigned y has many nonzero components, but the most
+    significant k match those of x.
+    
+    The point of this exercise is to show that given even random data, we can make
+    it match a signal we know to be k-sparse, and thus be approximately k-sparse
+    itself.
+
+
+```
+
+
+## examples.cs.reordering.basinhopping_coefficient_values
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/basinhopping_coefficient_values.py)
+
+```
+NAME
+    examples.cs.reordering.basinhopping_coefficient_values - Demonstrate basinhopping to solve for coefficient values.
+
+DESCRIPTION
+    Counting xk in x is a nonlinear operation (can't be represented by matrix
+    multiplies) as far as I can tell.  The closes I could come is the count
+    function in this file that unfortunely needs an element by element inverse.
+    You could run all the elements of down the diagonal of an x.size by x.size
+    matrix, then you get:
+        trace [X*a - xk*a + 1]^-1
+    
+    But remember that the offdiagonal elements are not truly zero, so the matrix is
+    ill-conditioned and does not give you thing answer (I tried it...).  So unless
+    there's a way to force all off of-diagonal elements to be zero (by masking?)
+    then you're stuck with trying to solve the coefficient value problem
+    numerically.
+    
+    Thus this example: given the location of the coefficients, we use the
+    basinhopping algorithm to find the best coefficient values we can.  We even
+    dispense with histogram/kernel density estimators in this example in favor
+    of the simple object function:
+        || sort(xhat) - sort(x) ||_2^2
+    
+    which has the advantage of being stupid easy, although the gradient w.r.t c
+    could be tricky to come up with since we're sorting xhat...  But that was
+    always the problem, right?  Finding analytical solutions to combinatorial
+    problems is hard.  So jump and around some basins and try to get some
+    reasonable values -- that seems like a descent enough idea.
+    
+    Results:
+        Given that we know where the coefficients are, we actually do a great job
+        of beating the sort(x), even when we don't find the optimal coefficient
+        values -- many local minima appear to beat sorting.  Sorted coefficients
+        have very large coefficients and the die off approximately exponentially,
+        whereas our coefficient values don't die off -- they are quite large for
+        all k, and then if the perfect coefficient values are not found, then they
+        die off (exponentially), usually below the coefficient level of sort(x),
+        however, this is not always the case (if we don't solve for good
+        coefficient values).
+    
+        Large k is a funny choice (because sort(x) generally dies off pretty
+        quickly), but will find coefficients such that after k, the coefficients
+        are less than sort(x), and the first k coefficients are much larger than
+        sort(x).
+    
+    Notes on computation:
+        Large N is hard on the linear_sum_assignment problem.
+        Large k is hard on basinhopping.  Haven't tried tweaking anything on
+        basinhopping, might be a fun afternoon activity...
+
+FUNCTIONS
+    count(x, xk, a=1e+20)
+        Count number of xk in x.
+        
+        x -- Array with elements xk.
+        xk -- Specific xk to count how many of.
+        
+        This is asymptotically true as a -> inf.
+    
+    count_all(x, x_ref, c_eq_ref, a=1e+20)
+        Count all.
+    
+    forward(x)
+        Forward transform.
+    
+    inverse(c)
+        Inverse transform.
+    
+    obj(ck, idx, x_ref)
+        Objective function for basinhopping.
+
+
+```
+
+
+## examples.cs.reordering.bulkup_and_whitledown
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/bulkup_and_whitledown.py)
+
+```
+NAME
+    examples.cs.reordering.bulkup_and_whitledown - A couple strategies for manipulating sparse coefficients.
+
+DESCRIPTION
+    This seems to depend a lot on the transform you want to be sparse in.  We
+    choose the DCT amnd CDF 9/7 wavelet for this example.
+    
+    For the DCT, both techniques appear better than no reordering and are about
+    equivalent.
+    
+    These techniques seem to do much better (for proper choice of k) with the
+    wavelet transform.  Both of these can perform much better than no reordering
+    at all.
+
+
+```
+
+
+## examples.cs.reordering.cardiac_radial_scr_gd
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cardiac_radial_scr_gd.py)
+
+```
+NAME
+    examples.cs.reordering.cardiac_radial_scr_gd - Spatially total variation constrained cardiac reconstruction.
+
+DESCRIPTION
+    Using Ganesh's cardiac example, reconstruct comparing using reordered and not.
+    
+    This replicates figures in paper:
+        G.Adluru, E.V.R. DiBella. "Reordering for improved constrained
+        reconstruction from undersampled k-space data". International Journal of
+        Biomedical Imaging vol. 2008, Article ID 341684, 12 pages, 2008.
+        doi:10.1155/2008/341684.
+    
+    We assume we know the exact reordering to begin with (this is a ridiculous
+    assumption, by the way).  Also, it seems to be weird data (look at log of
+    kspace data, strange).  That along with the fact that recon fails when
+    orthonormal fourier encoding is used (uft.forward_ortho), it makes me think
+    that this is strange data and we should be using another example data set.
+
+
+```
+
+
+## examples.cs.reordering.cardiac_radial_scr_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cardiac_radial_scr_iht.py)
+
+```
+NAME
+    examples.cs.reordering.cardiac_radial_scr_iht
+
+
+```
+
+
+## examples.cs.reordering.cardiac_scr_reordering_comparison
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cardiac_scr_reordering_comparison.py)
+
+```
+NAME
+    examples.cs.reordering.cardiac_scr_reordering_comparison - Comparison of reordering methods on cardiac reconstruction.
+
+DESCRIPTION
+    Compares:
+        None
+        Bulk up
+        Whittle down
+        sort2d
+        colwise
+        rowwise
+    
+    Uses selective updating, as that really seems to get the job done.
+    
+    Needs tunable params:
+        level -- levels of decomposition for wavelet transform
+        percent_to_keep -- how selective the update is
+        maxiter -- how long to run the recon
+        alpha -- step size
+        k -- percent of coefficients to bulk up/whittle
+    
+    In general, sort2d seems to win everytime, but they all perform similarly.
+    Perhaps if you had a strange transform that sorting didn't work with, you'd
+    want to give bulk/whittle a try, otherwise, it doesn't seem like it's worth
+    the hassle.
+    
+    If the prior is the true image, then sort2d wins by a landslide, followed by
+    col-wise, row-wise, a tie with Bulk/Whittle, and then the not-sorted image.
+    If the prior is the corrupted image, then Bulk trends lower for longer.
+    
+    It's kind of a mixed bag and hard to say with so many tuning parameters and
+    the need for cross validation.
+    
+    Note: there's something strange with the cardiac data, so might want to try
+    out a different data set.  See fourier transform, strange phase.
+
+
+```
+
+
+## examples.cs.reordering.cartesian_pe_fd_grad_desc
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cartesian_pe_fd_grad_desc.py)
+
+```
+NAME
+    examples.cs.reordering.cartesian_pe_fd_grad_desc - Gradient descent reconstruction of undersampled binary smiley face.
+
+DESCRIPTION
+    Smiley face is known to be sparse in finite differences domain (hence 'fd' in
+    filename).  Cartesian undersampling in the phase encode direction.
+
+
+```
+
+
+## examples.cs.reordering.cartesian_pe_fd_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cartesian_pe_fd_iht.py)
+
+```
+NAME
+    examples.cs.reordering.cartesian_pe_fd_iht
+
+
+```
+
+
+## examples.cs.reordering.cholesky_precond
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/cholesky_precond.py)
+
+```
+NAME
+    examples.cs.reordering.cholesky_precond - Try to leverage prexisting sorting strategies.
+
+FUNCTIONS
+    reverse_cuthill_mckee(...)
+        reverse_cuthill_mckee(graph, symmetric_mode=False)
+        
+        Returns the permutation array that orders a sparse CSR or CSC matrix
+        in Reverse-Cuthill McKee ordering.  
+        
+        It is assumed by default, ``symmetric_mode=False``, that the input matrix 
+        is not symmetric and works on the matrix ``A+A.T``. If you are 
+        guaranteed that the matrix is symmetric in structure (values of matrix 
+        elements do not matter) then set ``symmetric_mode=True``.
+        
+        Parameters
+        ----------
+        graph : sparse matrix
+            Input sparse in CSC or CSR sparse matrix format.
+        symmetric_mode : bool, optional
+            Is input matrix guaranteed to be symmetric.
+        
+        Returns
+        -------
+        perm : ndarray
+            Array of permuted row and column indices.
+        
+        Notes
+        -----
+        .. versionadded:: 0.15.0
+        
+        References
+        ----------
+        E. Cuthill and J. McKee, "Reducing the Bandwidth of Sparse Symmetric Matrices",
+        ACM '69 Proceedings of the 1969 24th national conference, (1969).
+        
+        Examples
+        --------
+        >>> from scipy.sparse import csr_matrix
+        >>> from scipy.sparse.csgraph import reverse_cuthill_mckee
+        
+        >>> graph = [
+        ... [0, 1 , 2, 0],
+        ... [0, 0, 0, 1],
+        ... [2, 0, 0, 3],
+        ... [0, 0, 0, 0]
+        ... ]
+        >>> graph = csr_matrix(graph)
+        >>> print(graph)
+          (0, 1)    1
+          (0, 2)    2
+          (1, 3)    1
+          (2, 0)    2
+          (2, 3)    3
+        
+        >>> reverse_cuthill_mckee(graph)
+        array([3, 2, 1, 0], dtype=int32)
+
+
+```
+
+
+## examples.cs.reordering.combinatorical_dct_1d
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/combinatorical_dct_1d.py)
+
+```
+NAME
+    examples.cs.reordering.combinatorical_dct_1d - Do the search through all possible k-sparse to match densities in 1d.
+
+DESCRIPTION
+    Here we consider the 1d case of signals known to be k-spare under the DCT.
+    We do a brute force search through all possible k-sparse signals to try to
+    find the correct one.
+    
+    Histogram constraints using l2-metric is used.  Coefficient values are solved
+    using scipy.optimize.minimize.
+    
+    What's interesting is that we perform better than sorting especially at small
+    N.  So patch based processing with reordering has the potential to be really
+    good.
+
+FUNCTIONS
+    density(x0, bins, lims)
+        Return density estimate of x0.
+    
+    err_fun(cc, N, bins, lims)
+        Error function for parallel loop.
+    
+    get_xhat(N, locs, _bins, _lims)
+        Compute xhat for given coefficient locations.
+    
+    kthCombination(k, l, r)
+        Get the kth combination.
+    
+    nCr(n, r)
+        nCr function.
+    
+    obj(c00, N, locs, bins, lims)
+        Objective: choose c0 to minimize difference between histograms.
+    
+    reduce(...)
+        reduce(function, sequence[, initial]) -> value
+        
+        Apply a function of two arguments cumulatively to the items of a sequence,
+        from left to right, so as to reduce the sequence to a single value.
+        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
+        of the sequence in the calculation, and serves as a default when the
+        sequence is empty.
+
+
+```
+
+
+## examples.cs.reordering.full_example
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/full_example.py)
+
+```
+NAME
+    examples.cs.reordering.full_example - Search all coefficient combinations and use basinhopping at each step.
+
+DESCRIPTION
+    Exhaustively search each possible class of k-sparse signals.  For each class,
+    solve for coefficient values that minimize the histogram error using a global
+    optimization technique.  In this case, we choose the basinhopping algorithm.
+    
+    I also introduce the notion that we might not expect the coefficient locations
+    to be in the high frequency locations -- since the sorted signal removes high
+    frequencies.  So we can restrict the effective search space from n choose k to
+    something like n/r choose k, where r is a reduction factor (r > 1).
+
+FUNCTIONS
+    forward(x)
+        Forward transform.
+    
+    inverse(c)
+        Inverse transform.
+
+
+```
+
+
+## examples.cs.reordering.minimal_example
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/minimal_example.py)
+
+```
+NAME
+    examples.cs.reordering.minimal_example - Make a minimal example showing how this is supposed to work.
+
+DESCRIPTION
+    Should be small enough for us to exhaustively search for the best solution as
+    to show that we can do better than montonically sorting.  We will consider a
+    simple 1d signal known to be sparse under the discrete cosine transform after
+    reordering.
+
+
+```
+
+
+## examples.cs.reordering.paper_results
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/paper_results.py)
+
+```
+NAME
+    examples.cs.reordering.paper_results - Generate figures for paper.
+
+FUNCTIONS
+    H_metric(H1, H2, mode='chi2')
+        Histogram metrics.
+        
+        H1, H2 -- 1d histograms with matched bins.
+        mode -- Metric to use.
+        
+        Modes:
+            l2 -- Euclidean distance
+            l1 -- Manhattan distance
+            vcos -- Vector cosine distance
+            intersect -- Histogram intersection distance
+            chi2 -- Chi square distance
+            jsd -- Jensen-Shannan Divergence
+            emd -- Earth Mover's Distance
+    
+    plot_coeffs(c, *kargs)
+        Plot sorted coefficients, c.
+
+
+```
+
+
+## examples.cs.reordering.random_search_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/random_search_reordering.py)
+
+```
+NAME
+    examples.cs.reordering.random_search_reordering - Example demonstrating how difficult it is to find an effective reordering.
+
+DESCRIPTION
+    We use a wavelet transformation and try k different random permutations.
+
+FUNCTIONS
+    T(x0)
+        Wavelet transform.
+
+
+```
+
+
+## examples.cs.reordering.time_curves
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/reordering/time_curves.py)
+
+```
+NAME
+    examples.cs.reordering.time_curves - Load some time curves from real data to examine histograms.
+
+CLASSES
+    builtins.object
+        Sparsify
+    
+    class Sparsify(builtins.object)
+     |  Picklable sparsifying transform object.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, prior)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  forward_dct(self, x)
+     |      Sparsifying transform, discrete cosine transform.
+     |  
+     |  forward_fd(self, x)
+     |      Sparsifying transform, finite differences.
+     |  
+     |  inverse_dct(self, x)
+     |      Inverse sparsifying transform, discrete cosine transform.
+     |  
+     |  inverse_fd(self, x)
+     |      Inverse sparsifying transform, finite differences.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+
+```
+
+
+## examples.cs.selective_updates
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/selective_updates.py)
+
+```
+NAME
+    examples.cs.selective_updates - Selectively update the image estimate each iteration.
+
+DESCRIPTION
+    Golden anlge radially sampled binary smiley face.  Choose proximal gradient
+    descent enforcing sparsity in the wavelet domain.
+    
+    The idea is that we only want to update the locations that we're sure need to
+    updated.  The way I've chosen to do this is to look at the difference between
+    the previous iteration and next iteration and choose a percentage of the
+    locations with the highest change to be updated.  Selectively updating seems
+    to do a better job of not producing signal in empty space, but reduces
+    homogeneity inside the face and we loose definition of eyes and mouth.
+    Reordering also might help -- I'm most interested in this as a way to come up
+    with a good prior, either for reordering or location contrained reconstruction.
+    
+    Also, choosing to reorder slows us down quite a bit...  Need to work on that.
+
+
+```
+
+
+## examples.cs.threshold_real_imag
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/threshold_real_imag.py)
+
+```
+NAME
+    examples.cs.threshold_real_imag - Example demonstrating the differences between thresholding methods.
+
+DESCRIPTION
+    We can:
+        Threshold the complex signal
+        Threshold the real/imag parts separately.
+
+
+```
+
+
+## examples.cs.tv_iht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/tv_iht.py)
+
+```
+NAME
+    examples.cs.tv_iht - Total variation example using iterative hard thresholding.
+
+DESCRIPTION
+    This is actually a dumb example, because the assumption we make a square wave
+    which turns out to be a binary signal in finite differences domain, but it's
+    treated as the sample problem as binary_iht.py.  Sorry about that.
+    The measurements should actually be taken in the nonsparse domain (i.e.,
+    y = As instead of y = Ax).
+
+
+```
+
+
+## examples.cs.tv_riht
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/cs/tv_riht.py)
+
+```
+NAME
+    examples.cs.tv_riht - # I don't think this works yet
+
+
+```
+
+
+# FIELD_MAP
+## examples.field_map.fast_field_mapping
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/field_map/fast_field_mapping.py)
+
+```
+NAME
+    examples.field_map.fast_field_mapping - In vivo proof of concept for fast field mapping for fMRI.
+
+DESCRIPTION
+    Data:
+        10 slices through cerebral cortex, 128x64 (2x in readout), 120 time points,
+        4 virtaul coils from 12 channel head coil.  Each successive time point is
+        phase-cycled an additional 360/16 = 22.5 degrees leading to 16 groups of
+        phase-cycles over the entire 5 minute long readout.  120/5 = 24 time points
+        a minute or .4 time points per second or 2.5 seconds per time point.
+    
+    Experiment:
+        Two 10 second blocks -- fixation and flickering checkerboard.  Randomized
+        onset with 15 iterations (total 5 minutes).
+    
+    Considerations:
+        Motion in the brain (due to blood flow?) makes distant time points hard to
+        compare as pixels don't line up.  To deal with this, short time lengths (N)
+        will be used over which we assume there is negligable motion in the brain.
+        These are the regions over which parameter maps will be generated.
+    
+    Method:
+        Over N time points, use geometric solution to the elliptical signal model
+        to compute banding-free images for these N time points and average all GS
+        solutions together.  Small variations due to blood-oxygenation level
+        changes induced by the checkerboard are assumed to be averaged over the N
+        time points, leaving us with a biased estimator for the banding-free
+        images.  How to correct for bias?  Using the averaged GS solutions, we
+        compute T1, T2, and alpha maps that we assume to be valid over the N points
+        in question.  Then we use these parameter maps to solve for the
+        off-resonance maps at each time point n in the set of N time points.  We
+        take these off-resonance maps to have BOLD-weighted contrast.
+
+
+```
+
+
+## examples.field_map.gs_field_mapping
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/field_map/gs_field_mapping.py)
+
+```
+NAME
+    examples.field_map.gs_field_mapping - Example showing how to generate a field map using gs_field_map().
+
+
+```
+
+
+# GADGETRON
+## examples.gadgetron.bssfp_grappa
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/bssfp_grappa.py)
+
+```
+NAME
+    examples.gadgetron.bssfp_grappa - Simple example demonstrating how to send data to gadgetron.
+
+DESCRIPTION
+    We will use the gadgetron client and assume a profiles.config file is already
+    created and located in the root directory as described in readme.  Gadgetron
+    should be running on a network machine with IP address and port listed in
+    profiles.config.
+    
+    We will load in example undersampled (R=2) bSSFP data and send it to
+    Gadgetron to reconstruct using GRAPPA.
+
+
+```
+
+
+## examples.gadgetron.example_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/example_config.py)
+
+```
+NAME
+    examples.gadgetron.example_config - Example of how to programmatically generate a config file.
+
+
+```
+
+
+## examples.gadgetron.gs_recon_gadget
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/gs_recon_gadget.py)
+
+```
+NAME
+    examples.gadgetron.gs_recon_gadget - Make a Gadgetron chain that includes a python gadget.
+
+
+```
+
+
+## examples.gadgetron.python_gadgets
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/python_gadgets.py)
+
+```
+NAME
+    examples.gadgetron.python_gadgets - Send data to Gadgetron to be processed using python Gadgets.
+
+
+```
+
+
+## examples.gadgetron.send_python_script_to_remote
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/gadgetron/send_python_script_to_remote.py)
+
+```
+NAME
+    examples.gadgetron.send_python_script_to_remote - Remote Gadgetron execution of custom Python Gadget.
+
+DESCRIPTION
+    Example demonstrating how to use the Gadgetron client to send a python Gadget
+    to the remote Gadgetron server and use it in a Gadget chain.
+    
+    The idea is to "bundle" all of the dependencies of the script together so
+    that there is no extra setup/installation step before the remote machine is
+    able to run the custom python Gadget.
+
+```
+
+
+# MUSIC
+## examples.music.compression
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/music/compression.py)
+
+```
+NAME
+    examples.music.compression - Fun little experiment for audio compression.
+
+DESCRIPTION
+    The idea is to use our reordering trick for sparse signals and apply it to
+    audio waveforms.  The new thing we're doing here is using permutation ranks
+    to be a sort of "key" that we can look the permutation up with.  The reason
+    we might want to use permutation rank instead of the permutation is because
+    it takes less storage -- instead of storing an integer for every sample of the
+    waveform, store an (potentially quite large but not as large as storing an
+    integer for every waveform) integer representing the permutation.  This means
+    we get some compression out of the deal, since we could transmit less and
+    still get the same audio quality.
+    
+    The sad part is that permutation ranking and unranking goes by the factorial
+    of the length of the permutation -- even for the most efficient algorithms. So
+    we're restricted to very short block lengths over which to reorder, and it
+    might not be worth it for all the trouble we had to go through to ge the
+    ranks in the first place and the space we need to now take up storing many
+    incredibly large integers.
+    
+    Maybe an idea to piggyback on other forms of compression?
+    
+    Notes:
+        Finite differences (when you start dropping a lot of smaller coefficients)
+        gets square-wave-like with very noticable artifacts.  Perhaps low-pass
+        filtering might help?
+    
+        DCT seems to be very robust and does a great job, even when block lengths
+        are small (chunk_size=16).
+    
+        I've only tried db1 wavelets, don't work as well as DCT.
+
+
+```
+
+
+# OPTIMIZATION
+## examples.optimization.gradient_comparison
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/optimization/gradient_comparison.py)
+
+```
+NAME
+    examples.optimization.gradient_comparison - Comparison of complex step numerical gradient techniques.
+
+DESCRIPTION
+    For a simple quadratic function, we'll find the numerical derivative using
+    several variations of the complex step method.
+
+
+```
+
+
+# RECON
+## examples.recon.bssfp.bssfp_difference_constraint
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/bssfp_difference_constraint.py)
+
+```
+NAME
+    examples.recon.bssfp.bssfp_difference_constraint - Acquire pairs of points that are close together (i.e., dtheta small).
+
+DESCRIPTION
+    Given a spectral profile, d(theta), any two points sampled along d(theta), say
+    m0 and m1, do not constrain d(theta) to a single possible profile.  Normally,
+    we sample at theta=0 and theta=180 degrees and then do a sum of squares for
+    optimal SNR banding reduction.  However, if we choose dtheta small, then we can
+    constrain d(theta) by two points plus the approximate derivative,
+    d/dtheta d(theta), at (theta1 - theta0)/2.
+    
+    This script attempts to show that this will limit possible realizations of
+    d(theta) further than just taking two points 180 degrees apart.  We will also
+    try to apply the elliptical signal model with pairs of points taken at small
+    theta intervals.
+
+
+```
+
+
+## examples.recon.bssfp.bssfp_regression
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/bssfp_regression.py)
+
+```
+NAME
+    examples.recon.bssfp.bssfp_regression - Find T1, T2, theta given N bSSFP acquisitons.
+
+FUNCTIONS
+    M0fun(x, y, T1, T2, theta, TR, alpha)
+        Residual for M0 estimation.
+    
+    fun(x, y, TR, alpha, M0)
+        Residual.
+
+
+```
+
+
+## examples.recon.bssfp.bssfp_regression_dictionary
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/bssfp_regression_dictionary.py)
+
+```
+NAME
+    examples.recon.bssfp.bssfp_regression_dictionary - Given two phase cycles, look up T1, T2, theta, M0.
+
+
+```
+
+
+## examples.recon.bssfp.monte_carlo_planet
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/monte_carlo_planet.py)
+
+```
+NAME
+    examples.recon.bssfp.monte_carlo_planet - Example about how to use PLANET and some if its error characteristics.
+
+
+```
+
+
+## examples.recon.bssfp.planet_alpha_sensitivity
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/planet_alpha_sensitivity.py)
+
+```
+NAME
+    examples.recon.bssfp.planet_alpha_sensitivity - Recreate sensitivity plots from PLANET paper.
+
+
+```
+
+
+## examples.recon.bssfp.planet_noisy_case
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/planet_noisy_case.py)
+
+```
+NAME
+    examples.recon.bssfp.planet_noisy_case - Example about how to use PLANET with noisy data.
+
+DESCRIPTION
+    So as far as I can tell, this implementation is failing whenever there is any
+    noise, no matter how small.  It's probably due to how the ellipse is being
+    rotated.
+
+
+```
+
+
+## examples.recon.fmri.transition_band_bssfp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/fmri/transition_band_bssfp.py)
+
+```
+NAME
+    examples.recon.fmri.transition_band_bssfp - Demonstration of bSSFP fMRI using field maps.
+
+FUNCTIONS
+    bssfp_acq(T1s, T2s, PD, field_map, TR=0.005, alpha=0.17453292519943295, phase_cyc=0)
+        Wrapper to simulate bSSFP acquisition.
+    
+    gre_acq(T1s, T2s, PD, field_map, TR, TE, alpha=1.5707963267948966)
+        Wrapper to simulate spoled GRE acquisition.
+    
+    hrf(times0)
+        Return values for HRF at given times
+        
+        From:
+            http://www.jarrodmillman.com/rcsds/lectures/convolution_background.html
+
+```
+
+
+## examples.recon.reordering.compare_px_vs_patch_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/reordering/compare_px_vs_patch_reordering.py)
+
+```
+NAME
+    examples.recon.reordering.compare_px_vs_patch_reordering
+
+FUNCTIONS
+    do_compare(coil_imspace, recon_flipped)
+    
+    preprocess(data)
+    
+    run_ganesh_tcr(kspace, mask, weight_fidelity, weight_temporal, beta_sqrd, noi, reordering=None)
+
+
+```
+
+
+## examples.recon.tv_denoising.camera_man
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/tv_denoising/camera_man.py)
+
+```
+NAME
+    examples.recon.tv_denoising.camera_man - Apply TV-L1 image denoising with the primal-dual algorithm to simple image.
+
+
+```
+
+
+# UTILS
+## examples.utils.kernel_density_est
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/utils/kernel_density_est.py)
+
+```
+NAME
+    examples.utils.kernel_density_est - Attempting to solve for coefficients which minimize MSE using KDE.
+
+DESCRIPTION
+    What we'd like to do is derive an expression from a standard normal kernel
+    density estimator to find the values of the current coefficient locations.
+    What would be super is if these values minimized the mean square error with
+    the pdf estimate of x.
+
+
+```
+
+
+## examples.utils.package_script
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/utils/package_script.py)
+
+```
+NAME
+    examples.utils.package_script - Demonstrate how to package a mr_util script.
+
+```
+
+
+## examples.utils.rotate_ellipse
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/utils/rotate_ellipse.py)
+
+```
+NAME
+    examples.utils.rotate_ellipse - Example of ellipse rotations.
+
+
+```
+
+
 # MAKE_README
 ## make_readme
 

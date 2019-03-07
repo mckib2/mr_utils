@@ -1,6 +1,6 @@
 import numpy as np
 from mr_utils import view
-from mr_utils.recon.reordering import sort2d
+from mr_utils.utils.sort2d import sort2d
 from mr_utils.matlab import client_run,client_get,client_put
 from mr_utils.load_data import load_mat
 from mr_utils.test_data.phantom import bssfp_2d_cylinder
