@@ -170,7 +170,7 @@ class PyPortTestCase(unittest.TestCase):
                 x0 = int((eNx - rNx) / 2)
                 x1 = int((eNx - rNx) / 2 + rNx)
                 xline = xline[:, x0:x1]
-                acq.resize(rNx, acq.active_channels, acq.trajectory_dimensions)
+                acq.resize(rNx, acq.active_channels, acq.trajectory_dimensions) #pylint: disable=E1101
                 acq.center_sample = int(rNx/2)
                 # need to use the [:] notation here to fill the data
                 acq.data[:] = transform.transform_image_to_kspace(xline, [1])
