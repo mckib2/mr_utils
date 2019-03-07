@@ -70,139 +70,49 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.load_data.pyport
+    mr_utils.load_data.pyport - Python port of siemens_to_ismrmrd.
 
-CLASSES
-    builtins.object
-        mdhCutOff
-        mdhLC
-        mdhSliceData
-        mdhSlicePosVec
-        sScanHeader
+DESCRIPTION
+    Notes:
+        The XProtocol parser (xprot_get_val) is a string-search based
+        implementation, not an actual parser, so it's really slow, but does get
+        the job done very well.  Next steps would be to figure out how to speed
+        this up or rewrite the parser to work with everything.  I was working on a
+        parser but was stuck on how to handle some of Siemens' very strange
+        syntax.
     
-    class mdhCutOff(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        There are several different XML libraries being used.  xml.etree was my
+        preference, so that's what I started with.  I needed to use xmltodict to
+        convert between dictionaries and xml, because it's quicker/easier to have
+        a dictionary hold the config information as we move along.  It turns out
+        that schema verification is not supported by xml.etree, so that's when I
+        pulled in lxml.etree -- so there's some weirdness trying to get xml.etree
+        and lxml.etree to play together nicely.  The last  one is pybx -- a
+        bizarrely complicated library that the ismrmrd python library uses.  I hate
+        the thing and think it's overly complicated for what we need to use it for.
     
-    class mdhLC(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        One of the ideas I had was to pull down the schema/parammaps from the
+        interwebs so it would always be current.  While this is a neat feature that
+        probably no one will use, it would speed up the raw data conversion to use
+        a local copy instead, even if that means pulling it down the first time and
+        keeping it.
     
-    class mdhSliceData(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        The script to read in an ismrmrd dset provided in ismrmrd-python-tools is
+        great at illustrating how to do it, but is incredibly slow, especiailly if
+        you want to remove oversampling in readout direction.  Next steps are to
+        figure out how to quickly read in and process these datasets.  I'm kind of
+        put off from using this data format because of how unweildy it is, but I
+        suppose it's better to be an open standards player...
     
-    class mdhSlicePosVec(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        The only datasets I have are cartesian VB17.  So there's currently little
+        support for anything else.
     
-    class sScanHeader(builtins.object)
-     |  This is the VD line header
-     |  
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Static methods defined here:
-     |  
-     |  sizeof()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        Command-line interface has not been looked at in a long time, might not be
+        working still.
 
 FUNCTIONS
-    ProcessParameterMap(doc_root, parammap_file_content)
-    
-    check_positive(value)
-    
-    get_embedded_file(file)
-    
-    get_ismrmrd_schema()
-        Download XSD file from ISMRMD git repo.
-    
-    get_list_of_embedded_files()
-        List of files to go try to find from the git repo.
-    
-    getparammap_file_content(parammap_file, usermap_file, VBFILE)
-    
-    main(args)
-    
-    readMeasurementHeaderBuffers(siemens_dat, num_buffers)
-    
-    readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE)
-        struct MrParcRaidFileEntry
-        {
-          uint32_t measId_;
-          uint32_t fileId_;
-          uint64_t off_;
-          uint64_t len_;
-          char patName_[64];
-          char protName_[64];
-        };
-    
-    readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers, wip_double, trajectory, dwell_time_0, max_channels, radial_views, baseLineString, protocol_name)
-    
-    reduce(...)
-        reduce(function, sequence[, initial]) -> value
-        
-        Apply a function of two arguments cumulatively to the items of a sequence,
-        from left to right, so as to reduce the sequence to a single value.
-        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
-        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
-        of the sequence in the calculation, and serves as a default when the
-        sequence is empty.
+    pyport(version=False, list_embed=False, extract=None, user_stylesheet=None, file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None, debug=False, header_only=False, output='output.h5', flash_pat_ref_scan=False, append_buffers=False, study_date_user_supplied='')
+        Run the program with arguments.
 
 ```
 
@@ -1687,7 +1597,7 @@ CLASSES
 
 ```
 NAME
-    mr_utils.load_data.xprot_parser
+    mr_utils.load_data.xprot_parser - Parse XProtocol Siemens' proprietary format.
 
 CLASSES
     builtins.object
@@ -1695,6 +1605,8 @@ CLASSES
         XProtParser
     
     class XProtLexer(builtins.object)
+     |  Define tokens and rules.
+     |  
      |  Methods defined here:
      |  
      |  t_COMMENT(t)
@@ -1821,6 +1733,8 @@ CLASSES
      |  tokens = ('RANGLE', 'LANGLE', 'LBRACE', 'RBRACE', 'PERIOD', 'XPROT', '...
     
     class XProtParser(builtins.object)
+     |  Parse the XProtocol.  Just do it.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)

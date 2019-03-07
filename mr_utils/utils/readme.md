@@ -96,6 +96,11 @@ FUNCTIONS
             fitting of ellipses." Proc. 6th International Conference in Central
             Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
     
+    do_planet_rotation(I)
+        Rotate complex points to fit vertical ellipse centered at (xc, 0).
+        
+        I -- Complex points from SSFP experiment.
+    
     fit_ellipse_fitzgibon(x, y)
         Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
         
@@ -163,6 +168,13 @@ FUNCTIONS
         See:
             http://www.mathamazement.com/Lessons/Pre-Calculus/
             09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
+    
+    rotate_points(x, y, phi, p=(0, 0))
+        Rotate points x, y through angle phi w.r.t. point p.
+        
+        x, y -- Points to be rotated.
+        phi -- Angle in radians to rotate points.
+        p -- Point to rotate around.
 
 
 ```

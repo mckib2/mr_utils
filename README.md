@@ -491,6 +491,96 @@ CLASSES
 ```
 
 
+## mr_utils.cs.ordinator
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/ordinator.py)
+
+```
+NAME
+    mr_utils.cs.ordinator - Performs combinatorial optimization to find permutation maximizing sparsity.
+
+CLASSES
+    builtins.object
+        pdf_default
+    
+    class pdf_default(builtins.object)
+     |  Picklable object for computing pdfs.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self, prior)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  pdf(self, x)
+     |      Estimate the pdf of x.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+FUNCTIONS
+    get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric)
+        Compute xhat for given coefficient locations using basinhopping.
+        
+        locs -- Coefficient location indices.
+        N -- Length of the desired signal (also number of coefficients in total).
+        k -- Desired sparsity level.
+        inverse -- Inverse sparsifying transform.
+        pdf_ref -- Reference pdf of the prior to compare against.
+        pdf -- Function that estimates pixel intensity distribution.
+        pdf_metric -- Function that returns the distance between pdfs.
+    
+    obj(ck, N, locs, inverse, pdf_ref, pdf, pdf_metric)
+        Objective function for basinhopping.
+    
+    ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None, forward=None, disp=False)
+        Find permutation that maximizes sparsity of 1d signal.
+        
+        prior -- Prior signal estimate to base ordering.
+        k -- Desired sparsity level.
+        inverse -- Inverse sparsifying transform.
+        chunksize -- Chunk size for parallel processing pool.
+        pdf -- Function that estimates pixel intensity distribution.
+        pdf_metric -- Function that returns the distance between pdfs.
+        forward -- Sparsifying transform (only required if disp=True).
+        disp -- Whether or not to display coefficient plots at the end.
+        
+        pdf_method=None uses histogram.  pdf_metric=None uses l2 norm. If disp=True
+        then forward transform function must be provided.  Otherwise, forward is
+        not required, only inverse.
+        
+        pdf_method should assume the signal will be bounded between (-1, 1).  We do
+        this by always normalizing a signal before computing pdf or comparing.
+    
+    pdf_metric_default(x, y)
+        Default pdf metric, l2 norm.
+    
+    search_fun(locs, N, k, inverse, pdf_ref, pdf, pdf_metric)
+        Return function for parallel loop.
+        
+        locs -- Coefficient location indices.
+        N -- Length of the desired signal (also number of coefficients in total).
+        k -- Desired sparsity level.
+        inverse -- Inverse sparsifying transform.
+        pdf_ref -- Reference pdf of the prior to compare against.
+        pdf -- Function that estimates pixel intensity distribution.
+        pdf_metric -- Function that returns the distance between pdfs.
+    
+    time(...)
+        time() -> floating point number
+        
+        Return the current time in seconds since the Epoch.
+        Fractions of a second may be present if the system clock provides them.
+
+
+```
+
+
 ## mr_utils.cs.thresholding.amp
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/cs/thresholding/amp.py)
@@ -1293,139 +1383,49 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.load_data.pyport
+    mr_utils.load_data.pyport - Python port of siemens_to_ismrmrd.
 
-CLASSES
-    builtins.object
-        mdhCutOff
-        mdhLC
-        mdhSliceData
-        mdhSlicePosVec
-        sScanHeader
+DESCRIPTION
+    Notes:
+        The XProtocol parser (xprot_get_val) is a string-search based
+        implementation, not an actual parser, so it's really slow, but does get
+        the job done very well.  Next steps would be to figure out how to speed
+        this up or rewrite the parser to work with everything.  I was working on a
+        parser but was stuck on how to handle some of Siemens' very strange
+        syntax.
     
-    class mdhCutOff(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        There are several different XML libraries being used.  xml.etree was my
+        preference, so that's what I started with.  I needed to use xmltodict to
+        convert between dictionaries and xml, because it's quicker/easier to have
+        a dictionary hold the config information as we move along.  It turns out
+        that schema verification is not supported by xml.etree, so that's when I
+        pulled in lxml.etree -- so there's some weirdness trying to get xml.etree
+        and lxml.etree to play together nicely.  The last  one is pybx -- a
+        bizarrely complicated library that the ismrmrd python library uses.  I hate
+        the thing and think it's overly complicated for what we need to use it for.
     
-    class mdhLC(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        One of the ideas I had was to pull down the schema/parammaps from the
+        interwebs so it would always be current.  While this is a neat feature that
+        probably no one will use, it would speed up the raw data conversion to use
+        a local copy instead, even if that means pulling it down the first time and
+        keeping it.
     
-    class mdhSliceData(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        The script to read in an ismrmrd dset provided in ismrmrd-python-tools is
+        great at illustrating how to do it, but is incredibly slow, especiailly if
+        you want to remove oversampling in readout direction.  Next steps are to
+        figure out how to quickly read in and process these datasets.  I'm kind of
+        put off from using this data format because of how unweildy it is, but I
+        suppose it's better to be an open standards player...
     
-    class mdhSlicePosVec(builtins.object)
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        The only datasets I have are cartesian VB17.  So there's currently little
+        support for anything else.
     
-    class sScanHeader(builtins.object)
-     |  This is the VD line header
-     |  
-     |  Methods defined here:
-     |  
-     |  __init__(self)
-     |      Initialize self.  See help(type(self)) for accurate signature.
-     |  
-     |  ----------------------------------------------------------------------
-     |  Static methods defined here:
-     |  
-     |  sizeof()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
+        Command-line interface has not been looked at in a long time, might not be
+        working still.
 
 FUNCTIONS
-    ProcessParameterMap(doc_root, parammap_file_content)
-    
-    check_positive(value)
-    
-    get_embedded_file(file)
-    
-    get_ismrmrd_schema()
-        Download XSD file from ISMRMD git repo.
-    
-    get_list_of_embedded_files()
-        List of files to go try to find from the git repo.
-    
-    getparammap_file_content(parammap_file, usermap_file, VBFILE)
-    
-    main(args)
-    
-    readMeasurementHeaderBuffers(siemens_dat, num_buffers)
-    
-    readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE)
-        struct MrParcRaidFileEntry
-        {
-          uint32_t measId_;
-          uint32_t fileId_;
-          uint64_t off_;
-          uint64_t len_;
-          char patName_[64];
-          char protName_[64];
-        };
-    
-    readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers, wip_double, trajectory, dwell_time_0, max_channels, radial_views, baseLineString, protocol_name)
-    
-    reduce(...)
-        reduce(function, sequence[, initial]) -> value
-        
-        Apply a function of two arguments cumulatively to the items of a sequence,
-        from left to right, so as to reduce the sequence to a single value.
-        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
-        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
-        of the sequence in the calculation, and serves as a default when the
-        sequence is empty.
+    pyport(version=False, list_embed=False, extract=None, user_stylesheet=None, file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None, debug=False, header_only=False, output='output.h5', flash_pat_ref_scan=False, append_buffers=False, study_date_user_supplied='')
+        Run the program with arguments.
 
 ```
 
@@ -1452,6 +1452,364 @@ FUNCTIONS
             bart -- BART twix raw data reader
             s2i -- siemens_to_ismrmrd
             rdi -- rawdatarinator
+
+```
+
+
+## mr_utils.load_data.s2i.channel_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/channel_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.channel_header - Holds header data for a single channel.
+
+```
+
+
+## mr_utils.load_data.s2i.channel_header_and_data
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/channel_header_and_data.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.channel_header_and_data - Struct to hold both header and data for a single channel.
+
+CLASSES
+    builtins.object
+        ChannelHeaderAndData
+    
+    class ChannelHeaderAndData(builtins.object)
+     |  Class to hold channel header and data.
+     |  
+     |  We don't know what the size of the data will be, so we don't create an
+     |  np.dtype for this structure.  Instead, since it's just a top
+     |  level container, we're fine with just a python class.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+```
+
+
+## mr_utils.load_data.s2i.defs
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/defs.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.defs - Constant definitions used by siemens_to_ismrmrd.
+
+```
+
+
+## mr_utils.load_data.s2i.fill_ismrmrd_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/fill_ismrmrd_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.fill_ismrmrd_header - fill_ismrmrd_header
+
+DESCRIPTION
+    This is currently not working and silently failing.
+
+FUNCTIONS
+    fill_ismrmrd_header(h, study_date, study_time)
+        Add dates/times to ISMRMRD header.
+
+
+```
+
+
+## mr_utils.load_data.s2i.get_acquisition
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/get_acquisition.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.get_acquisition - Populate ISMRMRD Acquisition object with data from ChannelHeaderAndData.
+
+FUNCTIONS
+    getAcquisition(flash_pat_ref_scan, trajectory, dwell_time_0, max_channels, _isAdjustCoilSens, _isAdjQuietCoilSens, _isVB, traj, scanhead, channels)
+        Create ISMRMRD acqusition object for the current channel data.
+
+
+```
+
+
+## mr_utils.load_data.s2i.mdh
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/mdh.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.mdh - All MDH related structures.
+
+```
+
+
+## mr_utils.load_data.s2i.parse_xml
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/parse_xml.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.parse_xml - parseXML
+
+FUNCTIONS
+    parseXML(debug_xml, parammap_xsl_content, _schema_file_name_content, xml_config)
+        Apply XSLT.
+
+
+```
+
+
+## mr_utils.load_data.s2i.process_parameter_map
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/process_parameter_map.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.process_parameter_map - ProcessParameterMap
+
+FUNCTIONS
+    ProcessParameterMap(config_buffer, parammap_file_content)
+        Fill in the headers of all parammap_file's fields.
+    
+    reduce(...)
+        reduce(function, sequence[, initial]) -> value
+        
+        Apply a function of two arguments cumulatively to the items of a sequence,
+        from left to right, so as to reduce the sequence to a single value.
+        For example, reduce(lambda x, y: x+y, [1, 2, 3, 4, 5]) calculates
+        ((((1+2)+3)+4)+5).  If initial is present, it is placed before the items
+        of the sequence in the calculation, and serves as a default when the
+        sequence is empty.
+
+
+```
+
+
+## mr_utils.load_data.s2i.read_channel_headers
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_channel_headers.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_channel_headers - Store data and header for each channel.
+
+FUNCTIONS
+    readChannelHeaders(siemens_dat, VBFILE, scanhead)
+        Read the headers for the channels.
+
+```
+
+
+## mr_utils.load_data.s2i.read_measurement_header_buffers
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_measurement_header_buffers.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_measurement_header_buffers - readMeasurementHeaderBuffers
+
+FUNCTIONS
+    readMeasurementHeaderBuffers(siemens_dat, num_buffers)
+        Filler.
+
+
+```
+
+
+## mr_utils.load_data.s2i.read_parc_file_entries
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_parc_file_entries.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_parc_file_entries - readParcFileEntries
+
+FUNCTIONS
+    readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE)
+        struct MrParcRaidFileEntry
+        {
+          uint32_t measId_;
+          uint32_t fileId_;
+          uint64_t off_;
+          uint64_t len_;
+          char patName_[64];
+          char protName_[64];
+        };
+
+
+```
+
+
+## mr_utils.load_data.s2i.read_scan_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_scan_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_scan_header - readScanHeader
+
+FUNCTIONS
+    readScanHeader(siemens_dat, VBFILE)
+        Read the header from the scan.
+
+```
+
+
+## mr_utils.load_data.s2i.read_xml_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/read_xml_config.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.read_xml_config - readXmlConfig
+
+FUNCTIONS
+    readXmlConfig(debug_xml, parammap_file_content, num_buffers, buffers, wip_double, trajectory, dwell_time_0, max_channels, radial_views, baseLineString, protocol_name)
+        Read in and format header from raw data file.
+
+
+```
+
+
+## mr_utils.load_data.s2i.regex_parser
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/regex_parser.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.regex_parser - Make a parser using regex.
+
+DESCRIPTION
+    Let's see how this goes...
+
+CLASSES
+    builtins.object
+        Parser
+    
+    class Parser(builtins.object)
+     |  Parse XProtocol.
+     |  
+     |  Methods defined here:
+     |  
+     |  __init__(self)
+     |      Initialize self.  See help(type(self)) for accurate signature.
+     |  
+     |  isconsistent(self)
+     |      Make sure cur_rule is a subset of some rule.
+     |  
+     |  isrule(self)
+     |      Check to see if cur_rule is a rule.
+     |  
+     |  istoken(self)
+     |      Check to see if cur_token is a token.
+     |  
+     |  parse(self, buf)
+     |      Parse buffer into dictionary.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors defined here:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+
+```
+
+
+## mr_utils.load_data.s2i.scan_header
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/scan_header.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.scan_header - Structure to hold the header of a scan.
+
+```
+
+
+## mr_utils.load_data.s2i.xml_fun
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/xml_fun.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.xml_fun - All the XML related functions required by siemens_to_ismrmrd.
+
+FUNCTIONS
+    get_embedded_file(file)
+        Retrieve embedded file from github.
+        
+        file -- Name of embedded file to get.
+    
+    get_ismrmrd_schema(method='ET')
+        Download XSD file from ISMRMD git repo.
+    
+    get_list_of_embedded_files()
+        List of files to go try to find from the git repo.
+    
+    getparammap_file_content(parammap_file, usermap_file, VBFILE)
+        Filler.
+
+
+```
+
+
+## mr_utils.load_data.s2i.xprot_parser_strsearch
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/load_data/s2i/xprot_parser_strsearch.py)
+
+```
+NAME
+    mr_utils.load_data.s2i.xprot_parser_strsearch - Quick and lazy -- only read what we need from the XProtocol header.
+
+DESCRIPTION
+    This is a way engineered to Get the Job Done(TM).  It could be made a lot
+    better and faster, but right now I'm just trying to get it working after the
+    debacle with ply...
+    
+    The lookup table seems like a good idea, but having a little trouble getting it
+    to work properly.  Currently it's supressing a lot of fields that don't exist,
+    it's just not letting us display the warning that it doesn't exist.
+
+FUNCTIONS
+    find_matching_braces(s, lsym='{', rsym='}', qlsym='"', qrsym='"')
+        Given string s, find indices of matching braces.
+    
+    findp(p, config)
+        Decode the tag and return index.
+        
+        p -- Current path node.
+        config -- The current header portion we're searching in.
+        
+        All of these tag assignments are ad hoc -- just to get something to work.
+    
+    xprot_get_val(config_buffer, val, p_to_buf_table=None, return_table=False)
+        Get value from config buffer.
+        
+        config_buffer -- String containing the XProtocol innards.
+        val -- Dot separated path to search for.
+        p_to_buf_table --
+        return_table --
+
 
 ```
 
@@ -2910,7 +3268,7 @@ CLASSES
 
 ```
 NAME
-    mr_utils.load_data.xprot_parser
+    mr_utils.load_data.xprot_parser - Parse XProtocol Siemens' proprietary format.
 
 CLASSES
     builtins.object
@@ -2918,6 +3276,8 @@ CLASSES
         XProtParser
     
     class XProtLexer(builtins.object)
+     |  Define tokens and rules.
+     |  
      |  Methods defined here:
      |  
      |  t_COMMENT(t)
@@ -3044,6 +3404,8 @@ CLASSES
      |  tokens = ('RANGLE', 'LANGLE', 'LBRACE', 'RBRACE', 'PERIOD', 'XPROT', '...
     
     class XProtParser(builtins.object)
+     |  Parse the XProtocol.  Just do it.
+     |  
      |  Methods defined here:
      |  
      |  __init__(self)
@@ -5259,6 +5621,11 @@ FUNCTIONS
             fitting of ellipses." Proc. 6th International Conference in Central
             Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
     
+    do_planet_rotation(I)
+        Rotate complex points to fit vertical ellipse centered at (xc, 0).
+        
+        I -- Complex points from SSFP experiment.
+    
     fit_ellipse_fitzgibon(x, y)
         Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
         
@@ -5326,6 +5693,13 @@ FUNCTIONS
         See:
             http://www.mathamazement.com/Lessons/Pre-Calculus/
             09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
+    
+    rotate_points(x, y, phi, p=(0, 0))
+        Rotate points x, y through angle phi w.r.t. point p.
+        
+        x, y -- Points to be rotated.
+        phi -- Angle in radians to rotate points.
+        p -- Point to rotate around.
 
 
 ```
