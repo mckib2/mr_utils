@@ -56,6 +56,18 @@ NAME
 ```
 
 
+## examples.recon.bssfp.merry_param_mapping
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/merry_param_mapping.py)
+
+```
+NAME
+    examples.recon.bssfp.merry_param_mapping - Parameter mapping for numerical phantom using Taylor method.
+
+
+```
+
+
 ## examples.recon.bssfp.monte_carlo_planet
 
 [Source](https://github.com/mckib2/mr_utils/blob/master/examples/recon/bssfp/monte_carlo_planet.py)

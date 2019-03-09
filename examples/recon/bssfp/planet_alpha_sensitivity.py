@@ -54,12 +54,14 @@ if __name__ == '__main__':
 
     plt.subplot(1, 2, 1)
     plt.imshow(T1_err, extent=(.9, 1.1, .1, 90), aspect='auto')
+    plt.colorbar()
     plt.title('Errors in T1, %')
     plt.ylabel('Nominal FA, degrees')
     plt.xlabel('Real FA/Nominal FA')
 
     plt.subplot(1, 2, 2)
     plt.imshow(T2_err, extent=(.9, 1.1, .1, 90), aspect='auto')
+    plt.colorbar()
     plt.title('Errors in T2, %')
     plt.ylabel('Nominal FA, degrees')
     plt.xlabel('Real FA/Nominal FA')
