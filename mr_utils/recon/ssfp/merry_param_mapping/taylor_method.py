@@ -3,6 +3,9 @@
 This is an alternative to PLANET.
 '''
 
+from multiprocessing import Pool
+from functools import partial
+
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -11,17 +14,28 @@ from mr_utils.recon.ssfp import gs_recon
 from mr_utils.recon.ssfp.merry_param_mapping.optimize import optimize
 from mr_utils import view
 
-def taylor_method(Is, dphis, alpha, TR, mask=None, disp=False):
+def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
+    '''Wrapper for parallelization.'''
+    ii, jj = idx[0], idx[1]
+    I = np.array([I0[ii, jj] for I0 in Is])
+    xopt, _fopt = optimize(
+        I.conj().T, TR, dphis, offres_est[ii, jj]/100, 1.2, alpha[ii, jj],
+        1000/100, 100/10)
+    return(ii, jj, xopt)
+
+def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
     '''Parameter mapping for multiple phase-cycled bSSFP.
 
     Is -- List of phase-cycled images.
     dphis -- Phase-cycles (in radians).
-    alpha -- Flip angle map.
-    TR -- Repetition time.
+    alpha -- Flip angle map (in Hz).
+    TR -- Repetition time (milliseconds).
     mask -- Locations to compute map estimates.
+    chunksize -- Chunk size to use for parallelized loop.
     disp -- Show debugging plots.
 
-    mask=None computes maps for all points.
+    mask=None computes maps for all points.  Note that `Is` must be given as a
+    list.
     '''
 
     # If mask is None, that means we'll do all the points
@@ -98,15 +112,19 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, disp=False):
     offresmap = np.zeros(Is[0].shape)
     m0map = np.zeros(Is[0].shape)
 
-    # For each pixel..
+    # Since we have to do it for each pixel and all calculations are
+    # independent, we can parallelize this sucker!  Use imap_unordered to to
+    # update tqdm progress bar more regularly and use less memory over time.
     tot = np.sum(mask.flatten())
-    for idx in tqdm(
-            np.argwhere(mask), total=tot, desc='Param Mapping', leave=False):
-        ii, jj = idx[0], idx[1]
-        I = np.array([I0[ii, jj] for I0 in Is])
-        xopt, _fopt = optimize(
-            I.conj().T, TR, dphis, offres_est[ii, jj]/100, 1.2, alpha[ii, jj],
-            1000/100, 100/10)
+    optim = partial(optim_wrapper, Is=Is, TR=TR, dphis=dphis,
+                    offres_est=offres_est, alpha=alpha)
+    with Pool() as pool:
+        res = list(tqdm(pool.imap_unordered(
+            optim, np.argwhere(mask), chunksize=int(chunksize)), total=tot,
+                        leave=False, desc='Param mapping'))
+
+    # The answers are then unpacked (not garanteed to be in the right order)
+    for ii, jj, xopt in res:
         t1map[ii, jj] = xopt[0]*100
         t2map[ii, jj] = xopt[1]*10
         offresmap[ii, jj] = xopt[2]*100

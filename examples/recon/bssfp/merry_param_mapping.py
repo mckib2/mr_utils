@@ -10,11 +10,13 @@ from mr_utils import view
 
 if __name__ == '__main__':
 
-    # First initialize everything.
-    N = 16
+    # First initialize everything
+    N = 64
     add_noise = False
-    disp = True
-    num_pcs = 8
+    disp = True # this will display interesting plots along the way and at end
+    num_pcs = 8 # number of phase cycles to generate -- must be divisible by 4
+    chunksize = 50 # how many pixels to give a cpu core at once
+    TR = 10 # in milliseconds
     T1 = np.zeros((N, N))
     T2 = np.zeros((N, N))
     offres = np.zeros((N, N))
@@ -53,9 +55,6 @@ if __name__ == '__main__':
     mask = mask0 + mask1
     # view(mask)
 
-    # Set up scan parameters (in milliseconds).
-    TR = 10
-
     # Simulate bSSFP acquisiton at each dphi and get elliptical params, too
     assert np.mod(num_pcs, 4) == 0, ('We should have number of phase cycles'
                                      ' divisible by 4!')
@@ -73,29 +72,30 @@ if __name__ == '__main__':
         b_s.append(b)
         Ms.append(M)
 
+    ## THIS SECTION IS CURRENTLY BREAKING PYLINT, COMMENTED OUT FOR NOW
     #--------------------------------------------------------------------------
     # The following code plots four of the phase cycled images.  It is
     # contained within an if block, so if you desire to run it, replace false
     # with true.
     #--------------------------------------------------------------------------
-    if disp:
-        # Plot the phase cycled images.  For brevity I will only plot the
-        # images with 0, 90, 180, and 270 degree phase cycling.
-        Is0 = Is[::num_sets]
-        plt.figure()
-        plt.subplot(2, 2, 1)
-        plt.imshow(np.abs(Is0[0]))
-        plt.title('0 Degree Phase Cycling')
-        plt.subplot(2, 2, 2)
-        plt.imshow(np.abs(Is0[1]))
-        plt.title('90 Degree Phase Cycling')
-        plt.subplot(2, 2, 3)
-        plt.imshow(np.abs(Is0[2]))
-        plt.title('180 Degree Phase Cycling')
-        plt.subplot(2, 2, 4)
-        plt.imshow(np.abs(Is0[3]))
-        plt.title('270 Degree Phase Cycling')
-        plt.show()
+    # if disp:
+    #     # Plot the phase cycled images.  For brevity I will only plot the
+    #     # images with 0, 90, 180, and 270 degree phase cycling.
+    #     Is0 = Is[::num_sets]
+    #     plt.figure()
+    #     plt.subplot(2, 2, 1)
+    #     plt.imshow(np.abs(Is0[0]))
+    #     plt.title('0 Degree Phase Cycling')
+    #     plt.subplot(2, 2, 2)
+    #     plt.imshow(np.abs(Is0[1]))
+    #     plt.title('90 Degree Phase Cycling')
+    #     plt.subplot(2, 2, 3)
+    #     plt.imshow(np.abs(Is0[2]))
+    #     plt.title('180 Degree Phase Cycling')
+    #     plt.subplot(2, 2, 4)
+    #     plt.imshow(np.abs(Is0[3]))
+    #     plt.title('270 Degree Phase Cycling')
+    #     plt.show()
     #--------------------------------------------------------------------------
 
     #--------------------------------------------------------------------------
@@ -117,9 +117,9 @@ if __name__ == '__main__':
 
     # Do the mapping
     t1map, t2map, offresmap, m0map = taylor_method(
-        Is, dphis, alpha, TR, mask, disp)
+        Is, dphis, alpha, TR, mask, chunksize, disp)
 
-    # Show some comparisons
+    # Show some comparisons and residuals
     view(np.stack((offres, offresmap, offres - offresmap)))
     view(np.stack((T1, t1map, T1 - t1map)))
     view(np.stack((T2, t2map, T2 - t2map)))
@@ -128,9 +128,8 @@ if __name__ == '__main__':
     # Compare the ellipses of actual and estimated for one pixel
     if disp:
         # plot ellipse and fit of a pixel
-        idx = np.argwhere(mask0)
+        idx = np.argwhere(mask)
         idx = idx[np.random.choice(np.arange(idx.shape[0])), :]
-        print(idx)
         row, col = idx[0], idx[1]
         xt, yt = plotEllipse(T1[row, col], T2[row, col], TR,
                              alpha[row, col], offres[row, col], M0[row, col],
@@ -139,9 +138,10 @@ if __name__ == '__main__':
                              alpha[row, col], offresmap[row, col],
                              m0map[row, col], 1)
         plt.figure()
-        plt.plot(xt, yt, 'b')
-        plt.plot(xe, ye, 'g--')
+        plt.plot(xt, yt, '--', label='True Ellipse')
+        plt.plot(xe, ye, ':', label='Estimated Ellipse')
         for ii, dphi in enumerate(dphis):
-            plt.plot(Is[ii][row, col].real, Is[ii][row, col].imag, 'rx')
+            plt.plot(Is[ii].real[row, col], Is[ii].imag[row, col], 'rx')
         plt.axis('equal')
+        plt.legend()
         plt.show()
