@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from mr_utils.recon.ssfp.merry_param_mapping.ssfp_fit import SSFPfit
+from mr_utils.sim.ssfp import ssfp
 
-def plotEllipse(T1, T2, TR, TE, alpha, offres, M0, dphi):
+def plotEllipse(T1, T2, TR, alpha, offres, M0, dphi):
     '''
     dphi=1 means use fixed linspace for dphi set, else, use the list of dphis
     provided.
@@ -17,18 +17,14 @@ def plotEllipse(T1, T2, TR, TE, alpha, offres, M0, dphi):
         x = np.zeros(dphis.size)
         y = np.zeros(dphis.size)
         for ii, theta in enumerate(dphis):
-            Mx, My, _a, _b, _M = SSFPfit(
-                T1, T2, TR, TE, alpha, theta, offres, M0)
-            x[ii] = Mx
-            y[ii] = My
-
+            Mxy = ssfp(T1, T2, TR, alpha, offres, phase_cyc=theta, M0=M0)
+            x[ii] = Mxy.real
+            y[ii] = Mxy.imag
     else:
         x = np.zeros(dphi.size)
         y = np.zeros(dphi.size)
         for ii in range(dphi.size):
-            Mx, My, _a, _b, _M = SSFPfit(
-                T1, T2, TR, TE, alpha, dphi[ii], offres, M0)
-            x[ii] = Mx
-            y[ii] = My
-
+            Mxy = ssfp(T1, T2, TR, alpha, offres, phase_cyc=dphi[ii], M0=M0)
+            x[ii] = Mxy.real
+            y[ii] = Mxy.imag
     return(x, y)

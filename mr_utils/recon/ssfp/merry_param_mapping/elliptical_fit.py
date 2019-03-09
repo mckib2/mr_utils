@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from mr_utils.recon.ssfp.merry_param_mapping.ssfp_fit import SSFPfit
+from mr_utils.sim.ssfp import ssfp
 
-def ellipticalfit(Ireal, TE, TR, dphi, offres, M0, alpha, T1, T2):
+def ellipticalfit(Ireal, TR, dphis, offres, M0, alpha, T1, T2):
     '''ELLIPTICALFIT
 
     Ireal - complex pixel hermtian transposed
@@ -20,22 +20,16 @@ def ellipticalfit(Ireal, TE, TR, dphi, offres, M0, alpha, T1, T2):
     T1 *= 100
     T2 *= 10
     offres *= 100 # in Hz
-    num = dphi.size
+    num = dphis.size
 
     Mxans = np.zeros(num)
     Myans = np.zeros(num)
-    for k in range(num):
-        # [Mx0(k,n), My0(k,n), a0(k,n), b0(k,n), M_0(k,n)] = SSFPfit(T1(k,n),
-        # T2(k,n), TR, TE, alpha(k,n), 0, offres(k,n),M0(k,n));
-        Mx, My, _, _, _ = SSFPfit(T1, T2, TR, TE, alpha, dphi[k], offres, M0)
-        I = Mx + 1j*My
+    for ii, dphi in np.ndenumerate(dphis):
+        I = ssfp(
+            T1*1e-3, T2*1e-3, TR*1e-3, alpha, offres, phase_cyc=dphi, M0=M0)
 
         # oposite signs because of the hermitian transpose
-        # print(I.shape, print(Ireal.shape))
-        Mxans[k] = np.real(I) - np.real(Ireal[k])
-        Myans[k] = np.imag(I) + np.imag(Ireal[k])
+        Mxans[ii] = I.real - Ireal[ii].real
+        Myans[ii] = I.imag + Ireal[ii].imag
 
-    # J=(norm([Mxans Myans])); %for fmincon
-    J = np.hstack((Mxans, Myans)) # for lsqnonlin
-
-    return J
+    return np.hstack((Mxans, Myans))
