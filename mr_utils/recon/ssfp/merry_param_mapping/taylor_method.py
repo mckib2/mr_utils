@@ -24,13 +24,17 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, disp=False):
     mask=None computes maps for all points.
     '''
 
+    # If mask is None, that means we'll do all the points
     if mask is None:
         mask = np.ones(Is[0].shape).astype(bool)
 
     # Calculate the banding-removed image using the algorithm in the elliptical
     # model paper.
 
-    # Can we average sets if we have them?
+    # My addition: average the GS recon over all sets of 4 we have.  This will
+    # have to do while I work on a generalization of the GS recon method to
+    # handle >=4 phase-cycles at a time.
+    assert isinstance(Is, list), 'Phase-cycles must be provided in a list!'
     assert np.mod(len(Is), 4) == 0, 'We need sets of 4 for GS recon!'
     num_sets = int(len(Is)/4)
     Ms = np.zeros((num_sets,) + Is[0].shape, dtype='complex')
@@ -46,6 +50,11 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, disp=False):
         plt.title('Eliptical Model - Banding Removed')
         plt.show()
 
+        # These plots look fishy -- they changed when I moved from Merry's
+        # SSFPFit function to my ssfp simulation function.  Need to look at
+        # MATLAB output to see who's right and/or what's going on.  Probably
+        # related to the fact that ssfp() is adding a bSSFP phase that's 180
+        # degrees wrong, see offresonance map estimation below for discussion.
         # plt.figure()
         # plt.title('0 PC')
         # plt.subplot(2, 2, 1)
@@ -76,14 +85,20 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, disp=False):
     offres_est = np.unwrap(offres_est, axis=1)
     offres_est[~mask] = 0 #pylint: disable=E1130
     view(offres_est)
-    offres_est /= -np.pi*TR*1e-3 # I still have to add this negative in here...
+    offres_est /= -np.pi*TR*1e-3
+
+    # TODO:
+    # Notice the negative factor in the above offresonance estimate.  This is
+    # because the bSSFP phase factor being added by ssfp() is 180 degrees off
+    # from where it should be.  Until this gets fixed, we need this negative
+    # sign.
 
     t1map = np.zeros(Is[0].shape)
     t2map = np.zeros(Is[0].shape)
     offresmap = np.zeros(Is[0].shape)
     m0map = np.zeros(Is[0].shape)
 
-    # For each pixel...
+    # For each pixel..
     tot = np.sum(mask.flatten())
     for idx in tqdm(
             np.argwhere(mask), total=tot, desc='Param Mapping', leave=False):
@@ -98,7 +113,6 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, disp=False):
         m0map[ii, jj] = xopt[3]
 
     return(t1map, t2map, offresmap, m0map)
-
 
 if __name__ == '__main__':
     pass

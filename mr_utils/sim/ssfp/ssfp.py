@@ -188,7 +188,7 @@ def get_bssfp_phase(
 
     TE = TR/2 # assume bSSFP
     phi = 2*np.pi*(delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
-    phase = np.exp(-1j*phi)
+    phase = np.exp(-1j*phi) # TODO: I think the sign on this wrong
     return phase
 
 def get_theta(TR, field_map, phase_cyc=0):
