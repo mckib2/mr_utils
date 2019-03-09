@@ -66,46 +66,38 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
 
         # These plots look fishy -- they changed when I moved from Merry's
         # SSFPFit function to my ssfp simulation function.  Need to look at
-        # MATLAB output to see who's right and/or what's going on.  Probably
-        # related to the fact that ssfp() is adding a bSSFP phase that's 180
-        # degrees wrong, see offresonance map estimation below for discussion.
-        # plt.figure()
-        # plt.title('0 PC')
-        # plt.subplot(2, 2, 1)
-        # plt.plot(Is[0].real[30, 29:228])
-        # plt.subplot(2, 2, 2)
-        # plt.plot(Is[0].imag[30, 29:228])
-        # plt.subplot(2, 2, 3)
-        # plt.plot(np.abs(Is[0][30, 29:228]))
-        # plt.subplot(2, 2, 4)
-        # plt.plot(np.angle(Is[0][30, 29:228]))
-        # plt.show()
-        #
-        # plt.figure()
-        # plt.title('180 PC')
-        # plt.subplot(2, 2, 1)
-        # plt.plot(Is[4].real[30, 29:228])
-        # plt.subplot(2, 2, 2)
-        # plt.plot(Is[4].imag[30, 29:228])
-        # plt.subplot(2, 2, 3)
-        # plt.plot(np.abs(Is[4][30, 29:228]))
-        # plt.subplot(2, 2, 4)
-        # plt.plot(np.angle(Is[4][30, 29:228]))
-        # plt.show()
-        # # compare to Lauzon paper figure 1
+        # MATLAB output to see who's right and/or what's going on.
+        plt.figure()
+        plt.title('0 PC')
+        plt.subplot(2, 2, 1)
+        plt.plot(Is[0].real[30, 29:228])
+        plt.subplot(2, 2, 2)
+        plt.plot(Is[0].imag[30, 29:228])
+        plt.subplot(2, 2, 3)
+        plt.plot(np.abs(Is[0][30, 29:228]))
+        plt.subplot(2, 2, 4)
+        plt.plot(np.angle(Is[0][30, 29:228]))
+        plt.show()
+
+        plt.figure()
+        plt.title('180 PC')
+        plt.subplot(2, 2, 1)
+        plt.plot(Is[4].real[30, 29:228])
+        plt.subplot(2, 2, 2)
+        plt.plot(Is[4].imag[30, 29:228])
+        plt.subplot(2, 2, 3)
+        plt.plot(np.abs(Is[4][30, 29:228]))
+        plt.subplot(2, 2, 4)
+        plt.plot(np.angle(Is[4][30, 29:228]))
+        plt.show()
+        # compare to Lauzon paper figure 1
 
     ## Elliptical fit done here
     offres_est = np.angle(M)
     offres_est = np.unwrap(offres_est, axis=1)
     offres_est[~mask] = 0 #pylint: disable=E1130
     view(offres_est)
-    offres_est /= -np.pi*TR*1e-3
-
-    # TODO:
-    # Notice the negative factor in the above offresonance estimate.  This is
-    # because the bSSFP phase factor being added by ssfp() is 180 degrees off
-    # from where it should be.  Until this gets fixed, we need this negative
-    # sign.
+    offres_est /= np.pi*TR*1e-3
 
     t1map = np.zeros(Is[0].shape)
     t2map = np.zeros(Is[0].shape)

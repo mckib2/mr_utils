@@ -179,6 +179,9 @@ def get_bssfp_phase(
         bSSFP imaging with an elliptical signal model." Magnetic resonance in
         medicine 71.3 (2014): 927-933.
 
+    We use a positive exponent, exp(i phi), as in Hoff and Taylor MATLAB
+    implementations.
+
     In Hoff's paper the equation is not explicitly given for phi, so we
     implement equation [5] that gives more detailed terms, found in
         Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
@@ -188,7 +191,7 @@ def get_bssfp_phase(
 
     TE = TR/2 # assume bSSFP
     phi = 2*np.pi*(delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
-    phase = np.exp(-1j*phi) # TODO: I think the sign on this wrong
+    phase = np.exp(1j*phi)
     return phase
 
 def get_theta(TR, field_map, phase_cyc=0):
