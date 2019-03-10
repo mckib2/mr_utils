@@ -3,56 +3,59 @@
 
 import shutil
 import os
+from pathlib import Path
 
 import numpy as np
 import requests
 
 from mr_utils.definitions import TEST_DATA_HOST, ROOT_DIR
 
-def load_test_data(path, files):
-    '''Load test data and download if necessary.
+def load_test_data(path, files, do_return=True):
+    '''Load test data, download if necessary.
 
     path -- Location of directory where the test files live.
     files -- Specific files to return.
+    do_return -- Whether or not to return loaded files as a list.
 
-    files should be a list without .npy suffix (all files should be expected to
-    be stored as .npy).
+    files should be a list.  If no extension is given, .npy will be assumed.
+    do_return=True assumes .npy file will be loaded (uses numpy.load).
     '''
 
     returnVals = []
     for file in files:
+        # What's the extension?
+        if not Path(file).suffix:
+            # assume we're looking for the default .npy file
+            file += '.npy'
+
         # Make sure we're starting from where we want to
         if not os.path.isfile(
-                '%s/%s.npy' % (path, file)) and not os.path.isabs(path):
+                '%s/%s' % (path, file)) and not os.path.isabs(path):
             path0 = '%s/%s' % (ROOT_DIR, path)
         else:
             path0 = path
 
         try:
-            returnVals.append(np.load('%s/%s.npy' % (path0, file)))
+            if do_return:
+                returnVals.append(np.load('%s/%s' % (path0, file)))
+            else:
+                # We just need to make sure that it exists
+                with open('%s/%s' % (path0, file), 'rb') as f:
+                    pass
         except IOError as _e:
             # Try downloading the file, doesn't exist locally
-            url = '%s/%s/%s.npy' % (TEST_DATA_HOST, path, file)
-            filename = '%s/%s.npy' % (path0, file)
+            url = '%s/%s/%s' % (TEST_DATA_HOST, path, file)
+            filename = '%s/%s' % (path0, file)
             os.makedirs(os.path.dirname(filename), exist_ok=True)
             with requests.get(url, stream=True) as r:
                 with open(filename, 'wb') as f:
                     shutil.copyfileobj(r.raw, f)
-            returnVals.append(np.load('%s/%s.npy' % (path0, file)))
+            if do_return:
+                returnVals.append(np.load('%s/%s' % (path0, file)))
+    if do_return:
+        return returnVals[:]
+    return None
 
-    return returnVals[:]
-
-# ## DAT FILES
-# bssfp_phantom = str(Path('mr_utils/test_data/raw/bssfp_phantom.dat').resolve())
-#
-# # For Gadgetron GRAPPA Examples
-# class BSSFPGrappa(object):
-#
-#     @staticmethod
-#     def pc0_r2():
-#         path = str(Path('mr_utils/test_data/examples/gadgetron/meas_MID16_TRUFI_STW_TE2_FID34482.dat').resolve())
-#         return(path)
-#
 # ## XPROT FILES
 # # For xprot_parser
 # class XProtParserTest(object):
@@ -70,18 +73,7 @@ def load_test_data(path, files):
 #         with open(path,'r') as f:
 #             data = f.read()
 #         return(data)
-#
-# ## XML FILES
-# # For gadgetron
-# class GadgetronTestConfig(object):
-#
-#     @staticmethod
-#     def default_config():
-#         path = str(Path('mr_utils/test_data/tests/gadgetron/config/default.xml').resolve())
-#         with open(path,'r') as f:
-#             data = f.read()
-#         return(data)
-#
+
 # ## HDF5 FILES
 # # For gadgetron
 # class GadgetronClient(object):

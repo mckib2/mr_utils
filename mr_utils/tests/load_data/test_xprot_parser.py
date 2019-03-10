@@ -1,6 +1,6 @@
 import unittest
 from mr_utils.load_data.xprot_parser import XProtParser
-from mr_utils.test_data import XProtParserTest
+# from mr_utils.test_data import XProtParserTest
 import json
 from mr_utils.load_data.parser.infoparser import InfoParser
 import xmltodict
@@ -31,16 +31,16 @@ class XProtParserTestCase(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_sample(self):
-        sample = XProtParserTest.full_sample_xprot()
-        # # print(sample)
-        parser = XProtParser()
-        parser.parse(sample)
-        res = parser.structure['XProtocol']['Params']['']['MEAS']['sSliceArray']['asSlice']['']
-        res = list(leafPaths(res))
-        # res = int(res[0])
-        print(len(res))
-        print(json.dumps(res,indent=2))
+    # def test_sample(self):
+    #     sample = XProtParserTest.full_sample_xprot()
+    #     # # print(sample)
+    #     parser = XProtParser()
+    #     parser.parse(sample)
+    #     res = parser.structure['XProtocol']['Params']['']['MEAS']['sSliceArray']['asSlice']['']
+    #     res = list(leafPaths(res))
+    #     # res = int(res[0])
+    #     print(len(res))
+    #     print(json.dumps(res,indent=2))
 
         # plongs = parser.structure['XProtocol']['Params']['ParamArray']
         # for p in plongs:

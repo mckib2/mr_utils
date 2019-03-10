@@ -4,31 +4,45 @@ import unittest
 
 import numpy as np
 from xmldiff import main
+import h5py
 
 from mr_utils.gadgetron import GadgetronConfig
 from mr_utils.gadgetron import configs
 from mr_utils.gadgetron import client
-from mr_utils.test_data import GadgetronClient
-from mr_utils.test_data import GadgetronTestConfig
+from mr_utils.test_data import load_test_data
 
 class GadgetronConfigTestCase(unittest.TestCase):
     '''Verify that mr_util configurations work.'''
 
     def setUp(self):
         self.config = GadgetronConfig()
-        self.filename = GadgetronClient.grappa_input_filename()
+
+        path = 'mr_utils/test_data/tests/gadgetron/client/'
+        file = 'grappa_test_data.h5'
+        load_test_data(path, [file], do_return=False)
+        self.filename = '%s/%s' % (path, file)
 
     def test_create_default_config(self):
         '''Make sure default config lines up with actual.'''
         config = configs.default()
-        truth = GadgetronTestConfig.default_config()
+
+        path = 'mr_utils/test_data/tests/gadgetron/config/'
+        file = 'default.xml'
+        load_test_data(path, [file], do_return=False)
+        with open('%s/%s' % (path, file), 'r') as f:
+            truth = f.read()
+
         res = len(main.diff_texts(truth.encode(), config.tostring().encode()))
         self.assertTrue(res == 0)
 
     def test_use_default_config(self):
         '''Send default config to gadgetron to verify that it runs.'''
+
         # Give the filename of raw data to the client
-        filename = GadgetronClient.raw_input_filename()
+        path = 'mr_utils/test_data/tests/gadgetron/client/'
+        file = 'input.dat'
+        load_test_data(path, [file], do_return=False)
+        filename = '%s/%s' % (path, file)
 
         # Send gadgetron the local default configuration file
         config = configs.default()
@@ -37,7 +51,12 @@ class GadgetronConfigTestCase(unittest.TestCase):
         data, _header = client(filename, config_local=config.tostring())
 
         # Make sure the output is the same as when h5 is given
-        true_output_data = GadgetronClient.true_output_data()
+        path = 'mr_utils/test_data/tests/gadgetron/client/'
+        file = 'true_output.h5'
+        load_test_data(path, [file], do_return=False)
+        with h5py.File('%s/%s' % (path, file), 'r') as f:
+            true_output_data = f[
+                '2018-11-02 20:35:19.785688']['image_0']['data'][:]
         self.assertTrue(np.allclose(data, true_output_data))
 
     def test_use_grappa_cpu_config(self):
