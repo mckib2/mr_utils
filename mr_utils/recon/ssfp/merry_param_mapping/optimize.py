@@ -13,7 +13,6 @@ def optimize(I, TR, phasecycles, offres, M0, alpha, T1, T2):
     just use the value without recalling our function.
     '''
 
-
     # -------- starting point and bounds --------------
     ub = [30, 50, 1.999, 10] # T1, T2, off resonance 100, alpha in radians, M0
     lb = [1, 1, 0, 0] # alpha-alpha*.2]; %T1, T2, off resonance 0 Hz, alpha, M0
@@ -32,9 +31,8 @@ def optimize(I, TR, phasecycles, offres, M0, alpha, T1, T2):
     # ---------- Objective Function ------------------
     def obj(x):
         '''Objective function for least squares fitting.'''
-        J = ellipticalfit(
+        return ellipticalfit(
             I, TR, phasecycles, x[2], x[3], alpha, x[0], x[1])
-        return J
 
     # -------------------------------------------------
 

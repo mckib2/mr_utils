@@ -33,14 +33,18 @@ def ssfp_old(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     return Mxy
 
 def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
-    '''SSFP transverse signal right after RF pulse.
+    '''SSFP transverse signal at time TE after excitation.
 
-    T1 -- longitudinal exponential decay time constant.
-    T2 -- transverse exponential decay time constant.
-    TR -- repetition time.
-    alpha -- flip angle.
-    field_map -- B0 field map.
+    T1 -- longitudinal exponential decay time constant (in seconds).
+    T2 -- transverse exponential decay time constant (in seconds).
+    TR -- repetition time (in seconds).
+    alpha -- flip angle (in rad).
+    field_map -- B0 field map (in Hz).
+    phase_cyc -- Linear phase-cycle increment (in rad).
     M0 -- proton density.
+
+    T1, T2, alpha, field_map, and M0 can all be either a scalar or MxN an
+    array.  phase_cyc can be a scalar or length L vector.
 
     Implementation of equations [1-2] in
         Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -49,8 +53,20 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     '''
 
     # Make sure we're working with arrays
-    T1 = np.array(T1)
-    T2 = np.array(T2)
+    T1 = np.atleast_2d(T1)
+    T2 = np.atleast_2d(T2)
+    alpha = np.atleast_2d(alpha)
+    field_map = np.atleast_2d(field_map)
+    phase_cyc = np.atleast_2d(phase_cyc)
+
+    # If we have more than one phase-cycle, then add that dimension
+    if phase_cyc.size > 1:
+        reps = (phase_cyc.size, 1, 1)
+        phase_cyc = np.tile(phase_cyc, T1.shape[:] + (1,)).transpose((2, 0, 1))
+        T1 = np.tile(T1, reps)
+        T2 = np.tile(T2, reps)
+        alpha = np.tile(alpha, reps)
+        field_map = np.tile(field_map, reps)
 
     # All this nonsense so we don't divide by 0
     E1 = np.zeros(T1.shape)
@@ -72,7 +88,7 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     Mxy = Mx + 1j*My
     Mxy *= get_bssfp_phase(TR, field_map)
 
-    return Mxy
+    return Mxy.squeeze()
 
 def elliptical_params(T1, T2, TR, alpha, M0=1):
     '''Return ellipse parameters M,a,b.
@@ -90,6 +106,10 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
         bSSFP imaging with an elliptical signal model." Magnetic resonance in
         medicine 71.3 (2014): 927-933.
     '''
+
+    # Make sure we're working with arrays
+    T1 = np.array(T1)
+    T2 = np.array(T2)
 
     # All this nonsense so we don't divide by 0
     E1 = np.zeros(T1.shape)
