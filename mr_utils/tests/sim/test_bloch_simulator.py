@@ -5,7 +5,6 @@ import unittest
 import numpy as np
 
 from mr_utils.sim import bloch
-from mr_utils import view
 from mr_utils.sim.gre import gre_sim
 
 class TestBloch(unittest.TestCase):
@@ -53,8 +52,10 @@ class TestBloch(unittest.TestCase):
 
         spins1 = gre_sim(self.T1, self.T2, TR, TE, alpha=self.RF[1],
                          field_map=None, phi=0, dphi=0, M0=self.M0,
-                         iter=num_TRs, spoil=True)
-        view(np.stack((spins0, spins1)))
+                         maxiter=num_TRs, spoil=True)
+        # from mr_utils import view
+        # view(np.stack((spins0, spins1)))
+        self.assertTrue(np.allclose(spins0, spins1))
 
 if __name__ == '__main__':
     unittest.main()

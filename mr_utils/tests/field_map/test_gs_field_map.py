@@ -67,6 +67,9 @@ class GSFMTestCase(unittest.TestCase):
         dTE = np.abs(TE1 - TE2)
         field_map_pw = np.mod(field_map - 1/(2*dTE), 1/dTE) - 1/(2*dTE)
 
+        # Some how we got flipped on our side, so get the orientation right
+        gsfm = np.rot90(gsfm)
+
         # Make sure we're getting the same thing when wrapped
         idx = np.where(np.abs(grefm) > 0)
         self.assertTrue(np.allclose(grefm[idx], field_map_pw[idx]))

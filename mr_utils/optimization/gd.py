@@ -30,7 +30,7 @@ def gd(f, grad, x0, alpha=None, maxiter=1e6, tol=1e-8):
     elif not callable(alpha):
         # If stepsize is constant, package it in a constant function
         alpha0 = alpha
-        def alpha(*args, **kwargs):  # pylint: disable=E0102
+        def alpha(*args, **kwargs):  # pylint: disable=E0102,W0613
             return(alpha0, 0, 0, None, None, None)
 
     # Set up everything we need for the loop
@@ -61,7 +61,7 @@ def gd(f, grad, x0, alpha=None, maxiter=1e6, tol=1e-8):
                 # print('Working!')
                 alpha0_backup = alpha0_default
             except LineSearchWarning:
-                print('Broke')
+                tqdm.write('Broke')
                 alpha0 = alpha0_backup
                 alpha0_backup /= 2
 

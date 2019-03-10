@@ -226,10 +226,10 @@ class MultiplePhaseCycleTestCase(unittest.TestCase):
 
         Is = ssfp(T1s, T2s, self.TR, alphas, df, pcs)
 
-        from mr_utils import view
-        view(np.vstack((Itrue, Is)))
+        # from mr_utils import view
+        # view(np.vstack((Itrue, Is)))
 
-        print(Itrue.shape, Is.shape)
+        # print(Itrue.shape, Is.shape)
 
         self.assertTrue(np.allclose(Itrue, Is))
 
