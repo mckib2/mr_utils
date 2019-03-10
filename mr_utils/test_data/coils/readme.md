@@ -6,7 +6,11 @@
 
 ```
 NAME
-    mr_utils.test_data.coils.csm
+    mr_utils.test_data.coils.csm - Extremely simple coil sensitivity maps.
+
+DESCRIPTION
+    Probably better to use the generate csm map functions included in
+    ismrmrd-python-tools.
 
 FUNCTIONS
     simple_csm(N, dims=(64, 64))

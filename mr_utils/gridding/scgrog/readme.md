@@ -33,6 +33,9 @@ DESCRIPTION
         https://github.com/edibella/Reconstruction
 
 FUNCTIONS
+    fracpowers(idx, Gx, Gy, dkxs, dkys)
+        Wrapper function to use during parallelization.
+    
     grog_interp(kspace, Gx, Gy, traj, cartdims)
         Moves radial k-space points onto a cartesian grid via the GROG method.
         

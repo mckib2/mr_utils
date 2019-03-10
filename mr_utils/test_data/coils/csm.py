@@ -1,7 +1,17 @@
-import numpy as np
-from scipy.ndimage.interpolation import rotate
+'''Extremely simple coil sensitivity maps.
 
-def simple_csm(N,dims=(64,64)):
+Probably better to use the generate csm map functions included in
+ismrmrd-python-tools.
+'''
+
+import warnings
+
+import numpy as np
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', category=ImportWarning)
+    from scipy.ndimage.interpolation import rotate
+
+def simple_csm(N, dims=(64, 64)):
     '''Generate coil channel sensitivities as linear gradients in N directions.
 
     N -- number of coil sensitivities to generate.
@@ -17,19 +27,20 @@ def simple_csm(N,dims=(64,64)):
     Returns (N x dims[0] x dims[1]) array.
     '''
 
-    angles = np.linspace(0,360,N,endpoint=False)
-    sens = np.zeros((N,dims[0],dims[1]))
+    angles = np.linspace(0, 360, N, endpoint=False)
+    sens = np.zeros((N, dims[0], dims[1]))
 
     # We'll need to make it bigger so when we rotate we don't clip
     pad = int(np.max(dims)*np.sqrt(2))
-    x = np.linspace(0,1,dims[0]+pad)
-    y = np.linspace(0,1,dims[1]+pad)
-    X,Y = np.meshgrid(x,y)
-    for ii,angle in enumerate(angles):
-        tmp = rotate(X,angle,reshape=False,mode='constant')
-        sens[ii,:,:] = tmp[int(pad/2):dims[0]+int(pad/2),int(pad/2):dims[1]+int(pad/2)]
-        sens[ii,:,:] /= np.max(sens[ii,:,:])
-    return(sens)
+    x = np.linspace(0, 1, dims[0] + pad)
+    y = np.linspace(0, 1, dims[1] + pad)
+    X, _Y = np.meshgrid(x, y)
+    for ii, angle in enumerate(angles):
+        tmp = rotate(X, angle, reshape=False, mode='constant')
+        sens[ii, :, :] = tmp[
+            int(pad/2):dims[0] + int(pad/2), int(pad/2):dims[1] + int(pad/2)]
+        sens[ii, :, :] /= np.max(sens[ii, :, :])
+    return sens
 
 if __name__ == '__main__':
     pass

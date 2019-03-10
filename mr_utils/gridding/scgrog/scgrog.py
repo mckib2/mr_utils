@@ -4,9 +4,19 @@ Based on the MATLAB GROG implementation found here:
     https://github.com/edibella/Reconstruction
 '''
 
+from multiprocessing import Pool
+from functools import partial
+
 import numpy as np
 from tqdm import tqdm, trange
 from scipy.linalg import fractional_matrix_power
+
+def fracpowers(idx, Gx, Gy, dkxs, dkys):
+    '''Wrapper function to use during parallelization.'''
+    ii, jj = idx[0], idx[1]
+    Gxf = fractional_matrix_power(Gx, dkxs[ii, jj])
+    Gyf = fractional_matrix_power(Gy, dkys[ii, jj])
+    return(ii, jj, Gxf, Gyf)
 
 def grog_interp(kspace, Gx, Gy, traj, cartdims):
     '''Moves radial k-space points onto a cartesian grid via the GROG method.
@@ -36,11 +46,23 @@ def grog_interp(kspace, Gx, Gy, traj, cartdims):
     dkys = kys_round - kys
 
     # Compute fractional matrix powers - this part takes a long time
-    Gxf = np.zeros(dkxs.shape + Gx.shape, dtype='complex')
-    Gyf = np.zeros(dkys.shape + Gy.shape, dtype='complex')
-    for ii, jj in tqdm(list(np.ndindex((sx, nor))), leave=False):
-        Gxf[ii, jj, :, :] = fractional_matrix_power(Gx, dkxs[ii, jj])
-        Gyf[ii, jj, :, :] = fractional_matrix_power(Gy, dkys[ii, jj])
+    # Let's parallelize this since it doesn't matter what order we do it in and
+    # elements don't depend on previous elements. Notice that order is not
+    # preserved here -- instead we just keep track of indices at each compute.
+    fracpowers_partial = partial(
+        fracpowers, Gx=Gx, Gy=Gy, dkxs=dkxs, dkys=dkys)
+    tot = len(list(np.ndindex((sx, nor))))
+    with Pool() as pool:
+        res = list(tqdm(pool.imap_unordered(
+            fracpowers_partial, np.ndindex((sx, nor)), chunksize=100),
+                        total=tot, leave=False,
+                        desc='Frac mat pwr'))
+
+    # Now we need to stick the results where they belong and get a density
+    # estimation
+    for r in res:
+        # Look up the indices associated with this result
+        ii, jj = r[0], r[1]
 
         # Find matrix indices corresponding to kspace coordinates while we're
         # at it:
@@ -48,11 +70,10 @@ def grog_interp(kspace, Gx, Gy, traj, cartdims):
         yy = int(kys_round[ii, jj] + ncols/2)
 
         # Load result into output matrix and bump the counter
-        kspace_out[xx, yy, :] += np.linalg.multi_dot([
-            Gxf[ii, jj, :, :],
-            Gyf[ii, jj, :, :],
-            kspace[ii, jj, :]])
+        kspace_out[xx, yy, :] += np.linalg.multi_dot(
+            [r[2], r[3], kspace[ii, jj, :]])
         countMatrix[xx, yy] += 1
+
 
     # Lastly, use point-wise division of kspace_out by weightMatrix to average
     nonZeroCount = countMatrix > 0

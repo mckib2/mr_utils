@@ -160,5 +160,78 @@ class EllipticalSignalTestCase(unittest.TestCase):
         # Make sure we get the same answer
         self.assertTrue(np.allclose(x0 + 1j*y0, M))
 
+class MultiplePhaseCycleTestCase(unittest.TestCase):
+    '''Compute multiple phase-cycles at once.'''
+
+    def setUp(self):
+        self.TR = 6e-3
+        self.T1, self.T2 = 1, .8
+        self.alpha = np.pi/3
+        self.df = 100
+
+    def test_two_phase_cycles_single_point(self):
+        '''Try doing two phase-cycles.'''
+
+        # Gold standard is computing them individually
+        pcs = np.linspace(0, 2*np.pi, 2, endpoint=False)
+        I0 = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df, pcs[0])
+        I1 = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df, pcs[1])
+        Itrue = np.stack((I0, I1))
+
+        # Now try all at once
+        Is = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df, pcs)
+
+        self.assertTrue(np.allclose(Itrue, Is))
+
+    def test_many_phase_cycles_single_point(self):
+        '''Make sure we can do a bunch of them at once.'''
+
+        pcs = np.linspace(0, 2*np.pi, 16, endpoint=False)
+        Itrue = np.zeros(pcs.size, dtype='complex')
+        for ii, pc in np.ndenumerate(pcs):
+            Itrue[ii] = ssfp(
+                self.T1, self.T2, self.TR, self.alpha, self.df, pc)
+
+        Is = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df, pcs)
+        self.assertTrue(np.allclose(Itrue, Is))
+
+    def test_two_phase_cycles_multiple_point(self):
+        '''Now make MxN param maps and simulate multiple phase-cycles.'''
+
+        M, N = 10, 5
+        T1s = np.ones((M, N))*self.T1
+        T2s = np.ones((M, N))*self.T2
+        alphas = np.ones((M, N))*self.alpha
+
+        # Linear gradient for field map
+        min_df, max_df = 0, 200
+        fx = np.linspace(min_df, max_df, N)
+        fy = np.zeros(M)
+        df, _ = np.meshgrid(fx, fy)
+
+        # Gold standard is again, computing individually
+        pcs = np.linspace(0, 2*np.pi, 2, endpoint=False)
+        I0 = ssfp(T1s, T2s, self.TR, alphas, df, pcs[0])
+        I1 = ssfp(T1s, T2s, self.TR, alphas, df, pcs[1])
+        Itrue = np.stack((I0, I1))
+
+        # Now try doing all at once
+        # reps = (pcs.size, 1, 1)
+        # pcs = np.tile(pcs, T1s.shape[:] + (1,)).transpose((2, 0, 1))
+        # T1s = np.tile(T1s, reps)
+        # T2s = np.tile(T2s, reps)
+        # alphas = np.tile(alphas, reps)
+        # df = np.tile(df, reps)
+        # print(T1s.shape, T2s.shape, alphas.shape, df.shape, pcs.shape)
+
+        Is = ssfp(T1s, T2s, self.TR, alphas, df, pcs)
+
+        # from mr_utils import view
+        # view(np.vstack((Itrue, Is)))
+
+        # print(Itrue.shape, Is.shape)
+
+        self.assertTrue(np.allclose(Itrue, Is))
+
 if __name__ == '__main__':
     unittest.main()

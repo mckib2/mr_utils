@@ -1,9 +1,9 @@
 import unittest
 import numpy as np
 from mr_utils import view
-from mr_utils.recon.reordering import sort2d
+from mr_utils.utils.sort2d import sort2d
 # from mr_utils.matlab import Client
-from skimage.measure import compare_mse,compare_ssim,compare_psnr
+from skimage.measure import compare_mse, compare_ssim, compare_psnr
 
 class PatchReorderTestCase(unittest.TestCase):
 

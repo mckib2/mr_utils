@@ -10,13 +10,16 @@ Gadgetron to reconstruct using GRAPPA.
 '''
 
 from mr_utils.gadgetron import client
-from mr_utils.test_data import BSSFPGrappa
+from mr_utils.test_data import load_test_data
 from mr_utils import view
 
 if __name__ == '__main__':
 
     # Get sample data, bssfp, phase-cycle=0, R=2
-    filename = BSSFPGrappa.pc0_r2()
+    path = 'mr_utils/test_data/examples/gadgetron/'
+    file = 'meas_MID16_TRUFI_STW_TE2_FID34482.dat'
+    load_test_data(path, [file], do_return=False)
+    filename = '%s/%s' % (path, file)
 
     # Look at before sent to gadgetron
     view(filename, fft=True, load_opts={'use':'rdi'}, coil_combine_axis=-1,

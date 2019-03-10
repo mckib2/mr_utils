@@ -25,12 +25,6 @@ def gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts=None):
     # TE = 2*TR
     gs_sol = gs_recon(I0, I1, I2, I3, **gs_recon_opts)
     # gsfm = np.angle(gs_sol)/(2*np.pi*TE)
-    gsfm = -1*np.angle(gs_sol)/(np.pi*TR)
-
-    # TODO:
-    # Notice the negative factor in the above offresonance estimate.  This is
-    # because the bSSFP phase factor being added by ssfp() is 180 degrees off
-    # from where it should be.  Until this gets fixed, we need this negative
-    # sign.
+    gsfm = 1*np.angle(gs_sol)/(np.pi*TR)
 
     return gsfm

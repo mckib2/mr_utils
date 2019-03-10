@@ -7,15 +7,23 @@ import numpy as np
 from mr_utils.gadgetron import GadgetronConfig
 from mr_utils.gadgetron import configs
 from mr_utils.gadgetron import client
-from mr_utils.test_data import GadgetronClient
+from mr_utils.test_data import load_test_data
 
 class GadgetronEPIConfigTestCase(unittest.TestCase):
     '''EPI config test cases.'''
 
     def setUp(self):
         self.config = GadgetronConfig()
-        self.filename = GadgetronClient.grappa_input_filename()
-        self.epi_filename = GadgetronClient.epi_input_filename()
+
+        path = 'mr_utils/test_data/tests/gadgetron/client/'
+        file = 'grappa_test_data.h5'
+        load_test_data(path, [file], do_return=False)
+        self.filename = '%s/%s' % (path, file)
+
+        path = 'mr_utils/test_data/tests/gadgetron/client/'
+        file = 'epi_2d_out_20161020_pjv.h5'
+        load_test_data(path, [file], do_return=False)
+        self.epi_filename = '%s/%s' % (path, file)
 
     @unittest.skip('We do not have the right data to do this')
     def test_use_epi_config(self):

@@ -180,7 +180,10 @@ DESCRIPTION
 
 ```
 NAME
-    examples.cs.reordering.cardiac_radial_scr_iht
+    examples.cs.reordering.cardiac_radial_scr_iht - Use iterative hard thresholding to recover cardiac image.
+
+DESCRIPTION
+    This doesn't work very well because we're not truly sparse.
 
 
 ```

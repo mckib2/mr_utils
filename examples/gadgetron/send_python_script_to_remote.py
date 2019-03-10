@@ -12,14 +12,17 @@ import os
 
 from mr_utils.gadgetron import client
 from mr_utils.gadgetron import GadgetronConfig
-from mr_utils.test_data import GadgetronClient
+from mr_utils.test_data import load_test_data
 from mr_utils.definitions import ROOT_DIR
 from mr_utils import view
 
 if __name__ == '__main__':
 
     # Load in a numerical phantom to play around with
-    data = GadgetronClient.input_filename()
+    path = 'mr_utils/test_data/tests/gadgetron/client/'
+    file = 'input.h5'
+    load_test_data(path, [file], do_return=False)
+    data = '%s/%s' % (path, file)
 
     # Make a config
     script_dir = 'tmp/'

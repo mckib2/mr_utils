@@ -1,4 +1,8 @@
-'''Parameter mapping for numerical phantom using Taylor method.'''
+'''Parameter mapping for numerical phantom using Taylor method.
+
+Ellipses have 5 degrees of freedom, so you should use 5 or more phase-cycles.
+Use multiples of 4 since we're using GS recon, so use minimum 8.
+'''
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,12 +10,13 @@ import matplotlib.pyplot as plt
 from mr_utils.recon.ssfp import taylor_method
 from mr_utils.sim.ssfp import ssfp, elliptical_params
 from mr_utils.recon.ssfp.merry_param_mapping.plot_ellipse import plotEllipse
+from mr_utils.utils.ellipse import do_planet_rotation
 from mr_utils import view
 
 if __name__ == '__main__':
 
     # First initialize everything
-    N = 64
+    N = 32
     add_noise = False
     disp = True # this will display interesting plots along the way and at end
     num_pcs = 8 # number of phase cycles to generate -- must be divisible by 4
@@ -20,7 +25,7 @@ if __name__ == '__main__':
     T1 = np.zeros((N, N))
     T2 = np.zeros((N, N))
     offres = np.zeros((N, N))
-    alpha = np.ones((N, N))*np.deg2rad(70) # uniform flip angle across image
+    alpha = np.ones((N, N))*np.deg2rad(30) # uniform flip angle across image
     M0 = np.zeros((N, N))
 
     # Make a simple off-resonance map, linear gradient
@@ -137,11 +142,23 @@ if __name__ == '__main__':
         xe, ye = plotEllipse(t1map[row, col], t2map[row, col], TR,
                              alpha[row, col], offresmap[row, col],
                              m0map[row, col], 1)
-        plt.figure()
-        plt.plot(xt, yt, '--', label='True Ellipse')
-        plt.plot(xe, ye, ':', label='Estimated Ellipse')
-        for ii, dphi in enumerate(dphis):
-            plt.plot(Is[ii].real[row, col], Is[ii].imag[row, col], 'rx')
+
+        It = xt + 1j*yt
+        Ie = xe + 1j*ye
+
+        # So, the problem is that the ellipses have an unknown rotation that
+        # we're not accounting for.  So we'll rotate everything to be a
+        # vertical ellipse in the x > 0 half plane
+        xt, yt, _, _ = do_planet_rotation(It)
+        xe, ye, _, _ = do_planet_rotation(Ie)
+        Idphi = np.array([I0[row, col] for I0 in Is])
+        xdphi, ydphi, _, _ = do_planet_rotation(Idphi)
+
+        plt.plot(xt, yt, label='Rotated True Ellipse')
+        plt.plot(xe, ye, '--', label='Rotated Estimated Ellipse')
+        plt.plot(xdphi, ydphi, 'rx', label='Rotated Samples')
+        # for ii, dphi in enumerate(dphis):
+        #     plt.plot(Is[ii].real[row, col], Is[ii].imag[row, col], 'rx')
         plt.axis('equal')
         plt.legend()
         plt.show()

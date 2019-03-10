@@ -6,13 +6,16 @@ import numpy as np
 
 from mr_utils.gadgetron import client
 from mr_utils.gadgetron import GadgetronConfig
-from mr_utils.test_data import GadgetronClient
+from mr_utils.test_data import load_test_data
 from mr_utils import view
 
 if __name__ == '__main__':
 
     # Load in the data
-    data = GadgetronClient.grappa_input_filename()
+    path = 'mr_utils/test_data/tests/gadgetron/client/'
+    file = 'grappa_test_data.h5'
+    load_test_data(path, [file], do_return=False)
+    data = '%s/%s' % (path, file)
 
     # Look at the data to make sure we got what we got
     with h5py.File(data, 'r') as f:

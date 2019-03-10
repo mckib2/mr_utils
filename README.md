@@ -497,7 +497,10 @@ DESCRIPTION
 
 ```
 NAME
-    examples.cs.reordering.cardiac_radial_scr_iht
+    examples.cs.reordering.cardiac_radial_scr_iht - Use iterative hard thresholding to recover cardiac image.
+
+DESCRIPTION
+    This doesn't work very well because we're not truly sparse.
 
 
 ```
@@ -1169,6 +1172,10 @@ NAME
 ```
 NAME
     examples.recon.bssfp.merry_param_mapping - Parameter mapping for numerical phantom using Taylor method.
+
+DESCRIPTION
+    Ellipses have 5 degrees of freedom, so you should use 5 or more phase-cycles.
+    Use multiples of 4 since we're using GS recon, so use minimum 8.
 
 
 ```
@@ -2563,6 +2570,9 @@ DESCRIPTION
         https://github.com/edibella/Reconstruction
 
 FUNCTIONS
+    fracpowers(idx, Gx, Gy, dkxs, dkys)
+        Wrapper function to use during parallelization.
+    
     grog_interp(kspace, Gx, Gy, traj, cartdims)
         Moves radial k-space points onto a cartesian grid via the GROG method.
         
@@ -5229,7 +5239,7 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.recon.reordering.bart
+    mr_utils.recon.reordering.bart - Can we get BART to do reordering?
 
 ```
 
@@ -6149,6 +6159,9 @@ FUNCTIONS
             bSSFP imaging with an elliptical signal model." Magnetic resonance in
             medicine 71.3 (2014): 927-933.
         
+        We use a positive exponent, exp(i phi), as in Hoff and Taylor MATLAB
+        implementations.
+        
         In Hoff's paper the equation is not explicitly given for phi, so we
         implement equation [5] that gives more detailed terms, found in
             Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
@@ -6211,14 +6224,18 @@ FUNCTIONS
         Generate an entire period of the bSSFP signal profile.
     
     ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1)
-        SSFP transverse signal right after RF pulse.
+        SSFP transverse signal at time TE after excitation.
         
-        T1 -- longitudinal exponential decay time constant.
-        T2 -- transverse exponential decay time constant.
-        TR -- repetition time.
-        alpha -- flip angle.
-        field_map -- B0 field map.
+        T1 -- longitudinal exponential decay time constant (in seconds).
+        T2 -- transverse exponential decay time constant (in seconds).
+        TR -- repetition time (in seconds).
+        alpha -- flip angle (in rad).
+        field_map -- B0 field map (in Hz).
+        phase_cyc -- Linear phase-cycle increment (in rad).
         M0 -- proton density.
+        
+        T1, T2, alpha, field_map, and M0 can all be either a scalar or MxN an
+        array.  phase_cyc can be a scalar or length L vector.
         
         Implementation of equations [1-2] in
             Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
@@ -6338,7 +6355,11 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.test_data.coils.csm
+    mr_utils.test_data.coils.csm - Extremely simple coil sensitivity maps.
+
+DESCRIPTION
+    Probably better to use the generate csm map functions included in
+    ismrmrd-python-tools.
 
 FUNCTIONS
     simple_csm(N, dims=(64, 64))
@@ -6567,346 +6588,18551 @@ FUNCTIONS
 
 ```
 NAME
-    mr_utils.test_data.test_data
+    mr_utils.test_data.test_data - Provide an interface to load test data for unit tests.
+
+FUNCTIONS
+    load_test_data(path, files, do_return=True)
+        Load test data, download if necessary.
+        
+        path -- Location of directory where the test files live.
+        files -- Specific files to return.
+        do_return -- Whether or not to return loaded files as a list.
+        
+        files should be a list.  If no extension is given, .npy will be assumed.
+        do_return=True assumes .npy file will be loaded (uses numpy.load).
+
+```
+
+
+# TESTS
+## mr_utils.tests.bart.test_bartholomew
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/bart/test_bartholomew.py)
+
+```
+NAME
+    mr_utils.tests.bart.test_bartholomew - Tests for Bartholomew, BART interface object.
 
 CLASSES
-    builtins.object
-        AMPData
-        BARTReordering
-        BSSFPGrappa
-        EllipticalSignal
-        GRAPPA
-        GadgetronClient
-        GadgetronTestConfig
-        SCGROG
-        SCRReordering
-        SSFPMultiphase
-        ViewTestData
-        XProtParserTest
+    unittest.case.TestCase(builtins.object)
+        BartholomewTestCase
     
-    class AMPData(builtins.object)
-     |  ## MAT FILES
-     |  # For AMP:
-     |  
-     |  Static methods defined here:
-     |  
-     |  cdf97()
-     |  
-     |  mask()
-     |  
-     |  x0()
-     |  
-     |  y()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class BARTReordering(builtins.object)
-     |  # For BART reordering recon
-     |  
-     |  Static methods defined here:
-     |  
-     |  ksp_sim()
-     |  
-     |  lowres_img()
-     |  
-     |  lowres_ksp()
-     |  
-     |  reco1()
-     |  
-     |  reco2()
-     |  
-     |  sens()
-     |  
-     |  traj_rad2()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class BSSFPGrappa(builtins.object)
-     |  # For Gadgetron GRAPPA Examples
-     |  
-     |  Static methods defined here:
-     |  
-     |  pc0_r2()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class EllipticalSignal(builtins.object)
-     |  # For elliptical signal model:
-     |  
-     |  Static methods defined here:
-     |  
-     |  CS()
-     |  
-     |  I()
-     |  
-     |  I1()
-     |  
-     |  I2()
-     |  
-     |  I3()
-     |  
-     |  I4()
-     |  
-     |  I_max_mag()
-     |  
-     |  Id()
-     |  
-     |  w13()
-     |  
-     |  w24()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class GRAPPA(builtins.object)
-     |  # For GRAPPA Recon
-     |  
-     |  Static methods defined here:
-     |  
-     |  Im_Recon()
-     |  
-     |  S()
-     |  
-     |  S_ch()
-     |  
-     |  S_ch_new()
-     |  
-     |  S_ch_new_temp()
-     |  
-     |  S_ch_temp()
-     |  
-     |  S_new()
-     |  
-     |  T()
-     |  
-     |  T_ch_new_M()
-     |  
-     |  T_new()
-     |  
-     |  W()
-     |  
-     |  csm()
-     |  
-     |  phantom_ch()
-     |  
-     |  phantom_ch_k()
-     |  
-     |  phantom_ch_k_acl()
-     |  
-     |  phantom_ch_k_u()
-     |  
-     |  phantom_shl()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class GadgetronClient(builtins.object)
-     |  ## HDF5 FILES
-     |  # For gadgetron
-     |  
-     |  Static methods defined here:
-     |  
-     |  epi_input_filename()
-     |      Gadgetron test data.
-     |      http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/epi/epi_2d_out_20161020_pjv.h5
-     |  
-     |  generic_cartesian_grappa_filename()
-     |      Gadgetron test data.
-     |      http://gadgetrondata.blob.core.windows.net/gadgetrontestdata/tse/meas_MID00450_FID76726_SAX_TE62_DIR_TSE/ref_20160319.dat
-     |  
-     |  grappa_input_filename()
-     |  
-     |  input_filename()
-     |  
-     |  input_h5()
-     |  
-     |  raw_input_filename()
-     |  
-     |  true_output_data()
-     |  
-     |  true_output_data_grappa_cpu()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class GadgetronTestConfig(builtins.object)
-     |  ## XML FILES
-     |  # For gadgetron
-     |  
-     |  Static methods defined here:
-     |  
-     |  default_config()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class SCGROG(builtins.object)
-     |  # For SC-GROG:
-     |  
-     |  Static methods defined here:
-     |  
-     |  grog_result()
-     |  
-     |  gx_gy_results()
-     |  
-     |  test_gridder_data_4D()
-     |  
-     |  test_grog_data_4D()
-     |  
-     |  test_gx_gy_data()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class SCRReordering(builtins.object)
-     |  # For scr_reordering_adluru:
-     |  
-     |  Static methods defined here:
-     |  
-     |  Coil1_data()
-     |  
-     |  TV_re_order()
-     |  
-     |  TV_term_update()
-     |  
-     |  fidelity_update()
-     |  
-     |  mask()
-     |  
-     |  recon()
-     |  
-     |  recon_at_iter_1()
-     |  
-     |  recon_at_iter_10()
-     |  
-     |  recon_at_iter_100()
-     |  
-     |  recon_at_iter_2()
-     |  
-     |  recon_at_iter_50()
-     |  
-     |  true_orderings()
-     |  
-     |  tv_prior()
-     |  
-     |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
-     |  
-     |  __dict__
-     |      dictionary for instance variables (if defined)
-     |  
-     |  __weakref__
-     |      list of weak references to the object (if defined)
-    
-    class SSFPMultiphase(builtins.object)
-     |  ## NPY FILES
-     |  # For ssfp multiphase:
+    class BartholomewTestCase(unittest.case.TestCase)
+     |  Tests and sanity checks for your friendly, neighborhood Bartholomew.
+     |  
+     |  Method resolution order:
+     |      BartholomewTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
      |  
      |  Methods defined here:
      |  
-     |  ssfp_ankle_te_6_pc_180()
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
      |  
-     |  ssfp_ankle_te_6_pc_90()
+     |  test_bartholomew_object(self)
+     |      Make sure that B was imported as a BartholomewObject.
+     |  
+     |  test_incorrect_function_name(self)
+     |      Make sure we can catch invalid function name calls.
+     |  
+     |  test_incorrect_position_args(self)
+     |      Make sure we catch incorrect positional arguments.
+     |  
+     |  test_traj(self)
+     |      Generate a traj and make sure it has the right shape.
      |  
      |  ----------------------------------------------------------------------
-     |  Static methods defined here:
+     |  Methods inherited from unittest.case.TestCase:
      |  
-     |  ssfp_ankle_te_6_pc_0()
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+```
+
+
+## mr_utils.tests.coils.test_coil_pca
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/coils/test_coil_pca.py)
+
+```
+NAME
+    mr_utils.tests.coils.test_coil_pca - Coil combination using PCA unit tests.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestPCA
     
-    class ViewTestData(builtins.object)
-     |  # For VIEW testing:
+    class TestPCA(unittest.case.TestCase)
+     |  Test PCA implmentations.
      |  
-     |  Static methods defined here:
+     |  Method resolution order:
+     |      TestPCA
+     |      unittest.case.TestCase
+     |      builtins.object
      |  
-     |  ssfp_ankle_te_6_pc_0()
+     |  Methods defined here:
+     |  
+     |  test_python_pca(self)
+     |      Make sure that python implementation matches sklearn's.
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.coils.test_gs_coil_combine
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/coils/test_gs_coil_combine.py)
+
+```
+NAME
+    mr_utils.tests.coils.test_gs_coil_combine - Remnants from abstract messes...
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GSCoilCombineTestCase
     
-    class XProtParserTest(builtins.object)
-     |  ## XPROT FILES
-     |  # For xprot_parser
+    class GSCoilCombineTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
      |  
-     |  Static methods defined here:
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
      |  
-     |  full_sample_xprot()
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
      |  
-     |  sample_xprot()
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      GSCoilCombineTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
      |  
      |  ----------------------------------------------------------------------
-     |  Data descriptors defined here:
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
      |  
      |  __dict__
      |      dictionary for instance variables (if defined)
      |  
      |  __weakref__
      |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.config.test_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/config/test_config.py)
+
+```
+NAME
+    mr_utils.tests.config.test_config - Unit tests for ProfileConfig.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        ProfileConfigTestCase
+    
+    class ProfileConfigTestCase(unittest.case.TestCase)
+     |  Sanity checks for generation of profiles.config.
+     |  
+     |  Method resolution order:
+     |      ProfileConfigTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  test_activate_profile(self)
+     |      Make sure that profiles can be activated.
+     |  
+     |  test_create_profile(self)
+     |      Create dummy profile and verify its existence.
+     |  
+     |  test_get_val(self)
+     |      Make sure default value is accessible through get_config_val.
+     |  
+     |  test_set_config(self)
+     |      Set a configuration value.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.cs.test_amp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/cs/test_amp.py)
+
+```
+NAME
+    mr_utils.tests.cs.test_amp - Approximate message passing algorithm unit test cases.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestAMP
+    
+    class TestAMP(unittest.case.TestCase)
+     |  Make sure we line up with Stanford results.
+     |  
+     |  Method resolution order:
+     |      TestAMP
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_uft(self)
+     |      Test undersampled fourier encoding.
+     |  
+     |  test_wavelet_decomposition(self)
+     |      Make sure we decompose using the same wavelet transformation.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.field_map.test_gs_field_map
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/field_map/test_gs_field_map.py)
+
+```
+NAME
+    mr_utils.tests.field_map.test_gs_field_map - Use elliptical signal model to create field maps.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GSFMTestCase
+    
+    class GSFMTestCase(unittest.case.TestCase)
+     |  Test cases against GRE field mapping.
+     |  
+     |  Method resolution order:
+     |      GSFMTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_simulated_phantom_2d(self)
+     |      Make field maps using GRE and GS methods to verify they match.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.gadgetron.test_client
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/gadgetron/test_client.py)
+
+```
+NAME
+    mr_utils.tests.gadgetron.test_client - Gadgetron client unit test cases.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GadgetronClientTestCase
+    
+    class GadgetronClientTestCase(unittest.case.TestCase)
+     |  Make sure the client can handle data in several formats.
+     |  
+     |  Method resolution order:
+     |      GadgetronClientTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_client_filename(self)
+     |      Give the client only the filename.
+     |  
+     |  test_client_ismrmrd_hdf5_input(self)
+     |      Give the client the hdf5 file.
+     |  
+     |  test_client_raw_input(self)
+     |      Give the client the path to the raw data.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.gadgetron.test_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/gadgetron/test_config.py)
+
+```
+NAME
+    mr_utils.tests.gadgetron.test_config - Unit tests for Gadgetron configuration generation.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GadgetronConfigTestCase
+    
+    class GadgetronConfigTestCase(unittest.case.TestCase)
+     |  Verify that mr_util configurations work.
+     |  
+     |  Method resolution order:
+     |      GadgetronConfigTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_create_default_config(self)
+     |      Make sure default config lines up with actual.
+     |  
+     |  test_use_default_config(self)
+     |      Send default config to gadgetron to verify that it runs.
+     |  
+     |  test_use_distributed_default_config(self)
+     |      Send distributed_default to gadgetron.
+     |  
+     |  test_use_distributed_image_default_config(self)
+     |      Send distributed_image_default to Gadgetron.
+     |  
+     |  test_use_grappa_cpu_config(self)
+     |      Make sure grappa_cpu config lines up with actual.
+     |  
+     |  test_use_grappa_float_cpu_config(self)
+     |      Send grappa_cpu to gadgetron to verify that it runs.
+     |  
+     |  test_use_grappa_unoptimized_cpu_config(self)
+     |      Send grappa_unoptimized_cpu to gadgetron to verify that it runs.
+     |  
+     |  test_use_grappa_unoptimized_float_cpu_config(self)
+     |      Send grappa_unoptimized_float to gadgetron.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.gadgetron.test_epi_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/gadgetron/test_epi_config.py)
+
+```
+NAME
+    mr_utils.tests.gadgetron.test_epi_config - EPI config test cases.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GadgetronEPIConfigTestCase
+    
+    class GadgetronEPIConfigTestCase(unittest.case.TestCase)
+     |  EPI config test cases.
+     |  
+     |  Method resolution order:
+     |      GadgetronEPIConfigTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_use_epi_config(self)
+     |      Compare results of homegrown config and gadgetron config.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.gadgetron.test_generic_config
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/gadgetron/test_generic_config.py)
+
+```
+NAME
+    mr_utils.tests.gadgetron.test_generic_config - Unit tests for generic config files.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GadgetronGenericConfigTestCase
+    
+    class GadgetronGenericConfigTestCase(unittest.case.TestCase)
+     |  Unit tests for generic config files.
+     |  
+     |  Method resolution order:
+     |      GadgetronGenericConfigTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_use_generic_cartesian_grappa_config(self)
+     |      Compare homegrown to Gagdetron config.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.gridding.test_scgrog
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/gridding/test_scgrog.py)
+
+```
+NAME
+    mr_utils.tests.gridding.test_scgrog - Unit tests for SCGROG interpolation method.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        SCGrogTestCase
+    
+    class SCGrogTestCase(unittest.case.TestCase)
+     |  Validate against output of MATLAB implementation.
+     |  
+     |  Method resolution order:
+     |      SCGrogTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  test_get_gx_gy_results(self)
+     |      Validate generation of GRAPPA kernels, Gx, Gy.
+     |  
+     |  test_scgrog(self)
+     |      Make sure we get the same interpolation as MATLAB implementation.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.load_data.test_pyport
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/load_data/test_pyport.py)
+
+```
+NAME
+    mr_utils.tests.load_data.test_pyport - Unit tests for python port of siemens_to_ismrmrd.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        PyPortTestCase
+    
+    class PyPortTestCase(unittest.case.TestCase)
+     |  Sanity check test cases.
+     |  
+     |  Method resolution order:
+     |      PyPortTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  assert_stdout(self, fun, args, expected_output, mock_stdout=None)
+     |      Assertion function for writing to stdout.
+     |      
+     |      fun -- Function to run.
+     |      args -- Arguments to pass to fun (dictionary).
+     |      expected_output -- (string) What you hope to see from stdout.
+     |      mock_stdout -- Used by @unittest.mock.patch, do not provide.
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_bssfp_data(self)
+     |      Sample bSSFP data set.
+     |  
+     |  test_display_embedded_files(self)
+     |      Make sure we display list of embedded files.
+     |  
+     |  test_display_version(self)
+     |      Make sure we're displaying versions of stuffs.
+     |  
+     |  test_extract_file_not_valid(self)
+     |      Make sure we raise an error when embedded file is not valid.
+     |  
+     |  test_extract_many_files(self)
+     |      Make sure we can handle saving multiple files.
+     |  
+     |  test_extract_single_file(self)
+     |      Make sure we can save file if the user wants it.
+     |  
+     |  test_invalid_pmapstyle(self)
+     |      Make sure we break on invalid pMapStyle.
+     |  
+     |  test_invalid_user_style_sheet(self)
+     |      Make sure we raise an exception if user stylesheet is not valud.
+     |  
+     |  test_require_filename(self)
+     |      If we don't have a filename, we need to stop!
+     |  
+     |  test_supplied_user_style_sheet_and_pMapStyle(self)
+     |      Make sure we can't supply a param map AND an embedded file.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.load_data.test_xprot_parser
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/load_data/test_xprot_parser.py)
+
+```
+NAME
+    mr_utils.tests.load_data.test_xprot_parser
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        XProtParserTestCase
+    
+    class XProtParserTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      XProtParserTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+FUNCTIONS
+    isAtomOrFlat(d)
+    
+    isDict(d)
+    
+    leafPaths(nestedDicts, noDeeper=<function isAtomOrFlat at 0x7f264310cea0>)
+        For each leaf in NESTEDDICTS, this yields a
+        dictionary consisting of only the entries between the root
+        and the leaf.
+
+
+```
+
+
+## mr_utils.tests.matlab.test_matlab_client
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/matlab/test_matlab_client.py)
+
+```
+NAME
+    mr_utils.tests.matlab.test_matlab_client - Testing the MATLAB client connected to remote server.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestMATLABClient
+    
+    class TestMATLABClient(unittest.case.TestCase)
+     |  Simple variable transfer unit tests.
+     |  
+     |  Method resolution order:
+     |      TestMATLABClient
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  test_get_variables(self)
+     |      Assign variables on remote and then retrieve them.
+     |  
+     |  test_put_and_get_variables(self)
+     |      Assign matrix on remote and then retrieve.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.optimization.test_gd
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/optimization/test_gd.py)
+
+```
+NAME
+    mr_utils.tests.optimization.test_gd - Validate perfomance of gradient descent algorithm.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestGD
+    
+    class TestGD(unittest.case.TestCase)
+     |  Using example optimization functions, demonstrate that GD can optimize.
+     |  
+     |  Method resolution order:
+     |      TestGD
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_ackley(self)
+     |      Ackley function with min at 0.
+     |  
+     |  test_beale(self)
+     |      Beale function with min at (3, 1/2).
+     |  
+     |  test_bohachevsky1(self)
+     |      Bohachevsky function 1 with min at origin.
+     |  
+     |  test_bohachevsky2(self)
+     |      Bohachevsky function 2 with min at origin.
+     |  
+     |  test_bohachevsky3(self)
+     |      Bohachevsky function 3 with min at origin.
+     |  
+     |  test_maxiter(self)
+     |      Make sure that hitting maxiter raises a warning.
+     |  
+     |  test_quadratic(self)
+     |      Simple quadratic function with min at 9/4.
+     |  
+     |  test_rastrigin(self)
+     |      Rastrigin function with min at 0.
+     |  
+     |  test_sphere(self)
+     |      Sphere function with min at origin.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_grappa
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_grappa.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_grappa - Test module for simple GRAPPA implementation.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GRAPPAUnitTest
+    
+    class GRAPPAUnitTest(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      GRAPPAUnitTest
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_grappa2d(self)
+     |      Do simple 2d recon.
+     |  
+     |  test_recon(self)
+     |      Replicate MATLAB results.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_gs_recon
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_gs_recon.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_gs_recon - Verification, validation of geometric solution to elliptical signal model.
+
+DESCRIPTION
+    Test solution against naive loop implementation, Hoff's MATLAB implementation,
+    and Taylor's MATLAB implementation.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        GSReconKneeData
+        GSReconTestCase
+    
+    class GSReconKneeData(unittest.case.TestCase)
+     |  Make sure our implementation matches output of Taylor knee recon.
+     |  
+     |  Method resolution order:
+     |      GSReconKneeData
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_complex_sum(self)
+     |      Verify complex sum is the same as Taylor's implementation.
+     |  
+     |  test_direct_solution(self)
+     |      Make sure first pass solution is the same as Taylor's.
+     |  
+     |  test_gs_recon_knee(self)
+     |      Verify the final solution matches Taylor's solution.
+     |  
+     |  test_max_magnitudes(self)
+     |      Make sure max magnitues are the same as Taylor's implementation.
+     |  
+     |  test_weighted_combination(self)
+     |      Make sure second pass solution is the same as Taylor's.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+    
+    class GSReconTestCase(unittest.case.TestCase)
+     |  Verify technical implementation of algorithm.
+     |  
+     |  Method resolution order:
+     |      GSReconTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_gs_recon(self)
+     |      Test matrix implementation against naive loop implementation.
+     |  
+     |  test_gs_recon3d(self)
+     |      Make sure 3d recon gives same answer as running 2d on all slices.
+     |  
+     |  test_max_magnitudes(self)
+     |      Make sure we're indeed finding the maximum pixels.
+     |  
+     |  test_noisy_gs_recon(self)
+     |      Add noise and make sure implementations are still identical.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_multiphase
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_multiphase.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_multiphase
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        MultiphaseTestCase
+    
+    class MultiphaseTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      MultiphaseTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_multiphase(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_partial_fourier_pocs
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_partial_fourier_pocs.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_partial_fourier_pocs
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        PartialFourerPOCSTestCase
+    
+    class PartialFourerPOCSTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      PartialFourerPOCSTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  test_partial_fourier_pocs(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_patch_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_patch_reordering.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_patch_reordering
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        PatchReorderTestCase
+    
+    class PatchReorderTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      PatchReorderTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_reorder(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_planet
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_planet.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_planet - Tests for python PLANET implementation.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestPLANET
+    
+    class TestPLANET(unittest.case.TestCase)
+     |  PLANET sanity checks.
+     |  
+     |  Method resolution order:
+     |      TestPLANET
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_ellipse_fit(self)
+     |      Make sure we can fit an ellipse using complex ssfp data.
+     |  
+     |  test_no_noise_case(self)
+     |      Make sure we perform in ideal conditions.
+     |  
+     |  test_requires_6_phase_cycles(self)
+     |      Make sure we can't continue without 6 phase-cycles.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_rudin_osher_fatemi
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_rudin_osher_fatemi.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_rudin_osher_fatemi
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        RudinEtAlTestCase
+    
+    class RudinEtAlTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      RudinEtAlTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_algo_for_loop(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_scr_reordering
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_scr_reordering.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_scr_reordering
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        SCRReorderingTestCase
+    
+    class SCRReorderingTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      SCRReorderingTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_TVG_re_order(self)
+     |  
+     |  test_TV_term_update(self)
+     |  
+     |  test_scr_reordering_adluru_fidelity_update(self)
+     |  
+     |  test_scr_reordering_adluru_true_prior_100_iter(self)
+     |  
+     |  test_scr_reordering_adluru_true_prior_10_iter(self)
+     |  
+     |  test_scr_reordering_adluru_true_prior_1_iter(self)
+     |  
+     |  test_scr_reordering_adluru_true_prior_2_iter(self)
+     |  
+     |  test_scr_reordering_adluru_true_prior_50_iter(self)
+     |  
+     |  test_sort_real_imag_parts_space(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_scr_reordering_one_d
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_scr_reordering_one_d.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_scr_reordering_one_d
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        SCRReordering1D
+    
+    class SCRReordering1D(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      SCRReordering1D
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_compare_lasso(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.recon.test_tv_denoising
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/recon/test_tv_denoising.py)
+
+```
+NAME
+    mr_utils.tests.recon.test_tv_denoising
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestTVDenoisingTestCase
+    
+    class TestTVDenoisingTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      TestTVDenoisingTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_tv_denoising(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_bloch_simulator
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_bloch_simulator.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_bloch_simulator - Test numerical Bloch simulations.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestBloch
+    
+    class TestBloch(unittest.case.TestCase)
+     |  Verify bloch simulations.
+     |  
+     |  Method resolution order:
+     |      TestBloch
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_against_gre(self)
+     |      Test implementation against GRE simulation.
+     |  
+     |  test_matrix_against_loop(self)
+     |      Test matrix implementation against naive loop implementation.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_gre
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_gre.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_gre - Test GRE contrast simulations.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestGRE
+    
+    class TestGRE(unittest.case.TestCase)
+     |  Verify GRE simulations against various implementations.
+     |  
+     |  Method resolution order:
+     |      TestGRE
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_gre_sim_against_closed_form_solution(self)
+     |      Verify iterative solution against closed form solution.
+     |      
+     |      Uses fixed number of iterations.
+     |  
+     |  test_gre_sim_mat_against_gre_sim_loop(self)
+     |      Verify against loop implementation.
+     |  
+     |  test_gre_sim_using_tol_against_closed_form_sol(self)
+     |      Verify iterative solution against closed form solution.
+     |      
+     |      Used tolerance instead of fixed number of iterations.
+     |  
+     |  test_gre_unspoiled_and_bssfp(self)
+     |      Very balanced steady state solution.
+     |  
+     |  test_spoiled_gre(self)
+     |      Sanity check -- all nonzero pixels should be the same intensity.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_motion
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_motion.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_motion
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        SimMotionTestCase
+    
+    class SimMotionTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      SimMotionTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  test_motion(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_rayleigh
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_rayleigh.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_rayleigh - Test generation of Rayleigh noise.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        RayleighNoiseTestCase
+    
+    class RayleighNoiseTestCase(unittest.case.TestCase)
+     |  Tests against scipy's statistics module.
+     |  
+     |  Method resolution order:
+     |      RayleighNoiseTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_rayleigh_high_noise(self)
+     |      Verify rayleigh high noise case against scipy's statistics module.
+     |  
+     |  test_rayleigh_is_rician_high_noise(self)
+     |      Verify rayleigh becomes rician high noise scipy's statistics module.
+     |  
+     |  test_rayleigh_is_rician_low_noise(self)
+     |      Verify rayleigh becomes rician low noise scipy's statistics module.
+     |  
+     |  test_rayleigh_low_noise(self)
+     |      Verify rayleigh low noise case against scipy's statistics module.
+     |  
+     |  test_rayleigh_mean_high_noise(self)
+     |      Verify mean of high noise case with scipy's statistics module.
+     |  
+     |  test_rayleigh_mean_low_noise(self)
+     |      Verify mean of low noise case with scipy's statistics module.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+```
+
+
+## mr_utils.tests.sim.test_rician
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_rician.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_rician - Test generation of Rician noise.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        RicianNoiseTestCase
+    
+    class RicianNoiseTestCase(unittest.case.TestCase)
+     |  Tests against scipy's statistics module.
+     |  
+     |  Method resolution order:
+     |      RicianNoiseTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_rician_high_noise(self)
+     |      Verify high noise case against scipy statistics module.
+     |  
+     |  test_rician_low_noise(self)
+     |      Verify low noise case against scipy statistics module.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+```
+
+
+## mr_utils.tests.sim.test_single_voxel
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_single_voxel.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_single_voxel
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        SingleVoxelImagingTestCase
+    
+    class SingleVoxelImagingTestCase(unittest.case.TestCase)
+     |  A class whose instances are single test cases.
+     |  
+     |  By default, the test code itself should be placed in a method named
+     |  'runTest'.
+     |  
+     |  If the fixture may be used for many test cases, create as
+     |  many test methods as are needed. When instantiating such a TestCase
+     |  subclass, specify in the constructor arguments the name of the test method
+     |  that the instance is to execute.
+     |  
+     |  Test authors should subclass TestCase for their own tests. Construction
+     |  and deconstruction of the test's environment ('fixture') can be
+     |  implemented by overriding the 'setUp' and 'tearDown' methods respectively.
+     |  
+     |  If it is necessary to override the __init__ method, the base class
+     |  __init__ method must always be called. It is important that subclasses
+     |  should not change the signature of their __init__ method, since instances
+     |  of the classes are instantiated automatically by parts of the framework
+     |  in order to be run.
+     |  
+     |  When subclassing TestCase, you can set these attributes:
+     |  * failureException: determines which exception will be raised when
+     |      the instance's assertion methods fail; test methods raising this
+     |      exception will be deemed to have 'failed' rather than 'errored'.
+     |  * longMessage: determines whether long messages (including repr of
+     |      objects used in assert methods) will be printed on failure in *addition*
+     |      to any explicit message passed.
+     |  * maxDiff: sets the maximum length of a diff in failure messages
+     |      by assert methods using difflib. It is looked up as an instance
+     |      attribute so can be configured by individual tests if required.
+     |  
+     |  Method resolution order:
+     |      SingleVoxelImagingTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  test_combine_images(self)
+     |  
+     |  test_single_voxel(self)
+     |  
+     |  test_single_voxel_phantom_data(self)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_ssfp
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_ssfp.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_ssfp - Test cases for SSFP simulation.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        DictionaryTestCase
+        EllipticalSignalTestCase
+        MultiplePhaseCycleTestCase
+    
+    class DictionaryTestCase(unittest.case.TestCase)
+     |  Look up df in a dictionary of T1,T2,alpha.
+     |  
+     |  Method resolution order:
+     |      DictionaryTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_dictionary(self)
+     |      Verify implementation against a naive loop implementation.
+     |  
+     |  test_find_atom(self)
+     |      Test method that finds atom in a given dictionary.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+    
+    class EllipticalSignalTestCase(unittest.case.TestCase)
+     |  Test elliptical signal model functions against cartesian, NMR funcs.
+     |  
+     |  Method resolution order:
+     |      EllipticalSignalTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_banding_sim_2d(self)
+     |      Make sure banding looks the same coming from NMR params and ESM.
+     |  
+     |  test_center_of_mass(self)
+     |      Make sure we can find the center of mass of an ellipse.
+     |  
+     |  test_cross_point(self)
+     |      Find cross point from cartesian and ESM function.
+     |  
+     |  test_make_ellipse(self)
+     |      Make an ellipse given NMR params and elliptical params.
+     |  
+     |  test_spectrum(self)
+     |      Generate bSSFP spectrum.
+     |  
+     |  test_ssfp_sim(self)
+     |      Generate signal from bSSFP signal eq and elliptical model.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+    
+    class MultiplePhaseCycleTestCase(unittest.case.TestCase)
+     |  Compute multiple phase-cycles at once.
+     |  
+     |  Method resolution order:
+     |      MultiplePhaseCycleTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_many_phase_cycles_single_point(self)
+     |      Make sure we can do a bunch of them at once.
+     |  
+     |  test_two_phase_cycles_multiple_point(self)
+     |      Now make MxN param maps and simulate multiple phase-cycles.
+     |  
+     |  test_two_phase_cycles_single_point(self)
+     |      Try doing two phase-cycles.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_ssfp_2d_sim
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_ssfp_2d_sim.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_ssfp_2d_sim - Make sure 2D SSFP contrast simulation works.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        BSSFP2DSimTestCase
+    
+    class BSSFP2DSimTestCase(unittest.case.TestCase)
+     |  Test Cases for bSSFP contrast simulation.
+     |  
+     |  Method resolution order:
+     |      BSSFP2DSimTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_gs(self)
+     |      Test GS recon using simulated data.
+     |  
+     |  test_t1_t2_field_map_mats(self)
+     |      Generate simulation given t1,t2, and field maps.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.sim.test_ssfp_quantitative_field_mapping
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/sim/test_ssfp_quantitative_field_mapping.py)
+
+```
+NAME
+    mr_utils.tests.sim.test_ssfp_quantitative_field_mapping - Test Quantitative field map functions.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestQuantitativeFieldMap
+    
+    class TestQuantitativeFieldMap(unittest.case.TestCase)
+     |  Test quantitative field mapping functions.
+     |  
+     |  Method resolution order:
+     |      TestQuantitativeFieldMap
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_simulated_field_maps(self)
+     |      Simulate the field maps and see if we can recover them.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.test_data.test_coils
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/test_data/test_coils.py)
+
+```
+NAME
+    mr_utils.tests.test_data.test_coils - Unit tests for simple csm.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        CoilsTestCase
+    
+    class CoilsTestCase(unittest.case.TestCase)
+     |  Sanity checks for coil sensitivity generation.
+     |  
+     |  Method resolution order:
+     |      CoilsTestCase
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_csm_generation(self)
+     |      Simple csm generation.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.utils.test_orderings
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/utils/test_orderings.py)
+
+```
+NAME
+    mr_utils.tests.utils.test_orderings - Tests for reorderings.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestOrderings
+    
+    class TestOrderings(unittest.case.TestCase)
+     |  Test orderings of matrices to make sure we're doing them right.
+     |  
+     |  Method resolution order:
+     |      TestOrderings
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_colwise(self)
+     |      Make sure columns are ordered.
+     |  
+     |  test_inverse_colwise(self)
+     |      Make sure we make it back from colwise ordering.
+     |  
+     |  test_inverse_rowwise(self)
+     |      Make sure we make it back from rowwise ordering.
+     |  
+     |  test_random_match(self)
+     |      Try to match a matrix as closely as possible.
+     |  
+     |  test_random_search_function(self)
+     |      Make sure that we increase sparsity when using transform function.
+     |  
+     |  test_random_search_matrix(self)
+     |      Make sure that we increase sparsity when using transform matrix.
+     |  
+     |  test_rowwise(self)
+     |      Make sure rows get ordered.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.utils.test_printtables
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/utils/test_printtables.py)
+
+```
+NAME
+    mr_utils.tests.utils.test_printtables - Unit tests for Table object.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestPrintTable
+    
+    class TestPrintTable(unittest.case.TestCase)
+     |  Formatting tests.
+     |  
+     |  Method resolution order:
+     |      TestPrintTable
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_table_header(self)
+     |      Make sure header is the correct width.
+     |  
+     |  test_table_header_int_width(self)
+     |      Make sure headers are the correct width.
+     |  
+     |  test_table_row(self)
+     |      Make sure rows are the correct widths.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.utils.test_wavelets
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/utils/test_wavelets.py)
+
+```
+NAME
+    mr_utils.tests.utils.test_wavelets - Make sure wavelet transforms work the way we want them to.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestCDF97Wavelets
+        TestWavelets
+    
+    class TestCDF97Wavelets(unittest.case.TestCase)
+     |  Make sure CDF 9/7 wavelets do what they're supposed to.
+     |  
+     |  Method resolution order:
+     |      TestCDF97Wavelets
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_forward_inverse(self)
+     |      Test forward transform invertibility.
+     |  
+     |  test_max_level(self)
+     |      Make sure we clip the level at the high end.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+    
+    class TestWavelets(unittest.case.TestCase)
+     |  Make sure that arbitrary wavelet transforms can be performed.
+     |  
+     |  Method resolution order:
+     |      TestWavelets
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_forward_inverse(self)
+     |      Test forward transform invertibility.
+     |  
+     |  test_max_level(self)
+     |      Make sure we clip the level at the high end.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
+
+```
+
+
+## mr_utils.tests.view.test_view
+
+[Source](https://github.com/mckib2/mr_utils/blob/master/mr_utils/tests/view/test_view.py)
+
+```
+NAME
+    mr_utils.tests.view.test_view - Unit tests for view module.
+
+DESCRIPTION
+    The view function does a lot of things.  To help with debugging, it has the
+    'test_run' argument that doesn't plot anything, instead it sends back an info
+    dictionary with all the debugging variables included.
+
+CLASSES
+    unittest.case.TestCase(builtins.object)
+        TestView
+    
+    class TestView(unittest.case.TestCase)
+     |  Make sure view is doing what we tell it to do.
+     |  
+     |  Method resolution order:
+     |      TestView
+     |      unittest.case.TestCase
+     |      builtins.object
+     |  
+     |  Methods defined here:
+     |  
+     |  setUp(self)
+     |      Hook method for setting up the test fixture before exercising it.
+     |  
+     |  test_view_coil_combine_inati(self)
+     |      Coil combine using the inati iterative method.
+     |  
+     |  test_view_coil_combine_pca(self)
+     |      Coil combine the image using the PCA method.
+     |  
+     |  test_view_coil_combine_walsh(self)
+     |      Coil combine the image using the walsh iterative method.
+     |  
+     |  test_view_load_npy_with_load_opts(self)
+     |      Load in .npy with invalid option.
+     |  
+     |  test_view_load_vanilla_npy(self)
+     |      Simple test case of viewing single .npy image only.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Methods inherited from unittest.case.TestCase:
+     |  
+     |  __call__(self, *args, **kwds)
+     |      Call self as a function.
+     |  
+     |  __eq__(self, other)
+     |      Return self==value.
+     |  
+     |  __hash__(self)
+     |      Return hash(self).
+     |  
+     |  __init__(self, methodName='runTest')
+     |      Create an instance of the class that will use the named test
+     |      method when executed. Raises a ValueError if the instance does
+     |      not have a method with the specified name.
+     |  
+     |  __repr__(self)
+     |      Return repr(self).
+     |  
+     |  __str__(self)
+     |      Return str(self).
+     |  
+     |  addCleanup(self, function, *args, **kwargs)
+     |      Add a function, with arguments, to be called when the test is
+     |      completed. Functions added are called on a LIFO basis and are
+     |      called after tearDown on test failure or success.
+     |      
+     |      Cleanup items are called even if setUp fails (unlike tearDown).
+     |  
+     |  addTypeEqualityFunc(self, typeobj, function)
+     |      Add a type specific assertEqual style function to compare a type.
+     |      
+     |      This method is for use by TestCase subclasses that need to register
+     |      their own type equality functions to provide nicer error messages.
+     |      
+     |      Args:
+     |          typeobj: The data type to call this function on when both values
+     |                  are of the same type in assertEqual().
+     |          function: The callable taking two arguments and an optional
+     |                  msg= argument that raises self.failureException with a
+     |                  useful error message when the two arguments are not equal.
+     |  
+     |  assertAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are unequal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is more than the given
+     |      delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      If the two objects compare equal then they will automatically
+     |      compare almost equal.
+     |  
+     |  assertAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertCountEqual(self, first, second, msg=None)
+     |      An unordered sequence comparison asserting that the same elements,
+     |      regardless of order.  If the same element occurs more than once,
+     |      it verifies that the elements occur the same number of times.
+     |      
+     |          self.assertEqual(Counter(list(first)),
+     |                           Counter(list(second)))
+     |      
+     |       Example:
+     |          - [0, 1, 1] and [1, 0, 1] compare equal.
+     |          - [0, 0, 1] and [0, 1] compare unequal.
+     |  
+     |  assertDictContainsSubset(self, subset, dictionary, msg=None)
+     |      Checks whether dictionary is a superset of subset.
+     |  
+     |  assertDictEqual(self, d1, d2, msg=None)
+     |  
+     |  assertEqual(self, first, second, msg=None)
+     |      Fail if the two objects are unequal as determined by the '=='
+     |      operator.
+     |  
+     |  assertEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertFalse(self, expr, msg=None)
+     |      Check that the expression is false.
+     |  
+     |  assertGreater(self, a, b, msg=None)
+     |      Just like self.assertTrue(a > b), but with a nicer default message.
+     |  
+     |  assertGreaterEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a >= b), but with a nicer default message.
+     |  
+     |  assertIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a in b), but with a nicer default message.
+     |  
+     |  assertIs(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is b), but with a nicer default message.
+     |  
+     |  assertIsInstance(self, obj, cls, msg=None)
+     |      Same as self.assertTrue(isinstance(obj, cls)), with a nicer
+     |      default message.
+     |  
+     |  assertIsNone(self, obj, msg=None)
+     |      Same as self.assertTrue(obj is None), with a nicer default message.
+     |  
+     |  assertIsNot(self, expr1, expr2, msg=None)
+     |      Just like self.assertTrue(a is not b), but with a nicer default message.
+     |  
+     |  assertIsNotNone(self, obj, msg=None)
+     |      Included for symmetry with assertIsNone.
+     |  
+     |  assertLess(self, a, b, msg=None)
+     |      Just like self.assertTrue(a < b), but with a nicer default message.
+     |  
+     |  assertLessEqual(self, a, b, msg=None)
+     |      Just like self.assertTrue(a <= b), but with a nicer default message.
+     |  
+     |  assertListEqual(self, list1, list2, msg=None)
+     |      A list-specific equality assertion.
+     |      
+     |      Args:
+     |          list1: The first list to compare.
+     |          list2: The second list to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertLogs(self, logger=None, level=None)
+     |      Fail unless a log message of level *level* or higher is emitted
+     |      on *logger_name* or its children.  If omitted, *level* defaults to
+     |      INFO and *logger* defaults to the root logger.
+     |      
+     |      This method must be used as a context manager, and will yield
+     |      a recording object with two attributes: `output` and `records`.
+     |      At the end of the context manager, the `output` attribute will
+     |      be a list of the matching formatted log messages and the
+     |      `records` attribute will be a list of the corresponding LogRecord
+     |      objects.
+     |      
+     |      Example::
+     |      
+     |          with self.assertLogs('foo', level='INFO') as cm:
+     |              logging.getLogger('foo').info('first message')
+     |              logging.getLogger('foo.bar').error('second message')
+     |          self.assertEqual(cm.output, ['INFO:foo:first message',
+     |                                       'ERROR:foo.bar:second message'])
+     |  
+     |  assertMultiLineEqual(self, first, second, msg=None)
+     |      Assert that two multi-line strings are equal.
+     |  
+     |  assertNotAlmostEqual(self, first, second, places=None, msg=None, delta=None)
+     |      Fail if the two objects are equal as determined by their
+     |      difference rounded to the given number of decimal places
+     |      (default 7) and comparing to zero, or by comparing that the
+     |      difference between the two objects is less than the given delta.
+     |      
+     |      Note that decimal places (from zero) are usually not the same
+     |      as significant digits (measured from the most significant digit).
+     |      
+     |      Objects that are equal automatically fail.
+     |  
+     |  assertNotAlmostEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotEqual(self, first, second, msg=None)
+     |      Fail if the two objects are equal as determined by the '!='
+     |      operator.
+     |  
+     |  assertNotEquals = deprecated_func(*args, **kwargs)
+     |  
+     |  assertNotIn(self, member, container, msg=None)
+     |      Just like self.assertTrue(a not in b), but with a nicer default message.
+     |  
+     |  assertNotIsInstance(self, obj, cls, msg=None)
+     |      Included for symmetry with assertIsInstance.
+     |  
+     |  assertNotRegex(self, text, unexpected_regex, msg=None)
+     |      Fail the test if the text matches the regular expression.
+     |  
+     |  assertNotRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRaises(self, expected_exception, *args, **kwargs)
+     |      Fail unless an exception of class expected_exception is raised
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments. If a different type of exception is
+     |      raised, it will not be caught, and the test case will be
+     |      deemed to have suffered an error, exactly as for an
+     |      unexpected exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertRaises(SomeException):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertRaises
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the exception as
+     |      the 'exception' attribute. This allows you to inspect the
+     |      exception after the assertion::
+     |      
+     |          with self.assertRaises(SomeException) as cm:
+     |              do_something()
+     |          the_exception = cm.exception
+     |          self.assertEqual(the_exception.error_code, 3)
+     |  
+     |  assertRaisesRegex(self, expected_exception, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a raised exception matches a regex.
+     |      
+     |      Args:
+     |          expected_exception: Exception class expected to be raised.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertRaisesRegex is used as a context manager.
+     |  
+     |  assertRaisesRegexp = deprecated_func(*args, **kwargs)
+     |  
+     |  assertRegex(self, text, expected_regex, msg=None)
+     |      Fail the test unless the text matches the regular expression.
+     |  
+     |  assertRegexpMatches = deprecated_func(*args, **kwargs)
+     |  
+     |  assertSequenceEqual(self, seq1, seq2, msg=None, seq_type=None)
+     |      An equality assertion for ordered sequences (like lists and tuples).
+     |      
+     |      For the purposes of this function, a valid ordered sequence type is one
+     |      which can be indexed, has a length, and has an equality operator.
+     |      
+     |      Args:
+     |          seq1: The first sequence to compare.
+     |          seq2: The second sequence to compare.
+     |          seq_type: The expected datatype of the sequences, or None if no
+     |                  datatype should be enforced.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertSetEqual(self, set1, set2, msg=None)
+     |      A set-specific equality assertion.
+     |      
+     |      Args:
+     |          set1: The first set to compare.
+     |          set2: The second set to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |      
+     |      assertSetEqual uses ducktyping to support different types of sets, and
+     |      is optimized for sets specifically (parameters must support a
+     |      difference method).
+     |  
+     |  assertTrue(self, expr, msg=None)
+     |      Check that the expression is true.
+     |  
+     |  assertTupleEqual(self, tuple1, tuple2, msg=None)
+     |      A tuple-specific equality assertion.
+     |      
+     |      Args:
+     |          tuple1: The first tuple to compare.
+     |          tuple2: The second tuple to compare.
+     |          msg: Optional message to use on failure instead of a list of
+     |                  differences.
+     |  
+     |  assertWarns(self, expected_warning, *args, **kwargs)
+     |      Fail unless a warning of class warnClass is triggered
+     |      by the callable when invoked with specified positional and
+     |      keyword arguments.  If a different type of warning is
+     |      triggered, it will not be handled: depending on the other
+     |      warning filtering rules in effect, it might be silenced, printed
+     |      out, or raised as an exception.
+     |      
+     |      If called with the callable and arguments omitted, will return a
+     |      context object used like this::
+     |      
+     |           with self.assertWarns(SomeWarning):
+     |               do_something()
+     |      
+     |      An optional keyword argument 'msg' can be provided when assertWarns
+     |      is used as a context object.
+     |      
+     |      The context manager keeps a reference to the first matching
+     |      warning as the 'warning' attribute; similarly, the 'filename'
+     |      and 'lineno' attributes give you information about the line
+     |      of Python code from which the warning was triggered.
+     |      This allows you to inspect the warning after the assertion::
+     |      
+     |          with self.assertWarns(SomeWarning) as cm:
+     |              do_something()
+     |          the_warning = cm.warning
+     |          self.assertEqual(the_warning.some_attribute, 147)
+     |  
+     |  assertWarnsRegex(self, expected_warning, expected_regex, *args, **kwargs)
+     |      Asserts that the message in a triggered warning matches a regexp.
+     |      Basic functioning is similar to assertWarns() with the addition
+     |      that only warnings whose messages also match the regular expression
+     |      are considered successful matches.
+     |      
+     |      Args:
+     |          expected_warning: Warning class expected to be triggered.
+     |          expected_regex: Regex (re pattern object or string) expected
+     |                  to be found in error message.
+     |          args: Function to be called and extra positional args.
+     |          kwargs: Extra kwargs.
+     |          msg: Optional message used in case of failure. Can only be used
+     |                  when assertWarnsRegex is used as a context manager.
+     |  
+     |  assert_ = deprecated_func(*args, **kwargs)
+     |  
+     |  countTestCases(self)
+     |  
+     |  debug(self)
+     |      Run the test without collecting errors in a TestResult
+     |  
+     |  defaultTestResult(self)
+     |  
+     |  doCleanups(self)
+     |      Execute all cleanup functions. Normally called for you after
+     |      tearDown.
+     |  
+     |  fail(self, msg=None)
+     |      Fail immediately, with the given message.
+     |  
+     |  failIf = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failIfEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnless = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessAlmostEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessEqual = deprecated_func(*args, **kwargs)
+     |  
+     |  failUnlessRaises = deprecated_func(*args, **kwargs)
+     |  
+     |  id(self)
+     |  
+     |  run(self, result=None)
+     |  
+     |  shortDescription(self)
+     |      Returns a one-line description of the test, or None if no
+     |      description has been provided.
+     |      
+     |      The default implementation of this method returns the first line of
+     |      the specified test method's docstring.
+     |  
+     |  skipTest(self, reason)
+     |      Skip this test.
+     |  
+     |  subTest(self, msg=<object object at 0x7f267fce1280>, **params)
+     |      Return a context manager that will return the enclosed block
+     |      of code in a subtest identified by the optional message and
+     |      keyword parameters.  A failure in the subtest marks the test
+     |      case as failed but resumes execution at the end of the enclosed
+     |      block, allowing further test code to be executed.
+     |  
+     |  tearDown(self)
+     |      Hook method for deconstructing the test fixture after testing it.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Class methods inherited from unittest.case.TestCase:
+     |  
+     |  setUpClass() from builtins.type
+     |      Hook method for setting up class fixture before running tests in the class.
+     |  
+     |  tearDownClass() from builtins.type
+     |      Hook method for deconstructing the class fixture after running all tests in the class.
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data descriptors inherited from unittest.case.TestCase:
+     |  
+     |  __dict__
+     |      dictionary for instance variables (if defined)
+     |  
+     |  __weakref__
+     |      list of weak references to the object (if defined)
+     |  
+     |  ----------------------------------------------------------------------
+     |  Data and other attributes inherited from unittest.case.TestCase:
+     |  
+     |  failureException = <class 'AssertionError'>
+     |      Assertion failed.
+     |  
+     |  longMessage = True
+     |  
+     |  maxDiff = 640
+
 
 ```
 

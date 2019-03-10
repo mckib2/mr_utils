@@ -5,7 +5,7 @@
 
 ```
 NAME
-    mr_utils.recon.reordering.bart
+    mr_utils.recon.reordering.bart - Can we get BART to do reordering?
 
 ```
 

@@ -92,6 +92,9 @@ FUNCTIONS
             bSSFP imaging with an elliptical signal model." Magnetic resonance in
             medicine 71.3 (2014): 927-933.
         
+        We use a positive exponent, exp(i phi), as in Hoff and Taylor MATLAB
+        implementations.
+        
         In Hoff's paper the equation is not explicitly given for phi, so we
         implement equation [5] that gives more detailed terms, found in
             Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
@@ -154,14 +157,18 @@ FUNCTIONS
         Generate an entire period of the bSSFP signal profile.
     
     ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1)
-        SSFP transverse signal right after RF pulse.
+        SSFP transverse signal at time TE after excitation.
         
-        T1 -- longitudinal exponential decay time constant.
-        T2 -- transverse exponential decay time constant.
-        TR -- repetition time.
-        alpha -- flip angle.
-        field_map -- B0 field map.
+        T1 -- longitudinal exponential decay time constant (in seconds).
+        T2 -- transverse exponential decay time constant (in seconds).
+        TR -- repetition time (in seconds).
+        alpha -- flip angle (in rad).
+        field_map -- B0 field map (in Hz).
+        phase_cyc -- Linear phase-cycle increment (in rad).
         M0 -- proton density.
+        
+        T1, T2, alpha, field_map, and M0 can all be either a scalar or MxN an
+        array.  phase_cyc can be a scalar or length L vector.
         
         Implementation of equations [1-2] in
             Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for

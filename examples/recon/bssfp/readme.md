@@ -64,6 +64,10 @@ NAME
 NAME
     examples.recon.bssfp.merry_param_mapping - Parameter mapping for numerical phantom using Taylor method.
 
+DESCRIPTION
+    Ellipses have 5 degrees of freedom, so you should use 5 or more phase-cycles.
+    Use multiples of 4 since we're using GS recon, so use minimum 8.
+
 
 ```
 
