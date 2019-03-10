@@ -8,14 +8,15 @@ import numpy as np
 
 from mr_utils.cs import amp2d
 from mr_utils.cs.models import UFT
-from mr_utils.test_data import AMPData
+from mr_utils.test_data import load_test_data
 from mr_utils import view
 
 if __name__ == '__main__':
 
     # Grab data for the example
-    x = AMPData.x0()
-    mask = AMPData.mask()
+    data = load_test_data('mr_utils/test_data/tests/cs/thresholding/amp/',
+                          ['x0', 'mask'])
+    x, mask = data[0], data[1]
     uft = UFT(mask)
 
     # Simulate measurement
