@@ -17,7 +17,7 @@ that this is strange data and we should be using another example data set.
 
 import numpy as np
 
-from mr_utils.test_data import SCRReordering
+from mr_utils.test_data import load_test_data
 from mr_utils import view
 from mr_utils.cs import GD_TV
 from mr_utils.cs.models import UFT
@@ -25,13 +25,17 @@ from mr_utils.cs.models import UFT
 if __name__ == '__main__':
 
     # We need a mask
-    mask = np.fft.fftshift(SCRReordering.mask())
+    mask = load_test_data('mr_utils/test_data/tests/recon/reordering',
+                          ['mask'])[0]
+    mask = np.fft.fftshift(mask)
 
     # Get the encoding model
     uft = UFT(mask)
 
     # Load in the test data
-    kspace = np.fft.fftshift(SCRReordering.Coil1_data())
+    kspace = load_test_data('mr_utils/test_data/tests/recon/reordering',
+                            ['coil1'])[0]
+    kspace = np.fft.fftshift(kspace)
     imspace = uft.inverse(kspace)
 
     # Undersample data to get prior
