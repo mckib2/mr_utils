@@ -40,11 +40,15 @@ from tqdm import tqdm
 
 from mr_utils.utils.orderings import inverse_permutation
 from mr_utils.utils import rank2pi, pi2rank
+from mr_utils.test_data import load_test_data
 
 if __name__ == '__main__':
 
     # Get some sample audio
-    filename = dirname(__file__) + '/sample.wav'
+    path = 'mr_utils/test_data/examples/music/'
+    file = 'sample.wav'
+    load_test_data(path, [file], do_return=False)
+    filename = '%s/%s' % (path, file)
     rate, data = read(filename, mmap=True)
 
     # We're going to have to split this into chunks to make any sense.  These
