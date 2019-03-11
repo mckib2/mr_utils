@@ -4,24 +4,26 @@ I also want this to be able to run BART on remote computer through ssh, to
 remove BART as a strict dependency for the local machine, much like
 we treat Gadgetron.
 
-Import:
-    import Bartholomew as B
-Usage:
-    B.[bart-func](args)
-Example:
-    traj_rad = B.traj(x=512,y=64,r=True)
-    ksp_sim = B.phantom(k=True,s=8,t=traj_rad)
-    igrid = B.nufft(ksp_sim,i=True,t=traj_rad)
+Examples
+========
+
+>>> import Bartholomew as B
+>>> # Usage: B.[bart-func](args)
+>>> traj_rad = B.traj(x=512, y=64, r=True)
+>>> ksp_sim = B.phantom(k=True, s=8, t=traj_rad)
+>>> igrid = B.nufft(ksp_sim, i=True, t=traj_rad)
 
 Notice that input ndarrays are positional arguments (e.g., ksp_sim is the
 first argument for nufft instead of the last).
 
 To get comma separated lists (e.g., -d x:x:x), use the List type:
-    img = B.nufft(ksp_sim,i=True,d=[24,24,1],t=traj_rad)
+
+>>> img = B.nufft(ksp_sim, i=True, d=[24,24,1], t=traj_rad)
 
 To get space separated lists (e.g., resize [-c] dim1 size1 ... dimn), use
 Tuple type:
-    ksp_zerop = B.resize(lowres_ksp,c=(0,308,1,308))
+
+>>> ksp_zerop = B.resize(lowres_ksp,c=(0,308,1,308))
 '''
 
 import subprocess
@@ -35,8 +37,11 @@ from mr_utils.bart import real_bart
 class BartholomewObject(object):
     '''Bartholomew object - more simple Python interface for BART.
 
+    Examples
+    ========
     User is meant to import instance Bartholomew, e.g.,
-        from mr_utils.bart import Bartholomew as B
+    
+    >>> from mr_utils.bart import Bartholomew as B
     '''
 
     def __init__(self):

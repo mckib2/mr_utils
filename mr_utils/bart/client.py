@@ -20,13 +20,23 @@ def client(
         root_dir=None):
     '''BART client.
 
-    num_out -- Number of expected variables returned.
-    cmd -- BART command to be run.
-    files -- Any files to be provided to BART.
-    host -- IP address of machine we want to connect to.
-    username -- username to sign in with.
-    password -- password to use for sign in (will be plain-text!)
-    root_dir --
+    Parameters
+    ==========
+
+    num_out : int
+        Number of expected variables returned.
+    cmd : str
+        BART command to be run.
+    files : list
+        Any files to be provided to BART.
+    host : str, optional
+        IP address of machine we want to connect to.
+    username : str, optional
+        username to sign in with.
+    password : str, optional
+        password to use for sign in (will be plain-text!)
+    root_dir : str, optional
+        Root directory to run BART out of.
     '''
 
     # Grab credentials
