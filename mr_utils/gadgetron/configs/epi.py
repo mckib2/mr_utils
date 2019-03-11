@@ -5,8 +5,11 @@ from mr_utils.gadgetron import GadgetronConfig
 def epi():
     '''Generates epi.xml.
 
-    See:
-        https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi.xml
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
@@ -37,8 +40,11 @@ def epi():
 def epi_gtplus_grappa():
     '''GT Plus configuration file for general 2D epi reconstruction.
 
-    See:
-        https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi_gtplus_grappa.xml
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi_gtplus_grappa.xml
     '''
 
     config = GadgetronConfig()

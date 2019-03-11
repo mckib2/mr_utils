@@ -38,19 +38,49 @@ def client(
 
     This client allows you to connect to a Gadgetron server and process data.
 
-    data -- Input file with file extension or numpy array.
-    address -- Hostname of Gadgetron. If not set, taken from profile config.
-    port -- Port to connect to. If not set, taken from profile config.
-    outfile -- If provided, output will be saved to file with this name.
-    in_group -- If input is hdf5, input data group name.
-    out_group -- Output group name if file is written.
-    config -- Remote configuration file.
-    config_local -- Local configuration file.
-    script -- File path to the Python script to be bundled and transfered.
-    existing_modules -- Python packages to exclude from bundling.
-    script_dir -- Directory to send script on remote machine.
-    verbose -- Verbose mode.
+    Parameters
+    ==========
+    data : str or array_like
+        Input file with file extension or numpy array.
+    address : str, optional
+        Hostname of Gadgetron. If not set, taken from profile config.
+    port : int, optional
+        Port to connect to. If not set, taken from profile config.
+    outfile : str, optional
+        If provided, output will be saved to file with this name.
+    in_group : str, optional
+        If input is hdf5, input data group name.
+    out_group : str, optional
+        Output group name if file is written.
+    config : xml_str, optional
+        Remote configuration file.
+    config_local : xml_str, optional
+        Local configuration file.
+    script : str, optional
+        File path to the Python script to be bundled and transfered.
+    existing_modules : list, optional
+        Python packages to exclude from bundling.
+    script_dir : str, optional
+        Directory to send script on remote machine.
+    verbose : bool, optional
+        Verbose mode.
 
+    Returns
+    =======
+    data : array_like
+        Image from Gadgetron
+    header : xml
+        Header from Gadgetron
+
+    Raises
+    ======
+    NotImplementedError
+        `script` bundling is not currently implemented.
+    Exception
+        `data` is not provided in the correct format.
+
+    Notes
+    =====
     out_group=None will use the current date as the group name.
     '''
 
@@ -70,8 +100,8 @@ def client(
     # First thing's first, we need to send the python script over!
     if script is not None:
         raise NotImplementedError()
-        from mr_utils.utils import package_script
-        package_script(script, existing_modules=existing_modules)
+        # from mr_utils.utils import package_script
+        # package_script(script, existing_modules=existing_modules)
 
     # The magic happens in the connector
     logging.debug('Instantiating Connector')

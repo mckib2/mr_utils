@@ -5,8 +5,11 @@ from mr_utils.gadgetron import GadgetronConfig
 def generic_cartesian_grappa():
     '''Generic_Cartesian_Grappa.xml.
 
-    See:
-        https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/Generic_Cartesian_Grappa.xml
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/Generic_Cartesian_Grappa.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')

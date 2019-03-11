@@ -1,7 +1,10 @@
 '''Example Python Gadget.
 
-See:
-    https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/gadgets/rms_coil_combine.py
+Based on [1]_.
+
+References
+==========
+.. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/gadgets/rms_coil_combine.py
 '''
 
 import numpy as np

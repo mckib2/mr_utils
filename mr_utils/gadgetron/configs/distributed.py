@@ -5,8 +5,11 @@ from mr_utils.gadgetron import GadgetronConfig
 def distributed_default():
     '''Generates distributed_default.xml.
 
-    See:
-        https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_default.xml
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_default.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
@@ -44,8 +47,11 @@ def distributed_default():
 def distributed_image_default():
     '''Generates distributed_image_default.xml.
 
-    See:
-        https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_image_default.xml
+    Generates [2]_.
+
+    References
+    ==========
+    .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_image_default.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')

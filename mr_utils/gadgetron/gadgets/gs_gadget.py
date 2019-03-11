@@ -3,14 +3,14 @@
 
 import numpy as np
 try:
-    from gadgetron import Gadget
+    from gadgetron import Gadget  #pylint: disable=E0401
 except ModuleNotFoundError:
     Gadget = object
 # from mr_utils.recon.ssfp import gs_recon
 
 class GS_2d(Gadget):
 
-    def process_config(self, cfg):
+    def process_config(self, _cfg):
         print("RMS Coil Combine, Config ignored")
 
     def process(self, hdr, ims):

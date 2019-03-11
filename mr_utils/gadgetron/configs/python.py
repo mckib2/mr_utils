@@ -3,7 +3,14 @@
 from mr_utils.gadgetron import GadgetronConfig
 
 def python():
-    '''python.xml'''
+    '''python.xml
+
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python.xml
+    '''
 
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
@@ -34,7 +41,14 @@ def python():
     return config
 
 def python_short():
-    '''python_short.xml'''
+    '''python_short.xml
+
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python_short.xml
+    '''
 
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')

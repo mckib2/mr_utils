@@ -5,8 +5,11 @@ from mr_utils.gadgetron import GadgetronConfig
 def default():
     '''Default config file, default.xml.
 
-    Generates:
-        https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/default.xml
+    Generates [1]_.
+
+    References
+    ==========
+    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/default.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
