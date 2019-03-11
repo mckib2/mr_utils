@@ -18,22 +18,46 @@ def GD_FE_TV(
         ignore_residual=False,
         disp=False,
         maxiter=200):
-    '''Gradient descent for Fourier encoding model and TV constraint.
+    r'''Gradient descent for Fourier encoding model and TV constraint.
 
-    kspace -- Measured image.
-    samp -- Sampling mask.
-    alpha -- Step size.
-    lam -- TV constraint weight.
-    do_reordering -- Whether or not to reorder for sparsity constraint.
-    im_true -- The true image we are trying to reconstruct.
-    ignore_residual -- Whether or not to break out of loop if resid increases.
-    disp -- Whether or not to display iteration info.
-    maxiter -- Maximum number of iterations.
+    Parameters
+    ==========
+    kspace : array_like
+        Measured image.
+    samp : array_like
+        Sampling mask.
+    alpha : float, optional
+        Step size.
+    lam : float, optional
+        TV constraint weight.
+    do_reordering : bool, optional
+        Whether or not to reorder for sparsity constraint.
+    im_true : array_like, optional
+        The true image we are trying to reconstruct.
+    ignore_residual : bool, optional
+        Whether or not to break out of loop if resid increases.
+    disp : bool, optional
+        Whether or not to display iteration info.
+    maxiter : int, optional
+        Maximum number of iterations.
 
+    Returns
+    =======
+    m_hat : array_like
+        Estimate of im_true.
+
+    Notes
+    =====
     Solves the problem:
-        min_x || kspace - FFT(im*samp) ||^2_2  + lam*TV(im)
 
-    If im_true=None, then MSE will not be calculated.
+    .. math::
+
+        \min_x || d - \text{FT}(I \odot S) ||^2_2  + \lambda \text{TV}(I)
+
+    where d is measured k-space, I is the image estimate, S is the
+    undersampling mask, and TV is the total variation operator.
+
+    If `im_true=None`, then MSE will not be calculated.
     '''
 
     # Make sure compare_mse is defined

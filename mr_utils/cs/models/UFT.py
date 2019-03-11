@@ -12,15 +12,39 @@ forward_ortho, inverse_ortho are probably the ones you want.
 import numpy as np
 
 class UFT(object):
-    '''Undersampled Fourier Transform (UFT) data acquisiton model.'''
+    '''Undersampled Fourier Transform (UFT) data acquisiton model.
+
+    Attributes
+    ==========
+    samp : array_like
+        Boolean sampling pattern.
+    '''
 
     def __init__(self, samp):
-        '''Initialize with binary sampling pattern.'''
+        '''Initialize with binary sampling pattern.
+
+        Parameters
+        ==========
+        samp : array_like
+            Boolean sampling mask.
+        '''
         self.samp = samp
 
     def forward(self, x):
         '''Fourier encoding with binary undersampling pattern applied.
 
+        Parameters
+        ==========
+        x : array_like
+            Matrix to be transformed.
+
+        Returns
+        =======
+        array_like
+             Fourier transform (no fftshift) of `x` with sampling mask applied.
+
+        Notes
+        =====
         This forward transform has no fftshift applied.
         '''
         return np.fft.fft2(x)*self.samp
@@ -28,6 +52,19 @@ class UFT(object):
     def forward_s(self, x):
         '''Fourier encoding with binary undersampling pattern applied.
 
+        Parameters
+        ==========
+        x : array_like
+            Matrix to be transformed.
+
+        Returns
+        =======
+        array_like
+            Fourier transform (with fftshift) of `x` with sampling mask
+            applied.
+
+        Notes
+        =====
         This forward transform applies fftshift before masking.
         '''
         return np.fft.fftshift(np.fft.fft2(x))*self.samp
@@ -35,6 +72,18 @@ class UFT(object):
     def forward_ortho(self, x):
         '''Normalized Fourier encoding with binary undersampling.
 
+        Parameters
+        ==========
+        x : array_like
+            Matrix to be transformed.
+
+        Returns
+        =======
+        array_like
+            Fourier transform of `x` with sampling mask applied and normalized.
+
+        Notes
+        =====
         This forward transform applied fftshift before FFT and after.
         '''
         tmp = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(x)))
@@ -42,12 +91,35 @@ class UFT(object):
         return tmp
 
     def inverse(self, x):
-        '''Inverse fourier encoding.'''
+        '''Inverse fourier encoding.
+
+        Parameters
+        ==========
+        x : array_like
+            Matrix to be transformed.
+
+        Returns
+        =======
+        array_like
+            Inverse fourier transform of `x`.
+        '''
         return np.fft.ifft2(x)
 
     def inverse_ortho(self, x):
         '''Inverse Normalized Fourier encoding.
 
+        Parameters
+        ==========
+        x : array_like
+            Matrix to be transformed.
+
+        Returns
+        =======
+        array_like
+            Inverse fourier transform of `x`, fftshifted, and normalized.
+
+        Notes
+        =====
         This transform applied ifftshift before and after ifft2.
         '''
         tmp = np.fft.ifftshift(np.fft.ifft2(np.fft.ifftshift(x)))

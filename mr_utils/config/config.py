@@ -151,7 +151,7 @@ class ProfileConfig(object):
         =====
 
         .. code-block:: none
-        
+
             Keys -> Values:
             'gadgetron.host' -> (string) ip-address/hostname/etc
             'gadgetron.port' -> (int) port number

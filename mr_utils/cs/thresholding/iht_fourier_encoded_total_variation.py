@@ -1,26 +1,63 @@
-import numpy as np
+'''Iterative hard thresholding using Fourier encoding model and TV constraint.
+'''
+
 import logging
 
-logging.basicConfig(format='%(levelname)s: %(message)s',level=logging.DEBUG)
+import numpy as np
 
-def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_residual=False,disp=False,maxiter=500):
-    '''IHT for Fourier encoding model and TV constraint.
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
-    kspace -- Measured image.
-    samp -- Sampling mask.
-    k -- Sparsity measure (number of nonzero coefficients expected).
-    mu -- Step size.
-    tol -- Stop when stopping criteria meets this threshold.
-    do_reordering -- Reorder column-stacked true image.
-    x -- The true image we are trying to reconstruct.
-    ignore_residual -- Whether or not to break out of loop if resid increases.
-    disp -- Whether or not to display iteration info.
-    maxiter -- Maximum number of iterations.
+def IHT_FE_TV(
+        kspace,
+        samp,
+        k,
+        mu=1,
+        tol=1e-8,
+        do_reordering=False,
+        x=None,
+        ignore_residual=False,
+        disp=False,
+        maxiter=500):
+    r'''IHT for Fourier encoding model and TV constraint.
 
+    Parameters
+    ==========
+    kspace : array_like
+        Measured data in k-space.
+    samp : array_like
+        Sampling mask.
+    k : int
+        Sparsity measure (number of nonzero coefficients expected).
+    mu : float, optional
+        Step size.
+    tol : float, optional
+        Stop when stopping criteria meets this threshold.
+    do_reordering : bool, optional
+        Reorder column-stacked true image.
+    x : array_like, optional
+        The true image we are trying to reconstruct.
+    ignore_residual : bool, optional
+        Whether or not to break out of loop if resid increases.
+    disp : bool, optional
+        Whether or not to display iteration info.
+    maxiter : int, optional
+        Maximum number of iterations.
+
+    Returns
+    =======
+    x_hat : array_like
+        Estimate of x.
+
+    Notes
+    =====
     Solves the problem:
-        min_x || kspace - FFT(x) ||^2_2  s.t.  || FD(x) ||_0 <= k
 
-    If im_true=None, then MSE will not be calculated.
+    .. math::
+
+        \min_x || d - \text{FT}(x) ||^2_2  \text{ s.t. }  || \text{TV}(x) ||_0
+        \leq k
+
+    If `im_true=None`, then MSE will not be calculated.
     '''
 
     # Make sure we have a defined compare_mse and Table for printing
@@ -31,7 +68,7 @@ def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_resi
             from skimage.measure import compare_mse
             x = np.abs(x)
         else:
-            compare_mse = lambda x,y: 0
+            compare_mse = lambda x, y: 0
 
     # Right now we are doing absolute values on updates
     x_hat = np.zeros(kspace.shape)
@@ -41,14 +78,17 @@ def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_resi
 
     # Initialize display table
     if disp:
-        table = Table([ 'iter','norm','MSE' ],[ len(repr(maxiter)),8,8 ],[ 'd','e','e' ])
+        table = Table(
+            ['iter', 'norm', 'MSE'],
+            [len(repr(maxiter)), 8, 8], ['d', 'e', 'e'])
         hdr = table.header()
         for line in hdr.split('\n'):
             logging.info(line)
 
     # Find perfect reordering (column-stacked-wise)
     if do_reordering:
-        from mr_utils.utils.orderings import col_stacked_order,inverse_permutation
+        from mr_utils.utils.orderings import (col_stacked_order,
+                                              inverse_permutation)
         reordering = col_stacked_order(x)
         inverse_reordering = inverse_permutation(reordering)
 
@@ -56,7 +96,8 @@ def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_resi
         if x is not None:
             k = np.sum(np.abs(np.diff(x.flatten()[reordering])) > 0)
         else:
-            logging.warning('Make sure sparsity level k is adjusted for reordering!')
+            logging.warning(
+                'Make sure sparsity level k is adjusted for reordering!')
 
     # Do the thing
     for ii in range(int(maxiter)):
@@ -76,10 +117,10 @@ def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_resi
         fd = np.diff(val)
 
         # Hard thresholding
-        fd[np.argsort(np.abs(fd))[:-k]] = 0
+        fd[np.argsort(np.abs(fd))[:-1*k]] = 0
 
         # Inverse finite differences transformation
-        res = np.hstack((first_samp,fd)).cumsum()
+        res = np.hstack((first_samp, fd)).cumsum()
         if do_reordering:
             res = res[inverse_reordering]
 
@@ -97,11 +138,11 @@ def IHT_FE_TV(kspace,samp,k,mu=1,tol=1e-8,do_reordering=False,x=None,ignore_resi
 
         # Show the people what they asked for
         if disp:
-            logging.info(table.row([ ii,stop_criteria,compare_mse(x,x_hat) ]))
+            logging.info(table.row([ii, stop_criteria, compare_mse(x, x_hat)]))
         if stop_criteria < tol:
             break
 
         # update the residual
         r = kspace - np.fft.fftshift(np.fft.fft2(x_hat))*samp
 
-    return(x_hat)
+    return x_hat

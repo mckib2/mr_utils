@@ -31,30 +31,57 @@ def proximal_GD(
         ignore_residual=False,
         disp=False,
         maxiter=200):
-    '''Proximal gradient descent for a generic encoding, sparsity models.
+    r'''Proximal gradient descent for a generic encoding, sparsity models.
 
-    y -- Measured data (i.e., y = Ax).
-    forward_fun -- A, the forward transformation function.
-    inverse_fun -- A^H, the inverse transformation function.
-    sparsify -- Sparsifying transform.
-    unsparsify -- Inverse sparsifying transform.
-    reorder_fun --
-    unreorder_fun --
-    mode -- Thresholding mode: {'soft','hard','garotte','greater','less'}.
-    alpha -- Step size, used for thresholding.
-    thresh_sep -- Whether or not to threshold real/imag individually.
-    selective -- Function returning indicies of update to keep at each iter.
-    x -- The true image we are trying to reconstruct.
-    ignore_residual -- Whether or not to break out of loop if resid increases.
-    disp -- Whether or not to display iteration info.
-    maxiter -- Maximum number of iterations.
+    Parameters
+    ==========
+    y : array_like
+        Measured data (i.e., y = Ax).
+    forward_fun : callable
+        A, the forward transformation function.
+    inverse_fun : callable
+        A^H, the inverse transformation function.
+    sparsify : callable
+        Sparsifying transform.
+    unsparsify : callable
+        Inverse sparsifying transform.
+    reorder_fun : callable, optional
+        Reordering function.
+    unreorder_fun : callable, optional
+        Inverse reordering function.
+    mode : {'soft', 'hard', 'garotte', 'greater', 'less'}, optional
+        Thresholding mode.
+    alpha : float, optional
+        Step size, used for thresholding.
+    thresh_sep : bool, optional
+        Whether or not to threshold real/imag individually.
+    selective : bool, optional
+        Function returning indicies of update to keep at each iter.
+    x : array_like, optional
+        The true image we are trying to reconstruct.
+    ignore_residual : bool, optional
+        Whether or not to break out of loop if resid increases.
+    disp : bool, optional
+        Whether or not to display iteration info.
+    maxiter : int, optional
+        Maximum number of iterations.
 
+    Returns
+    =======
+    x_hat : array_like
+        Estimate of x.
+
+    Notes
+    =====
     Solves the problem:
-        min_x || y - Ax ||^2_2  + lam*TV(x)
 
-    If x=None, then MSE will not be calculated. You probably want mode='soft'.
-    For the other options, see docs for pywt.threshold.  selective=None will
-    not throw away any updates.
+    .. math::
+
+        \min_x || y - Ax ||^2_2  + \lambda \text{Sparsify}(x)
+
+    If `x=None`, then MSE will not be calculated. You probably want
+    `mode='soft'`.  For the other options, see docs for pywt.threshold.
+    `selective=None` will not throw away any updates.
     '''
 
     # Make sure compare_mse, compare_ssim is defined

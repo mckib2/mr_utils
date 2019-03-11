@@ -102,9 +102,20 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
         # compare to Lauzon paper figure 1
 
     ## Elliptical fit done here
-    offres_est = np.angle(M)
-    offres_est = np.unwrap(offres_est, axis=1)
-    offres_est[~mask] = 0 #pylint: disable=E1130
+    from skimage.restoration import unwrap_phase
+    vl = mask[:, int(mask.shape[1]/2)]
+    hl = mask[int(2*mask.shape[0]/3), :]
+    L = np.sum(vl)
+    N = np.sum(hl)
+    offres_est = np.angle(M[mask])
+    offres_est = offres_est.reshape((L, N))
+    # view(offres_est)
+    # offres_est = denoise_tv_bregman(offres_est, weight=5, isotropic=False)
+    # view(offres_est)
+    # offres_est = np.unwrap(offres_est, axis=1)
+    offres_est = unwrap_phase(offres_est)
+    offres_est = np.pad(offres_est, (mask.shape[0]-L, mask.shape[1]-N), mode='constant')
+    # offres_est[~mask] = 0 #pylint: disable=E1130
     view(offres_est)
     offres_est /= np.pi*TR*1e-3
 

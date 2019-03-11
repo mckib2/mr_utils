@@ -17,9 +17,10 @@ if __name__ == '__main__':
 
     # First initialize everything
     N = 32
-    add_noise = False
+    SNR = 50
+    add_noise = True
     disp = True # this will display interesting plots along the way and at end
-    num_pcs = 8 # number of phase cycles to generate -- must be divisible by 4
+    num_pcs = 16 # number of phase cycles to generate -- must be divisible by 4
     chunksize = 50 # how many pixels to give a cpu core at once
     TR = 10 # in milliseconds
     T1 = np.zeros((N, N))
@@ -113,10 +114,13 @@ if __name__ == '__main__':
     # degrees offset from its paired image.
     #--------------------------------------------------------------------------
     if add_noise:
-        s = 0.001 # std deviation
         for ii, I0 in enumerate(Is):
+
+            avg_sig = np.mean(np.abs(Is[ii])[mask].flatten())
+            s = avg_sig/SNR
+
             n = np.random.normal(
-                0, s, I0.shape) + 1j*np.random.normal(0, s, I0.shape)
+                0, s/2, I0.shape) + 1j*np.random.normal(0, s/2, I0.shape)
             Is[ii] += n
     #--------------------------------------------------------------------------
 

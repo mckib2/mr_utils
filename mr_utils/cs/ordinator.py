@@ -24,13 +24,31 @@ def obj(ck, N, locs, inverse, pdf_ref, pdf, pdf_metric):
 def get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
     '''Compute xhat for given coefficient locations using basinhopping.
 
-    locs -- Coefficient location indices.
-    N -- Length of the desired signal (also number of coefficients in total).
-    k -- Desired sparsity level.
-    inverse -- Inverse sparsifying transform.
-    pdf_ref -- Reference pdf of the prior to compare against.
-    pdf -- Function that estimates pixel intensity distribution.
-    pdf_metric -- Function that returns the distance between pdfs.
+    Parameters
+    ==========
+    locs : array_like
+        Coefficient location indices.
+    N : int
+        Length of the desired signal (also number of coefficients in total).
+    k : int
+        Desired sparsity level.
+    inverse : callable
+        Inverse sparsifying transform.
+    pdf_ref : array_like
+        Reference pdf of the prior to compare against.
+    pdf : callable
+        Function that estimates pixel intensity distribution.
+    pdf_metric : callable
+        Function that returns the distance between pdfs.
+
+    Returns
+    =======
+    xhat : array_like
+        Inverse transform of coeffs.
+    locs : array_like
+        Indices of non-zero coefficients.
+    coeffs : array_like
+        Coefficients of xhat.
     '''
 
     c0 = np.zeros(N)
@@ -46,28 +64,74 @@ def get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
 def search_fun(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
     '''Return function for parallel loop.
 
-    locs -- Coefficient location indices.
-    N -- Length of the desired signal (also number of coefficients in total).
-    k -- Desired sparsity level.
-    inverse -- Inverse sparsifying transform.
-    pdf_ref -- Reference pdf of the prior to compare against.
-    pdf -- Function that estimates pixel intensity distribution.
-    pdf_metric -- Function that returns the distance between pdfs.
+    Parameters
+    ==========
+    locs : array_like
+        Coefficient location indices.
+    N : int
+        Length of the desired signal (also number of coefficients in total).
+    k : int
+        Desired sparsity level.
+    inverse : callable
+        Inverse sparsifying transform.
+    pdf_ref : array_like
+        Reference pdf of the prior to compare against.
+    pdf : callable
+        Function that estimates pixel intensity distribution.
+    pdf_metric : callable
+        Function that returns the distance between pdfs.
+
+    Returns
+    =======
+    locs : array_like
+        Indices of non-zero coefficients.
+    vals : array_like
+        Values of coefficients at locations given by locs.
+    float
+        Measure of difference between pdf_ref and pdf(xhat).
     '''
     xhat, locs, vals = get_xhat(
         [*locs], N, k, inverse, pdf_ref, pdf, pdf_metric)
     return(locs, vals, pdf_metric(pdf_ref, pdf(xhat)))
 
 class pdf_default(object):
-    '''Picklable object for computing pdfs.'''
+    '''Picklable object for computing pdfs.  Uses histogram to estimate pdf.
+
+    Attributes
+    ==========
+    N : int
+        Size of signal.
+    lims : array_like or tuple
+        Upper and lower bounds for range of histogram.
+    pdf_ref : array_like
+        pdf estimate of prior.  Used to compare to pdf(xhat).
+    bins : array_like
+        bin locations used for construction of pdf_ref.
+    '''
 
     def __init__(self, prior):
+        '''Note that prior should be normalized between lims=(-1, 1).'''
         N = prior.size
         self.lims = (-1, 1)
         self.pdf_ref, self.bins = np.histogram(prior, bins=N, range=self.lims)
 
     def pdf(self, x):
-        '''Estimate the pdf of x.'''
+        '''Estimate the pdf of x.
+
+        Parameters
+        ==========
+        x : array_like
+            Signal to get pdf estimate of.
+
+        Returns
+        =======
+        array_like
+            Histogram of x.
+
+        Notes
+        =====
+        Will report when xhat has a value outside of range of pdf_ref.
+        '''
         if np.min(x) < self.lims[0]:
             tqdm.write('XHAT MIN WAS LOWER THAN X MIN: %g' % np.min(x))
         if np.max(x) > self.lims[1]:
@@ -75,22 +139,57 @@ class pdf_default(object):
         return np.histogram(x, self.bins, self.lims)[0]
 
 def pdf_metric_default(x, y):
-    '''Default pdf metric, l2 norm.'''
+    '''Default pdf metric, l2 norm.
+
+    Parameters
+    ==========
+    x : array_like
+        First pdf.
+    y : array_like
+        Second pdf.
+
+    Returns
+    =======
+    float
+        l2 norm between x and y.
+    '''
     return np.linalg.norm(x - y, ord=2)
 
 def ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None,
                 forward=None, disp=False):
     '''Find permutation that maximizes sparsity of 1d signal.
 
-    prior -- Prior signal estimate to base ordering.
-    k -- Desired sparsity level.
-    inverse -- Inverse sparsifying transform.
-    chunksize -- Chunk size for parallel processing pool.
-    pdf -- Function that estimates pixel intensity distribution.
-    pdf_metric -- Function that returns the distance between pdfs.
-    forward -- Sparsifying transform (only required if disp=True).
-    disp -- Whether or not to display coefficient plots at the end.
+    Parameters
+    ==========
+    prior : array_like
+        Prior signal estimate to base ordering.
+    k : int
+        Desired sparsity level.
+    inverse : callable
+        Inverse sparsifying transform.
+    chunksize : int, optional
+        Chunk size for parallel processing pool.
+    pdf : callable, optional
+        Function that estimates pixel intensity distribution.
+    pdf_metric : callable, optional
+        Function that returns the distance between pdfs.
+    forward : callable, optional
+        Sparsifying transform (only required if disp=True).
+    disp : bool, optional
+        Whether or not to display coefficient plots at the end.
 
+    Returns
+    =======
+    array_like
+        Reordering indices.
+
+    Raises
+    ======
+    ValueError
+        If disp=True and forward function is not provided.
+
+    Notes
+    =====
     pdf_method=None uses histogram.  pdf_metric=None uses l2 norm. If disp=True
     then forward transform function must be provided.  Otherwise, forward is
     not required, only inverse.

@@ -30,29 +30,55 @@ def amp2d(
         ignore_residual=False,
         disp=False,
         maxiter=100):
-    '''Approximate message passing using wavelet sparsifying transform.
+    r'''Approximate message passing using wavelet sparsifying transform.
 
-    y -- Measurements, i.e., y = Ax.
-    forward_fun -- A, the forward transformation function.
-    inverse_fun -- A^H, the inverse transformation function.
-    sigmaType -- Method for determining threshold.
-    randshift -- Whether or not to randomly circular shift every iteration.
-    tol -- Stop when stopping criteria meets this threshold.
-    x -- The true image we are trying to reconstruct.
-    ignore_residual -- Whether or not to ignore stopping criteria.
-    disp -- Whether or not to display iteration info.
-    maxiter -- Maximum number of iterations.
+    Parameters
+    ==========
+    y : array_like
+        Measurements, i.e., y = Ax.
+    forward_fun : callable
+        A, the forward transformation function.
+    inverse_fun : callable
+        A^H, the inverse transformation function.
+    sigmaType : int
+        Method for determining threshold.
+    randshift : bool, optional
+        Whether or not to randomly circular shift every iteration.
+    tol : float, optional
+        Stop when stopping criteria meets this threshold.
+    x : array_like, optional
+        The true image we are trying to reconstruct.
+    ignore_residual : bool, optional
+        Whether or not to ignore stopping criteria.
+    disp : bool, optional
+        Whether or not to display iteration info.
+    maxiter : int, optional
+        Maximum number of iterations.
 
+    Returns
+    =======
+    wn : array_like
+        Estimate of x.
+
+    Notes
+    =====
     Solves the problem:
-        min_x || Wavelet(x) ||_1 s.t. || y - forward_fun(x) ||^2_2 < epsilon^2
 
-    If x=None, then MSE will not be calculated.
+    .. math::
 
-    Reference:
-        "Message Passing Algorithms for CS" Donoho et al., PNAS 2009;106:18914
+        \min_x || \Psi(x) ||_1 \text{ s.t. } || y -
+        \text{forward}(x) ||^2_2 < \epsilon^2
 
-    Based on MATLAB implementation found here:
-        http://kyungs.bol.ucla.edu/Site/Software.html
+    The CDF-97 wavelet is used.  If `x=None`, then MSE will not be calculated.
+
+    Algorithm described in [1]_, based on MATLAB implementation found at [2]_.
+
+    References
+    ==========
+    .. [1] "Message Passing Algorithms for CS" Donoho et al., PNAS
+           2009;106:18914
+
+    .. [2] http://kyungs.bol.ucla.edu/Site/Software.html
     '''
 
     # Make sure we have a defined compare_mse and Table for printing

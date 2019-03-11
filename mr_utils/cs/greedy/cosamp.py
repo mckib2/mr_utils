@@ -22,25 +22,43 @@ def cosamp(
         disp=False):
     '''Compressive sampling matching pursuit (CoSaMP) algorithm.
 
-    A -- Measurement matrix.
-    y -- Measurements (i.e., y = Ax).
-    k -- Number of expected nonzero coefficients.
-    lstsq -- How to solve intermediate least squares problem.
-    tol -- Stopping criteria.
-    maxiter -- Maximum number of iterations.
-    x -- True signal we are trying to estimate.
-    disp -- Whether or not to display iterations.
+    Parameters
+    ==========
+    A : array_like
+        Measurement matrix.
+    y : array_like
+        Measurements (i.e., y = Ax).
+    k : int
+        Number of expected nonzero coefficients.
+    lstsq : {'exact', 'lm', 'gd'}, optional
+        How to solve intermediate least squares problem.
+    tol : float, optional
+        Stopping criteria.
+    maxiter : int, optional
+        Maximum number of iterations.
+    x : array_like, optional
+        True signal we are trying to estimate.
+    disp : bool, optional
+        Whether or not to display iterations.
 
-    lstsq function:
-        lstsq = { 'exact', 'lm', 'gd' }.
+    Returns
+    =======
+    x_hat : array_like
+        Estimate of x.
 
-        'exact' solves it using numpy's linalg.lstsq method.
-        'lm' uses solves with the Levenberg-Marquardt algorithm.
-        'gd' uses 3 iterations of a gradient descent solver.
+    Notes
+    =====
+    lstsq function
+    - 'exact' solves it using numpy's linalg.lstsq method.
+    - 'lm' uses solves with the Levenberg-Marquardt algorithm.
+    - 'gd' uses 3 iterations of a gradient descent solver.
 
-    Implements Algorithm 8.7 from:
-        Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed sensing: theory
-        and applications. Cambridge University Press, 2012.
+    Implements Algorithm 8.7 from [1]_.
+
+    References
+    ==========
+    .. [1] Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed sensing:
+           theory and applications. Cambridge University Press, 2012.
     '''
 
     # length of measurement vector and original signal

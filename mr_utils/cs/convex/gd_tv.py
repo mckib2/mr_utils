@@ -19,23 +19,45 @@ def GD_TV(
         ignore_residual=False,
         disp=False,
         maxiter=200):
-    '''Gradient descent for a generic encoding model and TV constraint.
+    r'''Gradient descent for a generic encoding model and TV constraint.
 
-    y -- Measured data (i.e., y = Ax).
-    forward_fun -- A, the forward transformation function.
-    inverse_fun -- A^H, the inverse transformation function.
-    alpha -- Step size.
-    lam -- TV constraint weight.
-    do_reordering -- Whether or not to reorder for sparsity constraint.
-    x -- The true image we are trying to reconstruct.
-    ignore_residual -- Whether or not to break out of loop if resid increases.
-    disp -- Whether or not to display iteration info.
-    maxiter -- Maximum number of iterations.
+    Parameters
+    ==========
+    y : array_like
+        Measured data (i.e., y = Ax).
+    forward_fun : callable
+        A, the forward transformation function.
+    inverse_fun : callable
+        A^H, the inverse transformation function.
+    alpha : float, optional
+        Step size.
+    lam : float, optional
+        TV constraint weight.
+    do_reordering : bool, optional
+        Whether or not to reorder for sparsity constraint.
+    x : array_like, optional
+        The true image we are trying to reconstruct.
+    ignore_residual : bool, optional
+        Whether or not to break out of loop if resid increases.
+    disp : bool, optional
+        Whether or not to display iteration info.
+    maxiter : int, optional
+        Maximum number of iterations.
 
+    Returns
+    =======
+    x_hat : array_like
+        Estimate of x.
+
+    Notes
+    =====
     Solves the problem:
-        min_x || y - Ax ||^2_2  + lam*TV(x)
 
-    If x=None, then MSE will not be calculated.
+    .. math::
+
+        \min_x || y - Ax ||^2_2  + \lambda \text{TV}(x)
+
+    If `x=None`, then MSE will not be calculated.
     '''
 
     # Make sure compare_mse is defined
