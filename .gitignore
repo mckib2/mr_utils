@@ -8,4 +8,5 @@ mr_utils/test_data/tests/
 mr_utils/test_data/examples/
 .ipynb_checkpoints/
 \#*\#
-
+config_buffer.xprot
+tmp.h5

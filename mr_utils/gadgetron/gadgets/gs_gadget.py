@@ -2,7 +2,10 @@
 '''
 
 import numpy as np
-from gadgetron import Gadget
+try:
+    from gadgetron import Gadget
+except ModuleNotFoundError:
+    Gadget = object
 # from mr_utils.recon.ssfp import gs_recon
 
 class GS_2d(Gadget):

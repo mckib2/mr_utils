@@ -5,7 +5,10 @@ See:
 '''
 
 import numpy as np
-from gadgetron import Gadget  # pylint: disable=E0401
+try:
+    from gadgetron import Gadget  # pylint: disable=E0401
+except ModuleNotFoundError:
+    Gadget = object
 
 class RMSCoilCombine(Gadget):
     '''Gadget that using RMS method to combine coils.'''
