@@ -9,6 +9,18 @@ def python_pca(X, n_components=False):
     '''Python implementation of principal component analysis.
 
     To verify I know what sklearn's PCA is doing.
+
+    Parameters
+    ==========
+    X : array_like
+        Matrix to perform PCA on.
+    n_components : int, optional
+        Number of components to keep.
+
+    Returns
+    =======
+    P : array_like
+        n_component principal components of X.
     '''
 
     M = np.mean(X.T, axis=1)
@@ -27,19 +39,26 @@ def coil_pca(
         debug_level=logging.WARNING):
     '''Reduce the dimensionality of the coil dimension using PCA.
 
-    coil_dim -- Coil axis, default is last axis.
-    coil_ims -- Coil images.
-    n_components -- How many principal components to keep.
-    give_explained_var -- Return explained variance for real,imag decomposition
-    debug_level -- Verbosity level to set logging module.
+    Parameters
+    ==========
+    coil_ims : array_like
+        Coil images.
+    coil_dim : int, optional
+        Coil axis, default is last axis.
+    n_components : int, optional
+        How many principal components to keep.
+    give_explained_var : bool, optional
+        Return explained variance for real,imag decomposition
+    debug_level : logging_level, optional
+        Verbosity level to set logging module.
 
-    give_explained_var=True will return (coil_ims_pca,expl_var). expl_var is a
-    complex valued 1D vector representing:
-        cumsum(pca_real.explained_variance_ratio_) +
-                                  1j*cumsum(pca_imag.explained_variance_ratio_)
-
-    Thus, if you were so inclined, you could take a look and see how many
-    components you'd need to explain the variance up to some percentage.
+    Returns
+    =======
+    coil_ims_pca : array_like
+        Compressed coil images representing n_components principal components.
+    expl_var : array_like, optional
+        complex valued 1D vector representing  explained variance.  Is returned
+        if `give_explained_var=True`
     '''
 
     # Every day I'm logging...

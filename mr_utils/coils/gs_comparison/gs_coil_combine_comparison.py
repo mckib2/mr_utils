@@ -17,7 +17,16 @@ from mr_utils.test_data.phantom import bssfp_2d_cylinder
 def get_numerical_phantom_params(SNR=None):
     '''Preset parameters for a numerical cylindrical phantom.
 
-    SNR -- signal to noise ratio, calculated: std = avg_signal/SNR.
+    Parameters
+    ==========
+    SNR : float
+        Signal to noise ratio, calculated: std = avg_signal/SNR.
+
+    Returns
+    =======
+    params : dictionary
+        Parameter dictionary including `noise_std`, `dim`, `pc_vals`, and
+        `coil_nums` fields.
     '''
 
     if SNR is None:
@@ -43,6 +52,11 @@ def get_true_im_numerical_phantom():
     residual banding, do it a few times at a bunch of different phase cycles
     to remove virually all banding.  This ensures that the contrast will be
     comparable to the banded phantoms.
+
+    Returns
+    =======
+    true_im : array_like
+        Banding free reference image with true bSSFP contrast.
     '''
 
     # Load in params for  simulation
@@ -68,7 +82,13 @@ def get_true_im_numerical_phantom():
     return true_im
 
 def get_coil_sensitivity_maps():
-    '''Simulate coil sensitivity maps.'''
+    '''Simulate coil sensitivity maps.
+
+    Returns
+    =======
+    csms : list
+        List of coil sensitivity maps (arrays), one for each coil.
+    '''
 
     # get simple coil sensitivity maps (1,4,8,16,32 coil combinations)
     params = get_numerical_phantom_params()
@@ -83,7 +103,19 @@ def get_coil_sensitivity_maps():
 
 # Metric will be percent ripple
 def ripple(im0):
-    '''Calculate % ripple metric using local patches of line.'''
+    '''Calculate % ripple metric using local patches of line.
+
+    Parameters
+    ==========
+    im0 : array_like
+        Image to calculate ripple of.
+
+    Returns
+    =======
+    float
+        Percent ripple calculated by using local patches along a line through
+        the center of `im0`
+    '''
     im = im0.copy()
 
     # We only want one line through image
@@ -103,7 +135,23 @@ def ripple(im0):
 
 
 def ripple_normal(im):
-    '''Calculate % ripple metric.'''
+    '''Calculate % ripple metric.
+
+    Parameters
+    ==========
+    im : array_like
+        Image to calculate ripple of.
+
+    Returns
+    =======
+    float
+        Percent ripple.
+
+    Notes
+    =====
+    A horizontal line is drawn through the center of the image.  The percent
+    ripple is calculated along this line.
+    '''
     line = np.abs(im[:, int(im.shape[1]/2)])
     line = line[np.abs(line) > np.max(np.abs(line))/5]
     # view(line)
@@ -230,7 +278,13 @@ def comparison_knee():  # pylint: disable=R0914
 
 
 def comparison_numerical_phantom(SNR=None):  # pylint: disable=R0914,R0915
-    '''Compare coil by coil, Walsh method, and Inati iterative method.'''
+    '''Compare coil by coil, Walsh method, and Inati iterative method.
+
+    Parameters
+    ==========
+    SNR : float
+        Signal to noise ratio.
+    '''
 
     true_im = get_true_im_numerical_phantom()
     csms = get_coil_sensitivity_maps()
