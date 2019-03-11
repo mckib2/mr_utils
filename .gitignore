@@ -11,3 +11,4 @@ mr_utils/test_data/examples/
 config_buffer.xprot
 tmp.h5
 docs/_build/
+src/

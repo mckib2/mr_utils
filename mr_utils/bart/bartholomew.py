@@ -44,9 +44,12 @@ class BartholomewObject(object):
             print("BART's TOOLBOX_PATH environment variable not found!")
 
         # Make a list of  supported bart functions
-        result = subprocess.run(['bart'], stdout=subprocess.PIPE)
-        self.commands = result.stdout.decode().replace(
-            'BART. Available commands are:', '').split()
+        try:
+            result = subprocess.run(['bart'], stdout=subprocess.PIPE)
+            self.commands = result.stdout.decode().replace(
+                'BART. Available commands are:', '').split()
+        except FileNotFoundError:
+            pass
 
     def __getattr__(self, name, *args, **kwargs):
         def function(*args, **kwargs):
