@@ -33,23 +33,43 @@ def ssfp_old(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     return Mxy
 
 def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
-    '''SSFP transverse signal at time TE after excitation.
+    r'''SSFP transverse signal at time TE after excitation.
 
-    T1 -- longitudinal exponential decay time constant (in seconds).
-    T2 -- transverse exponential decay time constant (in seconds).
-    TR -- repetition time (in seconds).
-    alpha -- flip angle (in rad).
-    field_map -- B0 field map (in Hz).
-    phase_cyc -- Linear phase-cycle increment (in rad).
-    M0 -- proton density.
+    Parameters
+    ----------
+    T1 : float or array_like
+        longitudinal exponential decay time constant (in seconds).
+    T2 : float or array_like
+        transverse exponential decay time constant (in seconds).
+    TR : float
+        repetition time (in seconds).
+    alpha : float or array_like
+        flip angle (in rad).
+    field_map : float or array_like
+        B0 field map (in Hz).
+    phase_cyc : float or array_like, optional
+        Linear phase-cycle increment (in rad).
+    M0 : float or array_like, optional
+        proton density.
 
-    T1, T2, alpha, field_map, and M0 can all be either a scalar or MxN an
-    array.  phase_cyc can be a scalar or length L vector.
+    Returns
+    -------
+    Mxy : numpy.array
+        Transverse complex magnetization.
 
-    Implementation of equations [1-2] in
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    Notes
+    -----
+    `T1`, `T2`, `alpha`, `field_map`, and `M0` can all be either a scalar or
+    an MxN array.  `phase_cyc` can be a scalar or length L vector.
+
+    Implementation of equations [1-2] in [1]_.
+
+    References
+    ----------
+
+    .. [1] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+       bSSFP imaging with an elliptical signal model." Magnetic resonance in
+       medicine 71.3 (2014): 927-933.
     '''
 
     # Make sure we're working with arrays
