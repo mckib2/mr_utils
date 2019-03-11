@@ -10,5 +10,5 @@ algorithms.
 Docs
 ====
 
-I use Sphinx documentation houses in the `docs` folder.  You can find it on
+I use Sphinx documentation housed in the `docs` folder.  You can find it on
 ReadTheDocs.org -> https://mr-utils.readthedocs.io/en/latest/index.html
