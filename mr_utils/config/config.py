@@ -9,7 +9,11 @@ parameters to use for the gadgetron, MATLAB, siemens_to_ismrmrd, etc. clients.
 The config files use python's configparser format.  See implementation for
 details.
 
-Example profiles.config file:
+Examples
+========
+A sample `profiles.config` file might look like:
+
+.. code-block:: ini
 
     [default]
     gadgetron.host = localhost
@@ -80,8 +84,12 @@ class ProfileConfig(object):
     def create_profile(self, profile_name, args=None):
         '''Create a new profile.
 
-        profile_name -- New profile's label.
-        args -- key,value pairs of profile's attributes.
+        Parameters
+        ==========
+        profile_name : str
+            New profile's label.
+        args : dict
+            key, value pairs of profile's attributes.
         '''
 
         # Make sure args is a dictionary
@@ -111,8 +119,13 @@ class ProfileConfig(object):
     def activate_profile(self, profile):
         '''Assign a profile to be active.
 
-        profile -- Profile label to make active.
+        Parameters
+        ==========
+        profile : str
+            Profile label to make active.
 
+        Notes
+        =====
         All other profiles will still persist, but will not be used.  Only one
         profile may be active at a time.
         '''
@@ -127,10 +140,19 @@ class ProfileConfig(object):
     def set_config(self, args, profile=None):
         '''Update profile configuration files.
 
-        profile -- The profile to update.
-        args -- Dictionary of key,value updates.
+        Parameters
+        ==========
+        profile : str
+            The profile to update.
+        args : dict
+            Dictionary of key, value updates.
 
-        Keys -> Values:
+        Notes
+        =====
+
+        .. code-block:: none
+        
+            Keys -> Values:
             'gadgetron.host' -> (string) ip-address/hostname/etc
             'gadgetron.port' -> (int) port number
         '''
@@ -148,7 +170,15 @@ class ProfileConfig(object):
     def get_config_val(self, key):
         '''Retrieve a config value.
 
-        key -- Key of the (key,value) pair of the value to be looked up.
+        Parameters
+        ==========
+        key : str
+            Key of the (key, value) pair of the value to be looked up.
+
+        Returns
+        =======
+        value
+            Value associated with `key`
         '''
 
         # parse these out as integers
