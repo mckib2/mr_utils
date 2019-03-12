@@ -3,6 +3,7 @@
 from mr_utils.gadgetron import GadgetronConfig
 
 def grappa_cpu():
+    # pylint: disable=C0301
     '''Generates grappa_cpu.xml.
 
     Generates [1]_.
@@ -11,6 +12,8 @@ def grappa_cpu():
     ==========
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_cpu.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
@@ -35,6 +38,7 @@ def grappa_cpu():
     return config
 
 def grappa_float_cpu():
+    # pylint: disable=C0301
     '''Generates grappa_float_cpu.xml.
 
     Generates [2]_.
@@ -43,6 +47,8 @@ def grappa_float_cpu():
     ==========
     .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_float_cpu.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
@@ -65,6 +71,7 @@ def grappa_float_cpu():
     return config
 
 def grappa_unoptimized_cpu():
+    # pylint: disable=C0301
     '''Generates grappa_unoptimized_cpu.xml.
 
     Generates [3]_.
@@ -73,6 +80,8 @@ def grappa_unoptimized_cpu():
     ==========
     .. [3] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
@@ -90,6 +99,7 @@ def grappa_unoptimized_cpu():
     return config
 
 def grappa_unoptimized_float_cpu():
+    # pylint: disable=C0301
     '''Generates grappa_unoptimized_float_cpu.xml.
 
     Generates [4]_.
@@ -98,6 +108,8 @@ def grappa_unoptimized_float_cpu():
     ==========
     .. [4] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized_float.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')

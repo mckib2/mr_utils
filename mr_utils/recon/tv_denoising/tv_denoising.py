@@ -1,3 +1,4 @@
+# pylint: disable=C0301
 '''Port of TVL1denoise - TV-L1 image denoising with the primal-dual algorithm.
 
 Implementation of MATLAB script found at [1]_ which includes the following
@@ -19,10 +20,11 @@ copyright notice:
 
     The Software is provided "as is", without warranty of any kind.
 
-Refereneces
+References
 ===========
 .. [1] https://www.mathworks.com/matlabcentral/fileexchange/57604-tv-l1-image-denoising-algorithm
 '''
+# pylint: enable=C0301
 
 import numpy as np
 

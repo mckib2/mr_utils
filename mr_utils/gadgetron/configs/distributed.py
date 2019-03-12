@@ -3,6 +3,7 @@
 from mr_utils.gadgetron import GadgetronConfig
 
 def distributed_default():
+    # pylint: disable=C0301
     '''Generates distributed_default.xml.
 
     Generates [1]_.
@@ -11,6 +12,8 @@ def distributed_default():
     ==========
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_default.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1022', 'MRIImageReader')
@@ -45,6 +48,7 @@ def distributed_default():
     return config
 
 def distributed_image_default():
+    # pylint: disable=C0301
     '''Generates distributed_image_default.xml.
 
     Generates [2]_.
@@ -53,6 +57,8 @@ def distributed_image_default():
     ==========
     .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/distributed/config/distributed_image_default.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1022', 'MRIImageReader')

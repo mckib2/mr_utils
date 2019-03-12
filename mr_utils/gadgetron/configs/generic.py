@@ -3,6 +3,7 @@
 from mr_utils.gadgetron import GadgetronConfig
 
 def generic_cartesian_grappa():
+    # pylint: disable=C0301
     '''Generic_Cartesian_Grappa.xml.
 
     Generates [1]_.
@@ -11,6 +12,8 @@ def generic_cartesian_grappa():
     ==========
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/Generic_Cartesian_Grappa.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')

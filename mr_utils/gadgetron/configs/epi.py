@@ -3,6 +3,7 @@
 from mr_utils.gadgetron import GadgetronConfig
 
 def epi():
+    # pylint: disable=C0301
     '''Generates epi.xml.
 
     Generates [1]_.
@@ -11,6 +12,8 @@ def epi():
     ==========
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi.xml
     '''
+    # pylint: enable=C0301
+
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
@@ -38,6 +41,7 @@ def epi():
     return config
 
 def epi_gtplus_grappa():
+    # pylint: disable=C0301
     '''GT Plus configuration file for general 2D epi reconstruction.
 
     Generates [2]_.
@@ -46,6 +50,7 @@ def epi_gtplus_grappa():
     ==========
     .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi_gtplus_grappa.xml
     '''
+    # pylint: enable=C0301
 
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')

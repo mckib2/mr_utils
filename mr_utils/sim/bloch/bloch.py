@@ -4,7 +4,22 @@ import numpy as np
 from tqdm import trange
 
 def rotation(alpha, beta, gamma):
-    '''Create 3D rotation matrix from alpha,beta,gamma.'''
+    '''Create 3D rotation matrix from alpha,beta,gamma.
+
+    Parameters
+    ==========
+    alpha : float
+        Rotation angle about x in rad.
+    beta : float
+        Rotation angle about y in rad.
+    gamma : float
+        Rotation angle about z in rad.
+
+    Returns
+    =======
+    rot : array_like
+        Rotation matrix.
+    '''
 
     ca = np.cos(alpha)
     cb = np.cos(beta)
@@ -23,7 +38,36 @@ def rotation(alpha, beta, gamma):
     return rot
 
 def sim_loop(T1, T2, M0, Nt, h, alpha, beta, gamma, Bx=0, By=0, Bz=3):
-    '''Loop implementation to verify matrix implementation.'''
+    '''Loop implementation to verify matrix implementation.
+
+    T1 : array_like
+        longitudinal relaxation constant.
+    T2 : array_like
+        transverse relaxation constant.
+    M0 : array_like
+        value at thermal equilibrium.
+    Nt : int
+        number of time points for finite difference solution.
+    h : float
+        step size for finite difference solutions.
+    alpha : float
+        RF pulse tip angle about x.
+    beta : float
+        RF pulse tip angle about y.
+    gamma : float
+        RF pulse tip angle about z.
+    Bx : float, optional
+        x component of magnetic field.
+    By : float, optional
+        y component of magnetic field.
+    Bz : float, optional
+        z component of magnetic field.
+
+    Returns
+    =======
+    spins : array_like
+        Simulated spin vectors.
+    '''
 
     # Initalize spins at thermal equilibrium at first time point
     spins = np.zeros((Nt, 3,) + M0.shape)
@@ -62,23 +106,48 @@ def sim_loop(T1, T2, M0, Nt, h, alpha, beta, gamma, Bx=0, By=0, Bz=3):
     return spins
 
 def sim(T1, T2, M0, Nt, h, alpha, beta, gamma, Bx=0, By=0, Bz=3):
+    # pylint: disable=C0301
     '''Finite difference solution to Bloch equations.
 
-    T1 -- longitudinal relaxation constant.
-    T2 -- transverse relaxation constant.
-    M0 -- value at thermal equilibrium.
-    Nt -- number of time points for finite difference solution.
-    h -- step size for finite difference solutions.
-    alpha,beta,gamma -- RF pulse tip angles.
-    Bx -- x component of magnetic field.
-    By -- y component of magnetic field.
-    Bz -- z component of magnetic field.
+    T1 : array_like
+        longitudinal relaxation constant.
+    T2 : array_like
+        transverse relaxation constant.
+    M0 : array_like
+        value at thermal equilibrium.
+    Nt : int
+        number of time points for finite difference solution.
+    h : float
+        step size for finite difference solutions.
+    alpha : float
+        RF pulse tip angle about x.
+    beta : float
+        RF pulse tip angle about y.
+    gamma : float
+        RF pulse tip angle about z.
+    Bx : float, optional
+        x component of magnetic field.
+    By : float, optional
+        y component of magnetic field.
+    Bz : float, optional
+        z component of magnetic field.
 
-    T1,T2,M0 can be arrays (must be same size) to simulate phantoms.
+    Returns
+    =======
+    spins : array_like
+        Simulated spin vectors.
 
-    See:
-    https://en.wikipedia.org/wiki/Bloch_equations#Matrix_form_of_Bloch_equations
+    Notes
+    =====
+    T1, T2, M0 can be arrays (must be same size) to simulate phantoms.
+
+    See [1]_ for matrix form of Bloch equations.
+
+    References
+    ==========
+    .. [1] https://en.wikipedia.org/wiki/Bloch_equations#Matrix_form_of_Bloch_equations
     '''
+    # pylint: enable=C0301
 
     # Initalize spins at thermal equilibrium at first time point
     spins = np.zeros((Nt, 3,) + M0.shape)
@@ -114,20 +183,41 @@ def sim(T1, T2, M0, Nt, h, alpha, beta, gamma, Bx=0, By=0, Bz=3):
 def gre(T1, T2, M0, Nt, h, alpha, beta, gamma, TR, TE, Bx=0, By=0, Bz=3):
     '''Finite difference Bloch simulation of spoiled GRE pulse sequence.
 
-    T1 -- longitudinal relaxation constant.
-    T2 -- transverse relaxation constant.
-    M0 -- value at thermal equilibrium.
-    Nt -- number of time points for finite difference solution.
-    h -- step size for finite difference solutions.
-    alpha,beta,gamma -- RF pulse tip angles.
-    TR -- repetition time.
-    TE -- echo time.
-    Bx -- x component of magnetic field.
-    By -- y component of magnetic field.
-    Bz -- z component of magnetic field.
+    T1 : array_like
+        longitudinal relaxation constant.
+    T2 : array_like
+        transverse relaxation constant.
+    M0 : array_like
+        value at thermal equilibrium.
+    Nt : int
+        number of time points for finite difference solution.
+    h : float
+        step size for finite difference solutions.
+    alpha : float
+        RF pulse tip angle about x.
+    beta : float
+        RF pulse tip angle about y.
+    gamma : float
+        RF pulse tip angle about z.
+    TR : float
+        repetition time.
+    TE : float
+        echo time.
+    Bx : float, optional
+        x component of magnetic field.
+    By : float, optional
+        y component of magnetic field.
+    Bz : float, optional
+        z component of magnetic field.
 
-    T1,T2,M0 can be arrays (must be same size) to simulate phantoms.
+    Returns
+    =======
+    spins : array_like
+        Simulated spin vectors.
 
+    Notes
+    =====
+    T1, T2, M0 can be arrays (must be same size) to simulate phantoms.
     '''
 
     # Initalize

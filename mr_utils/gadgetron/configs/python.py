@@ -3,6 +3,7 @@
 from mr_utils.gadgetron import GadgetronConfig
 
 def python():
+    # pylint: disable=C0301
     '''python.xml
 
     Generates [1]_.
@@ -11,6 +12,7 @@ def python():
     ==========
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python.xml
     '''
+    # pylint: enable=C0301
 
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
@@ -41,6 +43,7 @@ def python():
     return config
 
 def python_short():
+    # pylint: disable=C0301
     '''python_short.xml
 
     Generates [2]_.
@@ -49,6 +52,7 @@ def python_short():
     ==========
     .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python_short.xml
     '''
+    # pylint: enable=C0301
 
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
