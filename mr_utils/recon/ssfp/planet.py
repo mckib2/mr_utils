@@ -70,6 +70,9 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     determined as I.size equally spaced phasce-cycles on the interval [0, 2pi).
 
     Implements algorithm described in [1]_.
+
+    References
+    ==========
     .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
            simultaneous T1 and T2 mapping using phase‐cycled balanced
            steady‐state free precession." Magnetic resonance in medicine 79.2
