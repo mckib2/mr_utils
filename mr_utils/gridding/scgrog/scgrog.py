@@ -1,7 +1,7 @@
 '''Self calibrating GROG implementation.
 
 Based on the MATLAB GROG implementation found here:
-    https://github.com/edibella/Reconstruction
+https://github.com/edibella/Reconstruction
 '''
 
 from multiprocessing import Pool
@@ -12,7 +12,32 @@ from tqdm import tqdm, trange
 from scipy.linalg import fractional_matrix_power
 
 def fracpowers(idx, Gx, Gy, dkxs, dkys):
-    '''Wrapper function to use during parallelization.'''
+    '''Wrapper function to use during parallelization.
+
+    Parameters
+    ==========
+    idx : array_like
+        Indices of current fractioinal power GRAPPA kernels
+    Gx : array_like
+        GRAPPA kernel in x
+    Gy : array_like
+        GRAPPA kernel in y
+    dkxs : array_like
+        Differential x k-space coordinates
+    dkys : array_like
+        Differential y k-space coordinates
+
+    Returns
+    =======
+    ii : array_like
+        row indices
+    jj : array_like
+        col indices
+    Gxf : array_like
+        Fractional power of GRAPPA kernel in x
+    Gyf : array_like
+        Fractional power of GRAPPA kernel in y
+    '''
     ii, jj = idx[0], idx[1]
     Gxf = fractional_matrix_power(Gx, dkxs[ii, jj])
     Gyf = fractional_matrix_power(Gy, dkys[ii, jj])
@@ -21,10 +46,23 @@ def fracpowers(idx, Gx, Gy, dkxs, dkys):
 def grog_interp(kspace, Gx, Gy, traj, cartdims):
     '''Moves radial k-space points onto a cartesian grid via the GROG method.
 
-    kspace -- A 3D (sx,sor,soc) slice of k-space
-    Gx,Gy -- The unit horizontal and vertical cartesian GRAPPA kernels
-    traj -- k-space trajectory
-    cartdims -- (nrows,ncols), size of Cartesian grid
+    Parameters
+    ==========
+    kspace : array_like
+        A 3D (sx, sor, soc) slice of k-space
+    Gx : array_like
+        The unit horizontal cartesian GRAPPA kernel
+    Gy : array_like
+        Unit vertical cartesian GRAPPA kernel
+    traj : array_like
+        k-space trajectory
+    cartdims : tuple
+        (nrows, ncols), size of Cartesian grid
+
+    Returns
+    =======
+    array_like
+        Interpolated cartesian kspace.
     '''
 
     sx, nor, noc = kspace.shape[:]
@@ -86,11 +124,28 @@ def grog_interp(kspace, Gx, Gy, traj, cartdims):
 def scgrog(kspace, traj, Gx, Gy, cartdims=None):
     '''Self calibrating GROG interpolation.
 
-    kspace -- A 4D (sx,sor,nof,soc) matrix of complex k-space data.
-    traj -- k-space trajectory.
-    Gx,Gy -- The unit horizontal and vertical cartesian GRAPPA kernels.
-    cartdims -- Size of Cartesian grid.
+    Parameters
+    ==========
+    kspace : array_like
+        A 4D (sx, sor, nof, soc) matrix of complex k-space data
+    traj : array_like
+        k-space trajectory
+    Gx : array_like
+        The unit horizontal cartesian GRAPPA kernel
+    Gy : array_like
+        Unit vertical cartesian GRAPPA kernel
+    cartdims : tuple
+         Size of Cartesian grid.
 
+    Returns
+    =======
+    kspace_cart : array_like
+        Cartesian gridded k-space.
+    mask : array_like
+        Boolean mask where kspace is nonzero.
+
+    Notes
+    =====
     If cartdims=None, we'll guess the Cartesian dimensions are
     (kspace.shape[0], kspace.shape[0], kspace.shape[2], kspace.shape[3]).
     '''

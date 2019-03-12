@@ -1,14 +1,35 @@
 '''Self calibrating GROG GRAPPA kernels.
 
 Based on the MATLAB implementation found here:
-    https://github.com/edibella/Reconstruction/blob/master/%2BGROG/get_Gx_Gy.m
+https://github.com/edibella/Reconstruction/blob/master/%2BGROG/get_Gx_Gy.m
 '''
 
 import numpy as np
 from scipy.linalg import logm, expm
 
 def get_gx_gy(kspace, traj=None, kxs=None, kys=None, cartdims=None):
-    '''Compute Self Calibrating GRAPPA Gx and Gy operators.'''
+    '''Compute Self Calibrating GRAPPA Gx and Gy operators.
+
+    Parameters
+    ==========
+    kspace : array_like
+        kspace samples.
+    traj : array_like
+        k-space trajectory.
+    kxs : array_like
+        kx coordinates.
+    kys : array_like
+        ky coordinates.
+    cartdims : tuple
+        Expected dimensions of cartesian grid.
+
+    Returns
+    =======
+    Gx : array_like
+        GRAPPA kernel in x
+    Gy : array_like
+        GRAPPA kernel in y
+    '''
 
     # We need either traj OR kxs,kys
     assert((traj is not None) or (kxs is not None and kys is not None))
