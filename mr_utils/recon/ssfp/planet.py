@@ -11,15 +11,53 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
            compute_df=False, disp=False):
     '''Simultaneous T1, T2 mapping using phase‐cycled bSSFP.
 
-    I -- Complex voxels from phase-cycled bSSFP images.
-    alpha -- Flip angle (in rad).
-    TR -- Repetition time (in sec).
-    pcs -- List of phase-cycles in I (required if computing df).
-    T1s -- Range of T1s.
-    fit_ellipse -- Function used to fit data points to ellipse.
-    compute_df -- Whether or not estimate local off-resonance, df.
-    disp -- Show plots.
+    Parameters
+    ==========
+    I : array_like
+        Complex voxels from phase-cycled bSSFP images.
+    alpha : float
+        Flip angle (in rad).
+    TR : float
+        Repetition time (in sec).
+    T1s : array_like, optional
+        Range of T1s.
+    fit_ellipse : callable, optional
+        Function used to fit data points to ellipse.
+    pcs : list, optional
+        List of phase-cycles in I (required if computing df).
+    compute_df : bool, optional
+        Whether or not estimate local off-resonance, df.
+    disp : bool, optional
+        Show plots.
 
+    Returns
+    =======
+    Meff : array_like
+        Effective magnetization amplitude
+    T1 : array_like
+        Estimate of T1 values
+    T2 : array_like
+        Estimate of T2 values
+    df : array_like, optional
+        Estimate of off-resonance values.
+
+    Raises
+    ======
+    NotImplementedError
+        If compute_df=True
+    AssertionError
+        If fit_ellipse returns something that is not an ellipse
+    AssertionError
+        If the rotation fails and xc < 0 or yc =/= 0.
+    AssertionError
+        If a, b, or Meff are outside of interval (0, 1).
+    ValueError
+        If ellipse callapses to a line.
+    ValueError
+        If the sign of b cannot be determined.
+
+    Notes
+    =====
     Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
     method they use (and which is implemented here) may not be the best
     method, but it is quick.  Could add more options for fitting in the future.
@@ -31,10 +69,11 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     pcs should be a list of phase-cycles in radians.  If pcs=None, it will be
     determined as I.size equally spaced phasce-cycles on the interval [0, 2pi).
 
-    Implements algorithm described in:
-        Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
-        simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
-        free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
+    Implements algorithm described in [1]_.
+    .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
+           simultaneous T1 and T2 mapping using phase‐cycled balanced
+           steady‐state free precession." Magnetic resonance in medicine 79.2
+           (2018): 711-722.
     '''
 
     # Make sure we have an ellipse fitting function

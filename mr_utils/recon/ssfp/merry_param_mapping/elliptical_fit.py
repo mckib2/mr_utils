@@ -7,14 +7,21 @@ from mr_utils.sim.ssfp import ssfp
 def ellipticalfit(Ireal, TR, dphis, offres, M0, alpha, T1, T2):
     '''ELLIPTICALFIT
 
-    Ireal - complex pixel hermtian transposed
-    TE - echo time
-    TR - repetition time
-    M0 - estmated from the band reduction algorithm
-    phasecycles- phase cycle angles
-    offres- offresonance profile
-    output- J: real part of difference, imaginary part of the difference
-    g gradients
+    Ireal : array_like
+        Hermtian transposed phase-cycle values for single pixel.
+    TR : float
+        Repetition time.
+    M0 :
+        Estmated proton density from the band reduction algorithm.
+    phasecycles :
+        Phase-cycles (in rad).
+    offres :
+        Off-resonance estimation (in Hz).
+
+    Returns
+    =======
+    J : array_like
+        Real part of difference concatenated with imaginary part of difference
     '''
 
     T1 *= 100

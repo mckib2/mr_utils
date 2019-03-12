@@ -15,7 +15,33 @@ from mr_utils.recon.ssfp.merry_param_mapping.optimize import optimize
 from mr_utils import view
 
 def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
-    '''Wrapper for parallelization.'''
+    '''Wrapper for parallelization.
+
+    Parameters
+    ==========
+    idx : array_like
+        Indices of current pixels, must be provided as parallelization is non-
+        sequential
+    Is : list
+        List of phase-cycled images.
+    TR : float
+        Repetition time.
+    dphis : array_like
+        Phase-cycles (in radians).
+    offres_est : array_like
+        Off-resonance map estimation.
+    alpha : array_like
+        Flip angle map (in rad).
+
+    Returns
+    =======
+    ii : int
+        Row index
+    jj : int
+        Column index
+    xopt : array_like
+        Optimized parameters: [T1, T2, offres, M0]
+    '''
     ii, jj = idx[0], idx[1]
     I = np.array([I0[ii, jj] for I0 in Is])
     xopt, _fopt = optimize(
@@ -26,14 +52,43 @@ def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
 def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
     '''Parameter mapping for multiple phase-cycled bSSFP.
 
-    Is -- List of phase-cycled images.
-    dphis -- Phase-cycles (in radians).
-    alpha -- Flip angle map (in Hz).
-    TR -- Repetition time (milliseconds).
-    mask -- Locations to compute map estimates.
-    chunksize -- Chunk size to use for parallelized loop.
-    disp -- Show debugging plots.
+    Parameters
+    ==========
+    Is : list
+        List of phase-cycled images.
+    dphis : array_like
+        Phase-cycles (in radians).
+    alpha : array_like
+        Flip angle map (in rad).
+    TR : float
+        Repetition time (milliseconds).
+    mask : array_like, optional
+        Locations to compute map estimates.
+    chunksize : int, optional
+        Chunk size to use for parallelized loop.
+    disp : bool, optional
+        Show debugging plots.
 
+    Returns
+    =======
+    t1map : array_like
+        T1 map estimation
+    t2map : array_like
+        T2 map estimation
+    offresmap : array_like
+        Off-resonance map estimation
+    m0map : array_like
+        Proton density map estimation
+
+    Raises
+    ======
+    AssertionError
+        If Is is not a list type object.
+    AssertionError
+        If number of phase-cycles is not divisible by 4.
+
+    Notes
+    =====
     mask=None computes maps for all points.  Note that `Is` must be given as a
     list.
     '''

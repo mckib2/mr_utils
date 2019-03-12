@@ -6,11 +6,33 @@ from mr_utils.recon.ssfp.merry_param_mapping.elliptical_fit \
     import ellipticalfit
 
 def optimize(I, TR, phasecycles, offres, M0, alpha, T1, T2):
-    '''Using a nested function approach because fmincon requires obj and con
-    to be separate functions, but usually we compute them simultaneously.
-    We want to avoid redundant calculations to we will save the x we
-    used to compute obj(x) and if con(x) is the same locaiton we will
-    just use the value without recalling our function.
+    '''Optimization driver to find T1, T2, offres, and M0 estimates.
+
+    Parameters
+    ==========
+    I : list
+        List of phase-cycled images.
+    TR : float
+        Repetition time.
+    phasecycles : array_like
+        Phase-cycles (in radians).
+    offres : array_like
+        Off-resonance map estimation.
+    M0 : float
+        Initial guess for M0.
+    alpha : float
+        Flip angle (in rad).
+    T1 : float
+        Inital guess for T1.
+    T2 : float
+        Initial guess for T2.
+
+    Returns
+    =======
+    array_like
+        Optimized values for [T1, T2, offres, M0].
+    float
+        Final objective function value.
     '''
 
     # -------- starting point and bounds --------------
