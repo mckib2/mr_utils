@@ -13,10 +13,21 @@ import numpy as np
 def linesearch_quad(f, x, a, s):
     '''Simple quadratic linesearch.
 
-    f -- Objective function.
-    x -- Current location.
-    a -- Guess for stepsize.
-    s -- Search direction.
+    Parameters
+    ==========
+    f : callable
+        Objective function.
+    x : array_like
+        Current location.
+    a : float
+        Guess for stepsize.
+    s : array_like
+        Search direction.
+
+    Returns
+    =======
+    a : float
+        Stepsize for the current step.
     '''
     f1 = f(x + a*s)
     f2 = f(x + 2*a*s)
@@ -27,10 +38,21 @@ def linesearch_quad(f, x, a, s):
 def linesearch(obj, x0, a0, s):
     '''More sophisticated linesearch.
 
-    obj -- Objective function.
-    x0 -- Current location.
-    a0 -- Current guess at stepsize.
-    s -- Search direction.
+    Parameters
+    ==========
+    obj : callable
+        Objective function.
+    x0 : array_like
+        Current location.
+    a0 : float
+        Current guess at stepsize.
+    s : array_like
+        Search direction.
+
+    Returns
+    =======
+    a : float
+        Stepsize for the current step.
     '''
     f = [obj(x0), obj(x0 + a0*s)]  # initial conditions
     a = [0, a0]

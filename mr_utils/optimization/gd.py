@@ -13,12 +13,27 @@ from scipy.optimize.linesearch import LineSearchWarning
 def gd(f, grad, x0, alpha=None, maxiter=1e6, tol=1e-8):
     '''Gradient descent algorithm.
 
-    f -- Function to be optimized.
-    grad -- Function that computes the gradient of f.
-    x0 -- Initial point to start to start descent.
-    alpha -- Either a fixed step size or a function that returns step size.
-    maxiter -- Do not exceed this number of iterations.
-    tol -- Run until change in norm of gradient is within this number.
+    Parameters
+    ==========
+    f : callable
+        Function to be optimized.
+    grad : callable
+        Function that computes the gradient of f.
+    x0 : array_like
+        Initial point to start to start descent.
+    alpha : callable or float, optional
+        Either a fixed step size or a function that returns step size.
+    maxiter : int, optional
+        Do not exceed this number of iterations.
+    tol : float, optional
+        Run until change in norm of gradient is within this number.
+
+    Returns
+    =======
+    cur_x : array_like
+        Estimate of optimal choice of x.
+    int
+        Number of iterations.
     '''
 
     if not isinstance(x0, np.ndarray):
