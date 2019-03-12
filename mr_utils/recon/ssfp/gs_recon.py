@@ -10,7 +10,24 @@ with warnings.catch_warnings():
 from mr_utils.sim.ssfp import get_complex_cross_point
 
 def get_max_magnitudes(I1, I2, I3, I4):
-    '''Find maximum magnitudes for each pixel over all four input images.'''
+    '''Find maximum magnitudes for each pixel over all four input images.
+
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+
+    Returns
+    =======
+    I_mag : array_like
+        Maximum magnitude image at each pixel.
+    '''
 
     stacked = np.dstack(np.abs((I1, I2, I3, I4)))
     I_mag = np.max(stacked, axis=-1)
@@ -19,6 +36,24 @@ def get_max_magnitudes(I1, I2, I3, I4):
 def get_max_magnitudes_for_loop(I1, I2, I3, I4):
     '''Find maximum magnitudes for each pixel over all four input images.
 
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+
+    Returns
+    =======
+    I_mag : array_like
+        Maximum magnitude image at each pixel.
+
+    Notes
+    =====
     This one loops over each pixel as verification for get_max_magnitudes().
     '''
 
@@ -36,7 +71,24 @@ def get_max_magnitudes_for_loop(I1, I2, I3, I4):
     return I_mag.reshape(shape0)
 
 def gs_recon_for_loop(I1, I2, I3, I4):
-    '''GS recon implemented using a straightfoward loop for verification.'''
+    '''GS recon implemented using a straightfoward loop for verification.
+
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+
+    Returns
+    =======
+    I : array_like
+        GS solution to elliptical signal model.
+    '''
 
     # Flatten all the phase cycled images
     shape0 = I1.shape
@@ -72,15 +124,57 @@ def gs_recon_for_loop(I1, I2, I3, I4):
     return I
 
 def complex_sum(I1, I2, I3, I4):
-    '''Complex sum image combination method.'''
+    '''Complex sum image combination method.
+
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+
+    Returns
+    =======
+    CS : array_like
+        Complex sum image.
+    '''
     CS = (I1 + I2 + I3 + I4)/4
     return CS
 
 def gs_recon3d(I1, I2, I3, I4, slice_axis=-1, isophase=np.pi):
     '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
-    I1--I4 -- Phase-cycled images.
-    slice_axis -- Slice dimension, default is the last dimension.
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+    slice_axis : int, optional
+        Slice dimension, default is the last dimension.
+    isophase : float
+        Only neighbours with isophase max phase difference contribute.
+
+    Returns
+    =======
+    recon : array_like
+        GS solution to elliptical signal model.
+
+    Raises
+    ======
+    AssertionError
+        When phase-cycle images have different numbers of slices.
+
+    Notes
+    =====
     For more info, see mr_utils.recon.ssfp.gs_recon.
     '''
 
@@ -109,15 +203,37 @@ def gs_recon3d(I1, I2, I3, I4, slice_axis=-1, isophase=np.pi):
 def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
     '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
-    I1,I3 -- 1st diagonal pair of images (offset 180 deg).
-    I2,I4 -- 2nd diagonal pair of images (offset 180 deg).
-    isophase -- Only neighbours with isophase max phase difference contribute.
-    second_pass -- Compute the second pass solution, increasing SNR by sqrt(2).
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+    slice_axis : int, optional
+        Slice dimension, default is the last dimension.
+    isophase : float
+        Only neighbours with isophase max phase difference contribute.
+    second_pass : bool, optional
+        Compute the second pass solution, increasing SNR by sqrt(2).
 
-    Implements algorithm shown in Fig 2 of
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    Returns
+    =======
+    I : array_like
+        GS solution to elliptical signal model.
+
+    Notes
+    =====
+    Implements algorithm shown in Fig 2 of [1]_.
+
+    References
+    ==========
+    .. [1] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+           bSSFP imaging with an elliptical signal model." Magnetic resonance
+           in medicine 71.3 (2014): 927-933.
     '''
 
     # Get direct geometric solution for demoduled M for all pixels
@@ -152,12 +268,20 @@ def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
 def mask_isophase(numerator_patches, patch_size, isophase):
     '''Generate mask that chooses patch pixels that satisfy isophase.
 
-    numerator_patches -- Numerator patches from second pass solution.
-    patch_size -- size of patches in pixels (x,y).
-    isophase -- Only neighbours with isophase max phase difference contribute.
+    Parameters
+    ==========
+    numerator_patches : array_like
+        Numerator patches from second pass solution.
+    patch_size : tuple
+        size of patches in pixels (x,y).
+    isophase : float
+        Only neighbours with isophase max phase difference contribute.
 
-    Output mask, same size as numerator_patches, to be applied to
-    numerator_patches and den_patches before summation.
+    Returns
+    =======
+        mask : array_like
+            same size as numerator_patches, to be applied to numerator_patches
+            and den_patches before summation.
     '''
 
     # # Loop through each patch and zero out all the values not
@@ -185,13 +309,28 @@ def mask_isophase(numerator_patches, patch_size, isophase):
 def compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=np.pi):
     '''Computes weighted sum of image pair (I0,I1).
 
-    I0 -- 1st of pair of diagonal images (relative phase cycle of 0).
-    I1 -- 2nd of pair of diagonal images (relative phase cycle of 180 deg).
-    Id -- result of regularized direct solution.
-    patch_size -- size of patches in pixels (x,y).
-    mode -- mode of numpy.pad. Probably choose 'constant' or 'edge'.
-    isophase -- Only neighbours with max phase difference isophase contribute.
+    Parameters
+    ==========
+    I0 : array_like
+        1st of pair of diagonal images (relative phase cycle of 0).
+    I1 : array_like
+        2nd of pair of diagonal images (relative phase cycle of 180 deg).
+    Id : array_like
+        result of regularized direct solution.
+    patch_size : tuple, optional
+        size of patches in pixels (x, y).
+    mode : {'contant', 'edge'}, optional
+        mode of numpy.pad. Probably choose 'constant' or 'edge'.
+    isophase : float
+        Only neighbours with isophase max phase difference contribute.
 
+    Returns
+    =======
+    Iw : array_like
+        The weighted sum of image pair (I0,I1), equation [14]
+
+    Notes
+    =====
     Image pair (I0,I1) are phase cycled bSSFP images that are different by
     180 degrees.  Id is the image given by the direct method (Equation [13])
     after regularization by the complex sum.  This function solves for the
@@ -206,9 +345,13 @@ def compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=np.pi):
     default isophase is pi as in Hoff's implementation.
 
     This function implements Equations [14,18], or steps 4--5 from Fig. 2 in
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    [2]_.
+
+    References
+    ==========
+    .. [2] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+           bSSFP imaging with an elliptical signal model." Magnetic resonance
+           in medicine 71.3 (2014): 927-933.
     '''
 
     # Expressions for the numerator and denominator
