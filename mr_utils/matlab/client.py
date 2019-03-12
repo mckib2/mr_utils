@@ -20,10 +20,28 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 def get_socket(host, port, bufsize):
     '''Open a socket to the machine running MATLAB.
 
-    host -- IP address of machine running MATLAB.
-    port -- port to connect to.
-    bufsize -- Buffer size to use for communication.
+    Parameters
+    ==========
+    host : str
+        IP address of machine running MATLAB.
+    port : int
+        port to connect to.
+    bufsize : int
+        Buffer size to use for communication.
 
+    Returns
+    =======
+    sock : socket.socket
+        TCP socket for communication
+    host : str
+        host ip address
+    port : int
+        Port we're communicating over
+    bufsize : int
+        Buffer size to use during communication
+
+    Notes
+    =====
     If values are not provided (i.e., None) the values for host,port,bufsize
     will be taken from the active profile in profiles.config.
     '''
@@ -44,11 +62,23 @@ def get_socket(host, port, bufsize):
 def client_run(cmd, host=None, port=None, bufsize=None):
     '''Run command on MATLAB server.
 
-    cmd -- MATLAB command.
-    host -- host/ip-address of server running MATLAB.
-    port -- port of host to connect to.
-    bufsize -- Number of bytes to transmit/recieve at a time.
+    Parameters
+    ==========
+    cmd : str
+        MATLAB command.
+    host : str, optional
+        host/ip-address of server running MATLAB.
+    port : int, optional
+        port of host to connect to.
+    bufsize : int, optional
+        Number of bytes to transmit/recieve at a time.
 
+    Returns
+    =======
+    None
+
+    Notes
+    =====
     If values are not provided (i.e., None) the values for host,port,bufsize
     will be taken from the active profile in profiles.config.
     '''
@@ -78,11 +108,30 @@ def client_run(cmd, host=None, port=None, bufsize=None):
 def client_get(varnames, host=None, port=None, bufsize=None):
     '''Get variables from remote MATLAB workspace into python as numpy arrays.
 
-    varnames -- List of names of variables in MATLAB workspace to get.
-    host -- host/ip-address of server running MATLAB.
-    port -- port of host to connect to.
-    bufsize -- Number of bytes to transmit/recieve at a time.
+    Parameters
+    ==========
+    varnames : list
+        List of names of variables in MATLAB workspace to get.
+    host : str, optional
+        host/ip-address of server running MATLAB.
+    port : int, optional
+        port of host to connect to.
+    bufsize : int, optional
+        Number of bytes to transmit/recieve at a time.
 
+    Returns
+    =======
+    vals : dict
+        Contents of MATLAB workspace.
+
+    Raises
+    ======
+    ValueError
+        When transfered matlab workspace file cannot be read.
+        When `varnames` is not a list type.
+
+    Notes
+    =====
     Notice that varnames should be a list of strings.
     '''
 
@@ -131,9 +180,28 @@ def client_get(varnames, host=None, port=None, bufsize=None):
 def client_put(varnames, host=None, port=None, bufsize=None):
     '''Put variables from python into MATLAB workspace.
 
-    varnames -- Python variables to be injected into MATLAB workspace.
-    bufsize -- Number of bytes to transmit/recieve at a time.
+    Parameters
+    ==========
+    varnames : dict
+        Python variables to be injected into MATLAB workspace.
+    host : str, optional
+        host/ip-address of server running MATLAB.
+    port : int, optional
+        port of host to connect to.
+    bufsize : int, optional
+        Number of bytes to transmit/recieve at a time.
 
+    Returns
+    =======
+    None
+
+    Raises
+    ======
+    ValueError
+        When `varnames` is not a dictionary object.
+
+    Notes
+    =====
     Notice that varnames should be a dictionary: keys are the desired names of
     the variables in the MATLAB workspace and values are the python
     variables.

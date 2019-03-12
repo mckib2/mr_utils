@@ -16,7 +16,15 @@ from mr_utils.matlab.contract import done_token, RUN, GET, PUT
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 class MATLAB(object):
-    '''Object on server allowing server to communicate with MATLAB instance.'''
+    '''Object on server allowing server to communicate with MATLAB instance.
+
+    Attributes
+    ==========
+    done_token : contract.done_token
+        Sequence of symbols to let us know MATLAB is done communicating.
+    process : subprocess
+        Process that runs MATLAB and stays open.
+    '''
 
     def __init__(self):
 
@@ -34,7 +42,15 @@ class MATLAB(object):
         self.catch_output()
 
     def run(self, cmd, log_func=None):
-        '''Run MATLAB command in subprocess.'''
+        '''Run MATLAB command in subprocess.
+
+        Parameters
+        ==========
+        cmd : str
+            Command to send to MATLAB console.
+        log_func : callable, optional
+            Function to use to log output of MATLAB console.
+        '''
 
         self.process.stdin.write(('%s\n' % cmd))
         self.process.stdin.write("fprintf('%s\\n')\n" % self.done_token)
@@ -47,7 +63,13 @@ class MATLAB(object):
         self.catch_output(log_func=log_func)
 
     def catch_output(self, log_func=None):
-        '''Grab the output of MATLAB on the server.'''
+        '''Grab the output of MATLAB on the server.
+
+        Parameters
+        ==========
+        log_func : callable, optional
+            Function to use to log output of MATLAB console.
+        '''
 
         for l in self.process.stdout:
             if log_func is not None:
@@ -59,8 +81,23 @@ class MATLAB(object):
     def get(self, varnames):
         '''Get variables from MATLAB workspace into python as numpy arrays.
 
-        varnames -- List of names of variables in MATLAB workspace to get.
+        Parameters
+        ==========
+        varnames : list
+            List of names of variables in MATLAB workspace to get.
 
+        Returns
+        =======
+        tmp_filename : str
+            Name of temporary file where MATLAB workspace contents are stored.
+
+        Raises
+        ======
+        ValueError
+            When `varnames` is not a list type object.
+
+        Notes
+        =====
         Notice that varnames should be a list of strings.
         '''
 
@@ -81,7 +118,10 @@ class MATLAB(object):
     def put(self, tmp_filename):
         '''Put variables from python into MATLAB workspace.
 
-        tmp_filename -- MAT file holding variables to inject into workspace.
+        Parameters
+        ==========
+        tmp_filename : str
+            MAT file holding variables to inject into workspace.
         '''
 
         cmd = "load('%s','-mat')" % tmp_filename
@@ -101,7 +141,17 @@ class MATLAB(object):
 
 
 class MyTCPHandler(socketserver.StreamRequestHandler):
-    '''Create the server, binding to localhost on port.'''
+    '''Create the server, binding to localhost on port.
+
+    Attributes
+    ==========
+    what : {contract.RUN, contract.GET, contract.PUT}
+        The action we wish to perform.
+    cmd : str
+        The command to be run in the MATLAB console.
+    rfile : stream
+        Stream from TCP socket that we are reading from.
+    '''
 
     def handle(self):
 
@@ -161,7 +211,21 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
             logging.info(msg)
 
 def start_server():
-    '''Start the server so the client can connect.'''
+    '''Start the server so the client can connect.
+
+    Notes
+    =====
+    This server must be running on the remote before client can be used to
+    connect to it.
+
+    Examples
+    ========
+    To run this server, simply run:
+
+    .. code-block:: bash
+
+        python3 mr_utils/matlab/start_server.py
+    '''
 
     # Find host,port from profiles.config
     profile = ProfileConfig()
