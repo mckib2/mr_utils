@@ -37,11 +37,11 @@ def grappa_cpu():
 def grappa_float_cpu():
     '''Generates grappa_float_cpu.xml.
 
-    Generates [1]_.
+    Generates [2]_.
 
     References
     ==========
-    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_float_cpu.xml
+    .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_float_cpu.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
@@ -67,11 +67,11 @@ def grappa_float_cpu():
 def grappa_unoptimized_cpu():
     '''Generates grappa_unoptimized_cpu.xml.
 
-    Generates [1]_.
+    Generates [3]_.
 
     References
     ==========
-    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized.xml
+    .. [3] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
@@ -92,11 +92,11 @@ def grappa_unoptimized_cpu():
 def grappa_unoptimized_float_cpu():
     '''Generates grappa_unoptimized_float_cpu.xml.
 
-    Generates [1]_.
+    Generates [4]_.
 
     References
     ==========
-    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized_float.xml
+    .. [4] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized_float.xml
     '''
     config = GadgetronConfig()
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')

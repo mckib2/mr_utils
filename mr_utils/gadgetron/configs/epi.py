@@ -40,11 +40,11 @@ def epi():
 def epi_gtplus_grappa():
     '''GT Plus configuration file for general 2D epi reconstruction.
 
-    Generates [1]_.
+    Generates [2]_.
 
     References
     ==========
-    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi_gtplus_grappa.xml
+    .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/epi/epi_gtplus_grappa.xml
     '''
 
     config = GadgetronConfig()

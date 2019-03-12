@@ -43,11 +43,11 @@ def python():
 def python_short():
     '''python_short.xml
 
-    Generates [1]_.
+    Generates [2]_.
 
     References
     ==========
-    .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python_short.xml
+    .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python_short.xml
     '''
 
     config = GadgetronConfig()
