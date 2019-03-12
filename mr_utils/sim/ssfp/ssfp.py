@@ -111,20 +111,42 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     return Mxy.squeeze()
 
 def elliptical_params(T1, T2, TR, alpha, M0=1):
-    '''Return ellipse parameters M,a,b.
+    '''Return ellipse parameters M, a, b.
 
-    T1 -- longitudinal exponential decay time constant.
-    T2 -- transverse exponential decay time constant.
-    TR -- repetition time.
-    alpha -- flip angle.
+    Parameters
+    ==========
+    T1 : array_like
+        longitudinal exponential decay time constant.
+    T2 : array_like
+        transverse exponential decay time constant.
+    TR : float
+        repetition time.
+    alpha : float
+        flip angle.
+    M0 : array_like, optional
+        Proton density.
 
-    Outputs are the parameters of ellipse an ellipse, (M,a,b).  These
+    Returns
+    =======
+    M : array_like
+        Cross point.
+    a : array_like
+        Theta-independent ellipse parameter.
+    b : array_like
+        Theta-independent ellipse parameter.
+
+    Notes
+    =====
+    Outputs are the parameters of ellipse an ellipse, (M, a, b).  These
     parameters do not depend on theta.
 
-    Implementation of equations [3-5] in
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    Implementation of equations [3-5] in [2]_.
+
+    References
+    ==========
+    .. [2] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+           bSSFP imaging with an elliptical signal model." Magnetic resonance
+           in medicine 71.3 (2014): 927-933.
     '''
 
     # Make sure we're working with arrays
@@ -147,6 +169,26 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
 
 def ssfp_from_ellipse(M, a, b, TR, field_map, phase_cyc=0):
     '''Simulate banding artifacts given elliptical signal params and field map.
+
+    Parameters
+    ==========
+    M : array_like
+        Cross point.
+    a : array_like
+        Theta-independent ellipse parameter.
+    b : array_like
+        Theta-independent ellipse parameter.
+    TR : float
+        repetition time.
+    field_map : array_like
+        Off-resonance map (in Hz).
+    phase_cyc : float
+        Phase-cycling increment (in rad).
+
+    Returns
+    =======
+    I : array_like
+        SSFP simulation result.
     '''
 
     theta = get_theta(TR, field_map, phase_cyc)
@@ -155,14 +197,52 @@ def ssfp_from_ellipse(M, a, b, TR, field_map, phase_cyc=0):
     return I
 
 def  get_geo_center(M, a, b):
-    '''Get geometric center of ellipse.'''
+    '''Get geometric center of ellipse.
+
+    Parameters
+    ==========
+    M : array_like
+        Cross point.
+    a : array_like
+        Theta-independent ellipse parameter.
+    b : array_like
+        Theta-independent ellipse parameter.
+
+    Returns
+    =======
+    xc : array_like
+        x coordinates of geometric center of ellipse.
+    yc : array_like
+        y coordinates of geometric center of ellipse.
+    '''
 
     xc = M*(1 - a*b)/(1 - b**2)
     yc = 0
     return(xc, yc)
 
 def get_cart_elliptical_params(M, a, b):
-    '''Get parameters needed for cartesian representation of ellipse.'''
+    '''Get parameters needed for cartesian representation of ellipse.
+
+    Parameters
+    ==========
+    M : array_like
+        Cross point.
+    a : array_like
+        Theta-independent ellipse parameter.
+    b : array_like
+        Theta-independent ellipse parameter.
+
+    Returns
+    =======
+    xc : array_like
+        x coordinates of geometric center of ellipse.
+    yc : array_like
+        y coordinates of geometric center of ellipse.
+    A : array_like
+        Semi-major axis.
+    B : array_like
+        Semi-minor axis.
+    '''
 
     A = M*np.abs(a - b)/(1 - b**2)
     B = M*a/np.sqrt(1 - b**2)
@@ -171,7 +251,26 @@ def get_cart_elliptical_params(M, a, b):
     return(xc, yc, A, B)
 
 def make_cart_ellipse(xc, yc, A, B, num_t=100):
-    '''Make a cartesian ellipse, return x,y coordinates for plotting.'''
+    '''Make a cartesian ellipse, return x,y coordinates for plotting.
+
+    Parameters
+    ==========
+    xc : array_like
+        x coordinates of geometric center of ellipse.
+    yc : array_like
+        y coordinates of geometric center of ellipse.
+    A : array_like
+        Semi-major axis.
+    B : array_like
+        Semi-minor axis.
+
+    Returns
+    =======
+    x : array_like
+        Cartesian x coordinates.
+    y : array_like
+        Cartesian y coordinates.
+    '''
 
     # Use parametric equation
     t = np.linspace(0, 2*np.pi, num_t)
@@ -180,13 +279,47 @@ def make_cart_ellipse(xc, yc, A, B, num_t=100):
     return(x, y)
 
 def get_center_of_mass(M, a, b):
-    '''Give center of mass a function of ellipse parameters.'''
+    '''Give center of mass a function of ellipse parameters.
+
+    Parameters
+    ==========
+    M : array_like
+        Cross point.
+    a : array_like
+        Theta-independent ellipse parameter.
+    b : array_like
+        Theta-independent ellipse parameter.
+
+    Returns
+    =======
+    cm : array_like
+        Center of mass.
+    '''
 
     cm = M*(1 + ((b - a)/b)*(1/np.sqrt(1 - b**2) - 1))
     return cm
 
 def get_center_of_mass_nmr(T1, T2, TR, alpha, M0=1):
-    '''Give center of mass as a function of NMR parameters.'''
+    '''Give center of mass as a function of NMR parameters.
+
+    Parameters
+    ==========
+    T1 : array_like
+        longitudinal exponential decay time constant.
+    T2 : array_like
+        transverse exponential decay time constant.
+    TR : float
+        repetition time.
+    alpha : float
+        flip angle.
+    M0 : array_like, optional
+        Proton density.
+
+    Returns
+    =======
+    cm : array_like
+        Center of mass.
+    '''
 
     E1 = np.exp(-TR/T1)
     E2 = np.exp(-TR/T2)
@@ -196,7 +329,24 @@ def get_center_of_mass_nmr(T1, T2, TR, alpha, M0=1):
     return cm
 
 def spectrum(T1, T2, TR, alpha):
-    '''Generate an entire period of the bSSFP signal profile.'''
+    '''Generate an entire period of the bSSFP signal profile.
+
+    Parameters
+    ==========
+    T1 : array_like
+        longitudinal exponential decay time constant.
+    T2 : array_like
+        transverse exponential decay time constant.
+    TR : float
+        repetition time.
+    alpha : float
+        flip angle.
+
+    Returns
+    =======
+    sig : array_like
+        Full, complex SSFP spectrum.
+    '''
 
     # Get all possible off-resonance frequencies
     df = np.linspace(-1/TR, 1/TR, 100)
@@ -207,26 +357,46 @@ def get_bssfp_phase(
         TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0, phi_drift=0):
     '''Additional bSSFP phase factors.
 
-    TR -- repetition time.
-    field_map -- off-resonance map (Hz).
-    delta_cs -- chemical shift of species w.r.t. the water peak (Hz).
-    phi_rf -- RF phase offset, related to the combin. of Tx/Rx phases (rad).
-    phi_edd -- phase errors due to eddy current effects (rad).
-    phi_drift -- phase errors due to B0 drift (rad).
+    Parameters
+    ==========
+    TR : float
+        repetition time.
+    field_map : array_like
+        off-resonance map (Hz).
+    delta_cs : float, optional
+        chemical shift of species w.r.t. the water peak (Hz).
+    phi_rf : float, optional
+        RF phase offset, related to the combin. of Tx/Rx phases (rad).
+    phi_edd : float, optional
+        phase errors due to eddy current effects (rad).
+    phi_drift : float, optional
+        phase errors due to B0 drift (rad).
 
-    This is exp(-i phi) from end of p. 930 in
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    Returns
+    =======
+    phase : array_like
+        Additional phase term to simulate readout at time TE = TR/2.
+
+    Notes
+    =====
+    This is exp(-i phi) from end of p. 930 in [3]_.
 
     We use a positive exponent, exp(i phi), as in Hoff and Taylor MATLAB
     implementations.
 
     In Hoff's paper the equation is not explicitly given for phi, so we
-    implement equation [5] that gives more detailed terms, found in
-        Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
-        simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
-        free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
+    implement equation [5] that gives more detailed terms, found in [4]_.
+
+    References
+    ==========
+    .. [3] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+           bSSFP imaging with an elliptical signal model." Magnetic resonance
+           in medicine 71.3 (2014): 927-933.
+
+    .. [4] Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
+           simultaneous T1 and T2 mapping using phase‐cycled balanced
+           steady‐state free precession." Magnetic resonance in medicine 79.2
+           (2018): 711-722.
     '''
 
     TE = TR/2 # assume bSSFP
@@ -237,11 +407,30 @@ def get_bssfp_phase(
 def get_theta(TR, field_map, phase_cyc=0):
     '''Get theta, spin phase per repetition time, given off-resonance.
 
-    Equation for theta=2*pi*df*TR is in Appendix A of
-        Hargreaves, Brian A., et al. "Characterization and reduction of the
-        transient response in steady‐state MR imaging." Magnetic Resonance in
-        Medicine: An Official Journal of the International Society for Magnetic
-        Resonance in Medicine 46.1 (2001): 149-158.
+    Parameters
+    ==========
+    TR : float
+        repetition time.
+    field_map : array_like
+        Off-resonance map (in Hz).
+    phase_cyc : array_like
+        Phase-cycling.
+
+    Returns
+    =======
+    theta : array_like
+        Spin phase per repetition time, given off-resonance.
+
+    Notes
+    =====
+    Equation for theta=2*pi*df*TR is in Appendix A of [5]_.
+
+    References
+    ==========
+    .. [5] Hargreaves, Brian A., et al. "Characterization and reduction of the
+           transient response in steady‐state MR imaging." Magnetic Resonance
+           in Medicine: An Official Journal of the International Society for
+           Magnetic Resonance in Medicine 46.1 (2001): 149-158.
     '''
 
     theta = 2*np.pi*field_map*TR + phase_cyc
@@ -250,18 +439,39 @@ def get_theta(TR, field_map, phase_cyc=0):
 def get_cross_point(I1, I2, I3, I4):
     '''Find the intersection of two straight lines connecting diagonal pairs.
 
+    Parameters
+    ==========
+    I1 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I2 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I3 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I4 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+
+    Returns
+    =======
+    x0 : array_like
+        x coordinate of cross point.
+    y0 : array_like
+        y coordinate of cross point.
+
+    Notes
+    =====
     (xi,yi) are the real and imaginary parts of complex valued pixels in four
     bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
-    with 0 < i <= 4.
+    with 0 < i < 4.
 
-    This are Equations [11-12] from:
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    This are Equations [11-12] from [6]_.  There is  a typo in the paper for
+    equation [12] fixed in this implementation.  The first term of the
+    numerator should have (y2 - y4) instead of (x2 - y4) as written.
 
-    There is  a typo in the paper for equation [12] fixed in this
-    implementation.  The first term of the numerator should have (y2 - y4)
-    instead of (x2 - y4) as written.
+    References
+    ==========
+    .. [6] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+           bSSFP imaging with an elliptical signal model." Magnetic resonance
+           in medicine 71.3 (2014): 927-933.
     '''
 
     x1, y1 = I1.real, I1.imag
@@ -277,14 +487,35 @@ def get_cross_point(I1, I2, I3, I4):
 def get_complex_cross_point(I1, I2, I3, I4):
     '''Find the intersection of two straight lines connecting diagonal pairs.
 
+    Parameters
+    ==========
+    I1 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I2 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I3 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I4 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+
+    Returns
+    =======
+    M : array_like
+        Complex cross point.
+
+    Notes
+    =====
     (xi,yi) are the real and imaginary parts of complex valued pixels in four
     bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
     with 0 < i <= 4.
 
-    This is Equation [13] from:
-        Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-        bSSFP imaging with an elliptical signal model." Magnetic resonance in
-        medicine 71.3 (2014): 927-933.
+    This is Equation [13] from [7]_.
+
+    References
+    ==========
+    .. [7] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
+           bSSFP imaging with an elliptical signal model." Magnetic resonance
+           in medicine 71.3 (2014): 927-933.
     '''
 
     x1, y1 = I1.real, I1.imag
