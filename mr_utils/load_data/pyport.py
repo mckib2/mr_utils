@@ -1,41 +1,42 @@
 '''Python port of siemens_to_ismrmrd.
 
-Notes:
-    The XProtocol parser (xprot_get_val) is a string-search based
-    implementation, not an actual parser, so it's really slow, but does get
-    the job done very well.  Next steps would be to figure out how to speed
-    this up or rewrite the parser to work with everything.  I was working on a
-    parser but was stuck on how to handle some of Siemens' very strange
-    syntax.
+Notes
+=====
+The XProtocol parser (xprot_get_val) is a string-search based
+implementation, not an actual parser, so it's really slow, but does get
+the job done very well.  Next steps would be to figure out how to speed
+this up or rewrite the parser to work with everything.  I was working on a
+parser but was stuck on how to handle some of Siemens' very strange
+syntax.
 
-    There are several different XML libraries being used.  xml.etree was my
-    preference, so that's what I started with.  I needed to use xmltodict to
-    convert between dictionaries and xml, because it's quicker/easier to have
-    a dictionary hold the config information as we move along.  It turns out
-    that schema verification is not supported by xml.etree, so that's when I
-    pulled in lxml.etree -- so there's some weirdness trying to get xml.etree
-    and lxml.etree to play together nicely.  The last  one is pybx -- a
-    bizarrely complicated library that the ismrmrd python library uses.  I hate
-    the thing and think it's overly complicated for what we need to use it for.
+There are several different XML libraries being used.  xml.etree was my
+preference, so that's what I started with.  I needed to use xmltodict to
+convert between dictionaries and xml, because it's quicker/easier to have
+a dictionary hold the config information as we move along.  It turns out
+that schema verification is not supported by xml.etree, so that's when I
+pulled in lxml.etree -- so there's some weirdness trying to get xml.etree
+and lxml.etree to play together nicely.  The last  one is pybx -- a
+bizarrely complicated library that the ismrmrd python library uses.  I hate
+the thing and think it's overly complicated for what we need to use it for.
 
-    One of the ideas I had was to pull down the schema/parammaps from the
-    interwebs so it would always be current.  While this is a neat feature that
-    probably no one will use, it would speed up the raw data conversion to use
-    a local copy instead, even if that means pulling it down the first time and
-    keeping it.
+One of the ideas I had was to pull down the schema/parammaps from the
+interwebs so it would always be current.  While this is a neat feature that
+probably no one will use, it would speed up the raw data conversion to use
+a local copy instead, even if that means pulling it down the first time and
+keeping it.
 
-    The script to read in an ismrmrd dset provided in ismrmrd-python-tools is
-    great at illustrating how to do it, but is incredibly slow, especiailly if
-    you want to remove oversampling in readout direction.  Next steps are to
-    figure out how to quickly read in and process these datasets.  I'm kind of
-    put off from using this data format because of how unweildy it is, but I
-    suppose it's better to be an open standards player...
+The script to read in an ismrmrd dset provided in ismrmrd-python-tools is
+great at illustrating how to do it, but is incredibly slow, especiailly if
+you want to remove oversampling in readout direction.  Next steps are to
+figure out how to quickly read in and process these datasets.  I'm kind of
+put off from using this data format because of how unweildy it is, but I
+suppose it's better to be an open standards player...
 
-    The only datasets I have are cartesian VB17.  So there's currently little
-    support for anything else.
+The only datasets I have are cartesian VB17.  So there's currently little
+support for anything else.
 
-    Command-line interface has not been looked at in a long time, might not be
-    working still.
+Command-line interface has not been looked at in a long time, might not be
+working still.
 '''
 
 import argparse
@@ -62,7 +63,61 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
            debug=False, header_only=False, output='output.h5',
            flash_pat_ref_scan=False, append_buffers=False,
            study_date_user_supplied=''):
-    '''Run the program with arguments.'''
+    '''Run the program with arguments.
+
+    Parameters
+    ==========
+    version : bool, optional
+        Prints converter version and ISMRMRD version
+    list_embed : bool, optional
+        Print list embedded files
+    extract : bool, optional
+        Extract embedded file
+    user_stylesheet : str, optional
+        Provide a parameter stylesheet XSL file
+    file : str, optional
+        SIEMENS dat file
+    pMapStyle : str, optional
+        Parameter stylesheet XSL
+    measNum : int, optional
+        Measurement number
+    pMap : str, optional
+        Parameter map XML
+    user_map : str, optional
+        Provide a parameter map XML file
+    debug : bool, optional
+        Debug XML flag
+    header_only : bool, optional
+        HEADER ONLY flag (create xml header only)
+    output : str, optional
+        ISMRMRD output file
+    flash_pat_ref_scan : bool, optional
+        FLASH PAT REF flag
+    append_buffers : bool, optional
+        Append protocol buffers
+    study_date_user_supplied : str, optional
+        User can supply study date, in the format of yyyy-mm-dd
+
+    Returns
+    =======
+    ismrmrd_dataset : ismrmrd.Dataset
+        Converted raw data
+
+    Raises
+    ======
+    ValueError
+        When .dat file is not provided, when user-supplied parameter map XSL
+        stylesheet AND embedded stylesheet are provided at the same time
+    IOError
+        When .dat file does not exist, when provided user_stylesheet does not
+        exist, when pMapStyle does not exist
+    NotImplementedError
+        When VD raw data file is provided
+
+    Notes
+    =====
+    Not all Raises are listed currently.
+    '''
 
     # If we only wanted the version, that's all we're gonna do
     if version:

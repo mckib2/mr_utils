@@ -17,6 +17,13 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 def deal_with_7_3(data):
     '''Clean up data structures for MATLAB 7.3.
 
+    Parameters
+    ==========
+    data : array_like
+        Data from .mat file.
+
+    Notes
+    =====
     Version 7.3 has a structured datatype that needs to be translated as a
     complex number.
     '''
@@ -35,9 +42,20 @@ def deal_with_7_3(data):
 def load_mat(filename, key=None):
     '''Load data from .MAT file.
 
-    filename -- path to .mat file.
-    key -- Specific key to extract.
+    Parameters
+    ==========
+    filename : str
+        path to .mat file.
+    key : str, optional
+        Specific key to extract.
 
+    Returns
+    =======
+    array_like
+        Contents of mat file.
+
+    Notes
+    =====
     If key=None, all keys will be extracted.  If there is only one key, then
     its value will be provided directly, no dictionary will be returned.
     '''

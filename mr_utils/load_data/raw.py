@@ -10,16 +10,41 @@ def load_raw(
         as_ismrmrd=False):
     '''Load Siemens raw data into numpy array.
 
-    filename -- File path and filename of raw data file.
-    use -- Method to use to read in raw data.
-    bart_args -- Arguments to pass to BART.
-    s2i_ROS -- Remove oversampling in readout when using use='s2i'.
-    as_ismrmrd -- Leave as ismrmrd data type.
+    Parameters
+    ==========
+    filename : str
+        File path and filename of raw data file.
+    use : {'bart', 's2i', 'rdi'}, optional
+        Method to use to read in raw data.
+    bart_args : dict, optional
+        Arguments to pass to BART.
+    s2i_ROS : bool, optional
+        Remove oversampling in readout when using use='s2i'.
+    as_ismrmrd : bool, optional
+        Leave as ismrmrd data type.
 
+    Returns
+    =======
+    data : array_like
+        Data from raw data file.
+    ismrmrd_dataset : optional
+        Returned if use='s2i' and as_ismrmrd=True.
+
+    Raises
+    ======
+    SystemError
+        If BART is requested but not installed or if siemens_to_ismrmrd is
+        requested but not installed
+    Exception
+        If BART encounters an error while running or if siemens_to_ismrmrd is
+        encounters an error while running, or a valid use option is not
+        specified.
+
+    Notes:
     use:
-        bart -- BART twix raw data reader
-        s2i -- siemens_to_ismrmrd
-        rdi -- rawdatarinator
+    - bart -- BART twix raw data reader
+    - s2i -- siemens_to_ismrmrd
+    - rdi -- rawdatarinator
     '''
 
     if use == 'bart':
