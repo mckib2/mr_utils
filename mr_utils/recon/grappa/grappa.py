@@ -1,27 +1,59 @@
-import numpy as np
+'''Simple GRAPPA implementation for learning purposes.
+
+Please use Gadgetron's implementation if you need to use GRAPPA for real.
+'''
+
 import warnings # We know skimage will complain about importing imp...
+
+import numpy as np
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
     from skimage.util.shape import view_as_windows
 
-def grappa2d(coil_ims,sens,acs,Rx,Ry,kernel_size=(3,3)):
+def grappa2d(coil_ims, sens, acs, Rx, Ry, kernel_size=(3, 3)):
+    '''Simple 2D GRAPPA implementation.
+
+    Parameters
+    ==========
+    coil_ims : array_like
+        Coil images with sensity weightings corresponding to `sens`.
+    sens : array_like
+        Coil sensitivy maps.
+    acs : array_like
+        Autocalibration signal/region measurements.
+    Rx : int
+        Undersampling factor in x dimension.
+    Ry : int
+        Undersampling factor in y dimension.
+    kernel_size : tuple
+        Size of kernel, (x, y).
+
+    Returns
+    =======
+    recon : array_like
+        Reconstructed image from coil images and sensitivies.
+    '''
 
     # We get coil ims in and we want these in kspace
-    kspace_d = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(coil_ims),axes=(1,2)))
+    kspace_d = np.fft.fftshift(np.fft.fft2(np.fft.ifftshift(
+        coil_ims), axes=(1, 2)))
 
     # Separate the autocalibration region into patches to get source matrix
     N = sens.shape[0] # number of coils
-    S0 = np.zeros((N,(acs.shape[1]-2)*(acs.shape[2]-2),kernel_size[0]*kernel_size[1]),dtype='complex')
+    S0 = np.zeros((
+        N, (acs.shape[1] - 2)*(acs.shape[2] - 2),
+        kernel_size[0]*kernel_size[1]), dtype='complex')
     for ii in range(N):
-        S0[ii,:,:] = view_as_windows(np.ascontiguousarray(acs[ii,:,:]),kernel_size).reshape((S0.shape[1],S0.shape[2]))
+        S0[ii, :, :] = view_as_windows(np.ascontiguousarray(
+            acs[ii, :, :]), kernel_size).reshape((S0.shape[1], S0.shape[2]))
 
     # Remove the unknown values.  The remaiming values form source matrix,
     # S, for each coil
-    S_temp = S0[:,:,[0,1,2,6,7,8]]
+    S_temp = S0[:, :, [0, 1, 2, 6, 7, 8]]
     S = np.hstack(S_temp[:])
 
     # The middle pts form target vector, T, for each coil
-    T = S0[:,:,4].T
+    T = S0[:, :, 4].T
 
     # Invert S to find weights, W
     W = np.linalg.pinv(S).dot(T)
@@ -29,25 +61,30 @@ def grappa2d(coil_ims,sens,acs,Rx,Ry,kernel_size=(3,3)):
     # Now onto the forward problem to fill in the missing lines...
 
     # Make patches out of all acquired data (skip the missing lines)
-    S0 = np.zeros((N,int((kspace_d.shape[1]-2)/Rx)*int((kspace_d.shape[2]-2)/Ry),kernel_size[0]*kernel_size[1]),dtype='complex')
+    S0 = np.zeros((
+        N, int((kspace_d.shape[1] - 2)/Rx)*int((kspace_d.shape[2] - 2)/Ry),
+        kernel_size[0]*kernel_size[1]), dtype='complex')
     for ii in range(N):
-        S0[ii,:,:] = view_as_windows(np.ascontiguousarray(kspace_d[ii,:,:]),kernel_size,step=(Rx,Ry)).reshape((S0.shape[1],S0.shape[2]))
+        S0[ii, :, :] = view_as_windows(
+            np.ascontiguousarray(kspace_d[ii, :, :]), kernel_size,
+            step=(Rx, Ry)).reshape((S0.shape[1], S0.shape[2]))
 
     # Remove the unknown values.  The remaiming values form source matrix,
     # S, for each coil
-    S_new_temp = S0[:,:,[0,1,2,6,7,8]]
+    S_new_temp = S0[:, :, [0, 1, 2, 6, 7, 8]]
     S_new = np.hstack(S_new_temp[:])
 
     # Now it's a forward problem to find missing values
     T_new = S_new.dot(W)
 
     # Back fill in the missing lines to recover the image
-    lines = np.reshape(T_new.T,(N,-1,coil_ims.shape[2]-2))
-    kspace_d[:,1:-1:Rx,1:-1] = lines
+    lines = np.reshape(T_new.T, (N, -1, coil_ims.shape[2] - 2))
+    kspace_d[:, 1:-1:Rx, 1:-1] = lines
 
     # put the coil images back in image space and send it back
-    recon = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(kspace_d),axes=(1,2)))
-    return(recon)
+    recon = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(
+        kspace_d), axes=(1, 2)))
+    return recon
 
 # def grappa_gfactor_2d_jvc2(
 #     kspace_sampled,
