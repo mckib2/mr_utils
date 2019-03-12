@@ -13,10 +13,24 @@ from mr_utils.definitions import TEST_DATA_HOST, ROOT_DIR
 def load_test_data(path, files, do_return=True):
     '''Load test data, download if necessary.
 
-    path -- Location of directory where the test files live.
-    files -- Specific files to return.
-    do_return -- Whether or not to return loaded files as a list.
+    Parameters
+    ==========
+    path : str
+        Location of directory where the test files live.
+    files : list
+        Specific files to return.
+    do_return : bool
+        Whether or not to return loaded files as a list.
 
+    Returns
+    =======
+    returnVals : list
+        List of files loaded using np.load.
+    None, optional
+        Files are downloaded to disk, but not loaded.
+
+    Notes
+    =====
     files should be a list.  If no extension is given, .npy will be assumed.
     do_return=True assumes .npy file will be loaded (uses numpy.load).
     '''

@@ -8,20 +8,30 @@ import numpy as np
 def combine_chunks(wvlt, shape, dtype=float):
     '''Stitch together the output of PyWavelets wavedec2.
 
-    wvlt -- Output of pywt.wavedec2().
-    shape -- Desired shape.
-    dtype -- Type of numpy array.
+    Parameters
+    ==========
+    wvlt : array_like
+        Output of pywt.wavedec2().
+    shape : tuple
+        Desired shape.
+    dtype : np.dtype
+        Type of numpy array.
 
-    We have tuples that look like this:
-                                -------------------
-                                |        |        |
-                                | cA(LL) | cH(LH) |
-                                |        |        |
-    (cA, (cH, cV, cD))  <--->   -------------------
-                                |        |        |
-                                | cV(HL) | cD(HH) |
-                                |        |        |
-                                -------------------
+    Notes
+    =====
+
+    .. code-block:: none
+    
+        We have tuples that look like this:
+                                    -------------------
+                                    |        |        |
+                                    | cA(LL) | cH(LH) |
+                                    |        |        |
+        (cA, (cH, cV, cD))  <--->   -------------------
+                                    |        |        |
+                                    | cV(HL) | cD(HH) |
+                                    |        |        |
+                                    -------------------
     '''
 
     # Initialize

@@ -6,7 +6,13 @@ from mr_utils.sim.ssfp import ssfp
 from mr_utils.sim.gre import gre_sim
 
 def cylinder_2d_params():
-    '''Returns properties of numerical phantom used in cylinder_2d.'''
+    '''Returns properties of numerical phantom used in cylinder_2d.
+
+    Returns
+    =======
+    params : dict
+        Dictionary of example T1, T2, and M0 values.
+    '''
 
     params = {
         'T1': 1.5,
@@ -17,7 +23,28 @@ def cylinder_2d_params():
 
 def cylinder_2d(dims=(64, 64), FOV=((-1, 1), (-1, 1)), radius=0.5,
                 params=None):
-    '''Base 2d cylinder maps to feed to contrast simulations.'''
+    '''Base 2d cylinder maps to feed to contrast simulations.
+
+    Parameters
+    ==========
+    dims : tuple of ints, optional
+        Size of 2d cylinder.
+    FOV : tuple of tuples, optional
+        Field of view as ((x_lo, x_hi), (y_lo, y_hi)).
+    radius : float, optional
+        Radius of cylinder with respect to FOV.
+    params : dict, optional
+        Dictionary of tissue properties, as in cylinder_2d_params.
+
+    Returns
+    =======
+    PD : array_like
+        Proton density map.
+    T1s : array_like
+        T1 map.
+    T2s : array_like
+        T2 map.
+    '''
 
     # Grab the numerical parameters
     if params is None:
@@ -45,14 +72,29 @@ def bssfp_2d_cylinder(TR=6e-3, alpha=np.pi/3, dims=(64, 64),
                       phase_cyc=0, kspace=False):
     '''Simulates axial bSSFP scan of cylindrical phantom.
 
-    TR -- Repetition time.
-    alpha -- Flip angle.
-    dims -- Matrix size, (dim_x,dim_y)
-    FOV -- Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
-    radius -- Radius of cylinder in arbitrary units.
-    field_map -- (dim_x,dim_y) field map. If None, linear gradient in x used.
-    phase_cyc -- Phase cycling used in simulated bSSFP acquisition.
-    kspace -- Whether or not to return data in kspace or imspace.
+    Parameters
+    ==========
+    TR : float, optional
+        Repetition time.
+    alpha : float, optional
+        Flip angle (in rad).
+    dims : tuple of ints, optional
+        Matrix size, (dim_x,dim_y)
+    FOV : tuple of tuples, optional
+        Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
+    radius : float, optional
+        Radius of cylinder in arbitrary units.
+    field_map : array_like, optional
+        (dim_x,dim_y) field map. If None, linear gradient in x used.
+    phase_cyc : float, optional
+        Phase cycling used in simulated bSSFP acquisition (in rad).
+    kspace : bool, optional
+        Whether or not to return data in kspace or imspace.
+
+    Returns
+    =======
+    im : array_like
+        Complex simulated image with bSSFP contrast.
     '''
 
     # Get the base cylinder maps
@@ -82,13 +124,29 @@ def spgr_2d_cylinder(TR=0.3, TE=0.003, alpha=np.pi/3, dims=(64, 64),
                      kspace=False):
     '''Simulates axial spoiled GRE scan of cylindrical phantom.
 
-    TR -- Repetition time.
-    TE -- Echo time.
-    alpha -- Flip angle.
-    dims -- Matrix size, (dim_x,dim_y)
-    FOV -- Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
-    radius -- Radius of cylinder in arbitrary units.
-    kspace -- Whether or not to return data in kspace or imspace.
+    Parameters
+    ==========
+    TR : float, optional
+        Repetition time.
+    TE : float, optional
+        Echo time.
+    alpha : float, optional
+        Flip angle (in rad).
+    dims : tuple of ints, optional
+        Matrix size, (dim_x,dim_y)
+    FOV : tuple of tuples, optional
+        Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
+    radius : float, optional
+        Radius of cylinder in arbitrary units.
+    field_map : array_like, optional
+        (dim_x,dim_y) field map. If None, linear gradient in x used.
+    kspace : bool, optional
+        Whether or not to return data in kspace or imspace.
+
+    Returns
+    =======
+    im : array_like
+        Complex simulated image with spoiled GRE contrast.
     '''
 
     # Get the base cylinder maps
