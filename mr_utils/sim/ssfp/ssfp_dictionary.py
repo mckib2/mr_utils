@@ -7,9 +7,25 @@ import numpy as np
 from mr_utils.sim.ssfp import ssfp
 
 def get_keys(T1s, T2s, alphas):
-    '''Generate matrix of params [T1,T2,alpha] to generate a dictionary.
+    '''Generate matrix of params [T1, T2, alpha] to generate a dictionary.
 
-    T1,T2 are chosen to be feasible, i.e., T1 >= T2.
+    Parameters
+    ==========
+    T1s : array_like
+        longitudinal relaxation values.
+    T2s : array_like
+        transverse relaxation values.
+    alphas : array_like
+        Flip angle values (in rad).
+
+    Returns
+    =======
+    keys : array_like
+        Valid tuples of (T1 ,T2, alpha) to simulate and lookup.
+
+    Notes
+    =====
+    T1, T2 are chosen to be feasible, i.e., T1 >= T2.
     '''
 
     T1_mesh, T2_mesh, alpha_mesh = np.meshgrid(T1s, T2s, alphas)
@@ -25,12 +41,28 @@ def get_keys(T1s, T2s, alphas):
 def ssfp_dictionary(T1s, T2s, TR, alphas, df):
     '''Generate a dicionary of bSSFP profiles given parameters.
 
-    T1s -- (1D) all T1 decay constant values to simulate.
-    T2s -- (1D) all T2 decay constant values to simulate.
-    TR -- repetition time for bSSFP simulation.
-    alphas -- (1D) all flip angle values to simulate.
-    df -- (1D) off-resonance frequencies over which to simulate.
+    Parameters
+    ==========
+    T1s : array_like
+        (1D) all T1 decay constant values to simulate.
+    T2s : array_like
+        (1D) all T2 decay constant values to simulate.
+    TR : float
+        repetition time for bSSFP simulation.
+    alphas : array_like
+        (1D) all flip angle values to simulate.
+    df : array_like
+        (1D) off-resonance frequencies over which to simulate.
 
+    Returns
+    =======
+    D : array_like
+        Dictionary of simulated values
+    keys : array_like
+        Keys of dictionary D, all (T1, T2, alpha) combinations.
+
+    Notes
+    =====
     T1s,T2s,alphas should all be 1D arrays.  All feasible combinations will be
     simulated (i.e., where T1 >= T2).  The dictionary and keys are returned.
     Each dictionary column is the simulation over frequencies df.  The keys are
@@ -56,7 +88,28 @@ def ssfp_dictionary(T1s, T2s, TR, alphas, df):
     return(D, keys)
 
 def ssfp_dictionary_for_loop(T1s, T2s, TR, alphas, df):
-    '''Verification for ssfp_dictionary generation.'''
+    '''Verification for ssfp_dictionary generation.
+
+    Parameters
+    ==========
+    T1s : array_like
+        (1D) all T1 decay constant values to simulate.
+    T2s : array_like
+        (1D) all T2 decay constant values to simulate.
+    TR : float
+        repetition time for bSSFP simulation.
+    alphas : array_like
+        (1D) all flip angle values to simulate.
+    df : array_like
+        (1D) off-resonance frequencies over which to simulate.
+
+    Returns
+    =======
+    D : array_like
+        Dictionary of simulated values
+    keys : array_like
+        Keys of dictionary D, all (T1, T2, alpha) combinations.
+    '''
 
     # Get keys from supplied params
     keys = get_keys(T1s, T2s, alphas)
@@ -70,7 +123,22 @@ def ssfp_dictionary_for_loop(T1s, T2s, TR, alphas, df):
     return(D, keys)
 
 def find_atom(sig, D, keys):
-    '''Find params of dictionary atom closest to observed signal profile.'''
+    '''Find params of dictionary atom closest to observed signal profile.
+
+    Parameters
+    ==========
+    sig : array_like
+        Signal that should match an atom of the dicionary.
+    D : array_like
+        Dictionary of signals with keys being the MR parameters.
+    keys : array_like
+        Keys of dictionary D, all (T1, T2, alpha) combinations.
+
+    Returns
+    =======
+    param_est : tuple
+        T1, T2, alpha estimation based on closest dictionary atom.
+    '''
 
     # Make sig and columns of D comparable
 

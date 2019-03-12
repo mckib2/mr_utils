@@ -15,13 +15,27 @@ from mr_utils.sim.ssfp import ssfp
 def get_df_responses(T1, T2, PD, TR, alpha, phase_cyc, dfs):
     '''Simulate bSSFP response across all possible off-resonances.
 
-    T1 -- scalar T1 longitudinal recovery value in seconds.
-    T2 -- scalar T2 transverse decay value in seconds.
-    PD -- scalar proton density value scaled the same as acquisiton.
-    TR -- Repetition time in seconds.
-    alpha -- Flip angle in radians.
-    phase_cyc -- RF phase cycling in radians.
-    dfs -- Off-resonance values to simulate over.
+    Parameters
+    ==========
+    T1 : float
+        scalar T1 longitudinal recovery value in seconds.
+    T2 : float
+        scalar T2 transverse decay value in seconds.
+    PD : float
+        scalar proton density value scaled the same as acquisiton.
+    TR : float
+        Repetition time in seconds.
+    alpha : float
+        Flip angle in radians.
+    phase_cyc : float
+        RF phase cycling in radians.
+    dfs : float
+        Off-resonance values to simulate over.
+
+    Returns
+    =======
+    resp : array_like
+        Frequency response of SSFP signal across entire spectrum.
     '''
 
     # Feed ssfp sim an array of parameters to be used with all the df values
@@ -34,7 +48,32 @@ def get_df_responses(T1, T2, PD, TR, alpha, phase_cyc, dfs):
     return resp
 
 def quantitative_fm_scalar(Mxy, dfs, T1, T2, PD, TR, alpha, phase_cyc):
-    '''For scalar T1,T2,PD'''
+    '''For scalar T1, T2, PD.
+
+    Parameters
+    ==========
+    Mxy : float
+        Complex transverse signal we measure.
+    dfs : array_like
+        Off-resonance values to simulate over.
+    T1 : float
+        scalar T1 longitudinal recovery value in seconds.
+    T2 : float
+        scalar T2 transverse decay value in seconds.
+    PD : float
+        scalar proton density value scaled the same as acquisiton.
+    TR : float
+        Repetition time in seconds.
+    alpha : float
+        Flip angle in radians.
+    phase_cyc : float
+        RF phase cycling in radians.
+
+    Returns
+    =======
+    float
+        Off-resonace value that most closely matches Mxy prior.
+    '''
 
     # Simulate over the total range of off-resonance values
     resp = get_df_responses(T1, T2, PD, TR, alpha, phase_cyc, dfs)
@@ -47,6 +86,32 @@ def quantitative_fm_scalar(Mxy, dfs, T1, T2, PD, TR, alpha, phase_cyc):
 
 def quantitative_fm(Mxys, dfs, T1s, T2s, PDs, TR, alpha, phase_cyc, mask=None):
     '''Find field map given quantitative maps.
+
+    Parameters
+    ==========
+    Mxys : array_like
+        Complex transverse signal we measure.
+    dfs : array_like
+        Off-resonance values to simulate over.
+    T1s : array_like
+        scalar T1 longitudinal recovery value in seconds.
+    T2s : array_like
+        scalar T2 transverse decay value in seconds.
+    PDs : array_like
+        scalar proton density value scaled the same as acquisiton.
+    TR : float
+        Repetition time in seconds.
+    alpha : float
+        Flip angle in radians.
+    phase_cyc : float
+        RF phase cycling in radians.
+    mask : array_like
+        Boolean mask to tell which pixels we should compute df for.
+
+    Returns
+    =======
+    fm : array_like
+        Field map.
     '''
 
     resps = {}
