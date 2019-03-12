@@ -245,6 +245,8 @@ def dixon_3pt(IP, OP1, OP2, use_2pi=True, method='glover'):
 def dixon_3pt_eam(I0, I1, I2, method='glover'):
     '''Three point Dixon including echo amplitude modulation (EAM).
 
+    Parameters
+    ==========
     I0 : array_like
         In-phase image (corresponding to phi_0 phase).
     I1 : array_like
@@ -292,6 +294,8 @@ def dixon_3pt_eam(I0, I1, I2, method='glover'):
 def dixon_3pt_dpe(I0, I1, I2, theta):
     '''Three point Dixon using direct phase encoding (DPE).
 
+    Parameters
+    ==========
     I0 : array_like
         In-phase image (corresponding to phi_0 phase).
     I1 : array_like
