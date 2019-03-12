@@ -1,35 +1,56 @@
 '''Port of TVL1denoise - TV-L1 image denoising with the primal-dual algorithm.
 
-See:
-https://www.mathworks.com/matlabcentral/fileexchange/57604-tv-l1-image-denoising-algorithm
+Implementation of MATLAB script found at [1]_ which includes the following
+copyright notice:
+
+    Copyright (c) 2016 Manolis Lourakis (lourakis **at** ics forth gr)
+    Institute of Computer Science,
+    Foundation for Research & Technology - Hellas
+    Heraklion, Crete, Greece.
+    http://www.ics.forth.gr/
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, subject to the following
+    conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    The Software is provided "as is", without warranty of any kind.
+
+Refereneces
+===========
+.. [1] https://www.mathworks.com/matlabcentral/fileexchange/57604-tv-l1-image-denoising-algorithm
 '''
 
 import numpy as np
 
-#  Copyright (c) 2016 Manolis Lourakis (lourakis **at** ics forth gr)
-#  Institute of Computer Science,
-#  Foundation for Research & Technology - Hellas
-#  Heraklion, Crete, Greece.
-#  http://www.ics.forth.gr/
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# The Software is provided "as is", without warranty of any kind.
-
 def tv_l1_denoise(im, lam, disp=False, niter=100):
     '''TV-L1 image denoising with the primal-dual algorithm.
 
-    im -- image to be processed
-    lam -- regularization parameter controlling the amount of denoising;
-           smaller values imply more aggressive denoising which tends to
-           produce more smoothed results
-    disp -- print energy being minimized each iteration
-    niter -- number of iterations
+    Parameters
+    ==========
+    im : array_like
+        image to be processed
+    lam : float
+        regularization parameter controlling the amount of denoising;
+        smaller values imply more aggressive denoising which tends to
+        produce more smoothed results
+    disp : bool, optional
+        print energy being minimized each iteration
+    niter : int, optional
+        number of iterations
+
+    Returns
+    =======
+    newim : array_like
+        l1 denoised image.
+
+    Raises
+    ======
+    AssertionError
+        When dimension of im is not 2.
     '''
 
     L2 = 8.0
