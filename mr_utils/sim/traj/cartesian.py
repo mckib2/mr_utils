@@ -5,9 +5,24 @@ import numpy as np
 def cartesian_pe(shape, undersample=.5, reflines=20):
     '''Randomly collect Cartesian phase encodes (lines).
 
-    shape -- Shape of the image to be sampled.
-    undersample -- Undersampling factor (0 < undersample <= 1).
-    reflines -- Number of lines in the center to collect regardless.
+    Parameters
+    ==========
+    shape : tuple
+        Shape of the image to be sampled.
+    undersample : float, optional
+        Undersampling factor (0 < undersample <= 1).
+    reflines : int, optional
+        Number of lines in the center to collect regardless.
+
+    Returns
+    =======
+    mask : array_like
+        Boolean mask of sample locations on Cartesian grid.
+
+    Raises
+    ======
+    AssertionError
+        If undersample factor is outside of interval (0, 1].
     '''
 
     assert 0 < undersample <= 1, 'Undersampling factor must be in (0,1]!'
@@ -25,7 +40,27 @@ def cartesian_pe(shape, undersample=.5, reflines=20):
     return mask
 
 def cartesian_gaussian(shape, undersample=(.5, .5), reflines=20):
-    '''Undersample in Gaussian pattern.'''
+    '''Undersample in Gaussian pattern.
+
+    Parameters
+    ==========
+    shape : tuple
+        Shape of the image to be sampled.
+    undersample : tuple, optional
+        Undersampling factor in x and y (0 < ux, uy <= 1).
+    reflines : int, optional
+        Number of lines in the center to collect regardless.
+
+    Returns
+    =======
+    mask : array_like
+        Boolean mask of sample locations on Cartesian grid.
+
+    Raises
+    ======
+    AssertionError
+        If undersample factors are outside of interval (0, 1].
+    '''
 
     assert 0 < undersample[0] <= 1 and 0 < undersample[1] <= 1, \
         'Undersampling factor must be in (0,1]!'

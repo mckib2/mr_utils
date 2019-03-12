@@ -7,12 +7,26 @@ from skimage.transform import rotate
 def radial(shape, num_spokes, theta=None, skinny=True, extend=False):
     '''Create 2d binary radial sampling pattern.
 
-    shape -- x,y dimensions of sampling pattern.
-    num_spokes -- Number of spokes to simulate.
-    theta -- Angle between spokes (rad).
-    skinny -- Garuantee 1px spoke width.
-    extend -- Extend spokes to the edge of array.
+    Parameters
+    ==========
+    shape : tuple
+        x,y dimensions of sampling pattern.
+    num_spokes : int
+        Number of spokes to simulate.
+    theta : float, optional
+        Angle between spokes (rad).
+    skinny : bool, optional
+        Garuantee 1px spoke width.
+    extend : bool, optional
+        Extend spokes to the edge of array.
 
+    Returns
+    =======
+    idx : array_like
+        Boolean mask where samples in k-space should be taken.
+
+    Notes
+    =====
     If theta=None, use golden angle. If skinny=True, edges of spokes with large
     slope may be curved. If extend=False, spokes confined in a circle.
     '''
@@ -52,13 +66,25 @@ def radial(shape, num_spokes, theta=None, skinny=True, extend=False):
 def radial_golden_ratio_meshgrid(X, Y, num_spokes):
     '''Create 2d binary golden angle radial sampling pattern.
 
-    X,Y -- Meshgrid.
-    num_spokes -- Number of spokes to simulate.
+    Parameters
+    ==========
+    X : array_like
+        X component of meshgrid.
+    Y : array_like
+        T component of meshgrid.
+    num_spokes : int
+        Number of spokes to simulate.
 
+    Returns
+    =======
+    samp : array_like
+        Mask of where samples in k-space are taken.
+
+    Notes
+    =====
     Issues:
-        For steep slopes, the spokes don't make it all the way to the edge of
-        the image and they curve (from the skeletonize)...
-
+    - For steep slopes, the spokes don't make it all the way to the edge of the
+    image and they curve (from the skeletonize)...
     '''
 
     from scipy.ndimage.morphology import binary_dilation
