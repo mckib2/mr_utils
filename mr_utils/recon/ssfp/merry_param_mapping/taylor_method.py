@@ -22,8 +22,8 @@ def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
     idx : array_like
         Indices of current pixels, must be provided as parallelization is non-
         sequential
-    Is : list
-        List of phase-cycled images.
+    Is : array_like
+        Array of phase-cycled images, (dphi, x, y).
     TR : float
         Repetition time.
     dphis : array_like
@@ -43,19 +43,20 @@ def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
         Optimized parameters: [T1, T2, offres, M0]
     '''
     ii, jj = idx[0], idx[1]
-    I = np.array([I0[ii, jj] for I0 in Is])
+    I = Is[:, ii, jj]
     xopt, _fopt = optimize(
         I.conj().T, TR, dphis, offres_est[ii, jj]/100, 1.2, alpha[ii, jj],
         1000/100, 100/10)
     return(ii, jj, xopt)
 
-def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
+def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
+                  unwrap_fun=None, disp=False):
     '''Parameter mapping for multiple phase-cycled bSSFP.
 
     Parameters
     ==========
-    Is : list
-        List of phase-cycled images.
+    Is : array_like
+        Array of phase-cycled images, (dphi, x, y).
     dphis : array_like
         Phase-cycles (in radians).
     alpha : array_like
@@ -66,6 +67,9 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
         Locations to compute map estimates.
     chunksize : int, optional
         Chunk size to use for parallelized loop.
+    unwrap_fun : callable
+        Function to do 2d phase unwrapping.  If None, will use
+        skimage.restoration.unwrap_phase().
     disp : bool, optional
         Show debugging plots.
 
@@ -83,8 +87,6 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
     Raises
     ======
     AssertionError
-        If Is is not a list type object.
-    AssertionError
         If number of phase-cycles is not divisible by 4.
 
     Notes
@@ -97,24 +99,27 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
     if mask is None:
         mask = np.ones(Is[0].shape).astype(bool)
 
+    # If unwrap is None, then use default:
+    if unwrap_fun is None:
+        from skimage.restoration import unwrap_phase
+        unwrap_fun = lambda x: unwrap_phase(x)
+
     # Calculate the banding-removed image using the algorithm in the elliptical
     # model paper.
 
     # My addition: average the GS recon over all sets of 4 we have.  This will
     # have to do while I work on a generalization of the GS recon method to
     # handle >=4 phase-cycles at a time.
-    assert isinstance(Is, list), 'Phase-cycles must be provided in a list!'
     assert np.mod(len(Is), 4) == 0, 'We need sets of 4 for GS recon!'
     num_sets = int(len(Is)/4)
     Ms = np.zeros((num_sets,) + Is[0].shape, dtype='complex')
     for ii in range(num_sets):
-        Is0 = Is[ii::num_sets]
+        Is0 = Is[ii::num_sets, ...]
         Ms[ii, ...] = gs_recon(Is0[0], Is0[1], Is0[2], Is0[3])
     M = np.mean(Ms, axis=0)
 
     # Display elliptical model image.
     if disp:
-        plt.figure()
         plt.imshow(np.abs(M))
         plt.title('Eliptical Model - Banding Removed')
         plt.show()
@@ -130,54 +135,42 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10, disp=False):
         col = np.argwhere(mask)[row, :]
         cols = (np.min(col), np.max(col))
 
-        Is0 = Is[::num_sets]
-        plt.figure()
+        Is0 = Is[::num_sets, ...]
         plt.suptitle('0 PC')
         plt.subplot(2, 2, 1)
-        plt.plot(Is0[0].real[row, cols[0]:cols[1]])
+        plt.plot(Is0[0, row, cols[0]:cols[1]].real)
         plt.subplot(2, 2, 2)
-        plt.plot(Is0[0].imag[row, cols[0]:cols[1]])
+        plt.plot(Is0[0, row, cols[0]:cols[1]].imag)
         plt.subplot(2, 2, 3)
-        plt.plot(np.abs(Is0[0][row, cols[0]:cols[1]]))
+        plt.plot(np.abs(Is0[0, row, cols[0]:cols[1]]))
         plt.subplot(2, 2, 4)
-        plt.plot(np.angle(Is0[0][row, cols[0]:cols[1]]))
+        plt.plot(np.angle(Is0[0, row, cols[0]:cols[1]]))
         plt.show()
 
-        plt.figure()
         plt.suptitle('180 PC')
         plt.subplot(2, 2, 1)
-        plt.plot(Is[4].real[row, cols[0]:cols[1]])
+        plt.plot(Is[4, row, cols[0]:cols[1]].real)
         plt.subplot(2, 2, 2)
-        plt.plot(Is[4].imag[row, cols[0]:cols[1]])
+        plt.plot(Is[4, row, cols[0]:cols[1]].imag)
         plt.subplot(2, 2, 3)
-        plt.plot(np.abs(Is[4][row, cols[0]:cols[1]]))
+        plt.plot(np.abs(Is[4, row, cols[0]:cols[1]]))
         plt.subplot(2, 2, 4)
-        plt.plot(np.angle(Is[4][row, cols[0]:cols[1]]))
+        plt.plot(np.angle(Is[4, row, cols[0]:cols[1]]))
         plt.show()
         # compare to Lauzon paper figure 1
 
     ## Elliptical fit done here
-    from skimage.restoration import unwrap_phase
-    vl = mask[:, int(mask.shape[1]/2)]
-    hl = mask[int(2*mask.shape[0]/3), :]
-    L = np.sum(vl)
-    N = np.sum(hl)
-    offres_est = np.angle(M[mask])
-    offres_est = offres_est.reshape((L, N))
-    # view(offres_est)
-    # offres_est = denoise_tv_bregman(offres_est, weight=5, isotropic=False)
-    # view(offres_est)
-    # offres_est = np.unwrap(offres_est, axis=1)
-    offres_est = unwrap_phase(offres_est)
-    offres_est = np.pad(offres_est, (mask.shape[0]-L, mask.shape[1]-N), mode='constant')
-    # offres_est[~mask] = 0 #pylint: disable=E1130
-    view(offres_est)
+    offres_est = np.angle(M)
+    m_offres_est = np.ma.array(offres_est, mask=mask & 0)
+    offres_est = unwrap_fun(m_offres_est)*mask
     offres_est /= np.pi*TR*1e-3
+    view(offres_est)
 
-    t1map = np.zeros(Is[0].shape)
-    t2map = np.zeros(Is[0].shape)
-    offresmap = np.zeros(Is[0].shape)
-    m0map = np.zeros(Is[0].shape)
+    sh = Is.shape[1:]
+    t1map = np.zeros(sh)
+    t2map = np.zeros(sh)
+    offresmap = np.zeros(sh)
+    m0map = np.zeros(sh)
 
     # Since we have to do it for each pixel and all calculations are
     # independent, we can parallelize this sucker!  Use imap_unordered to to

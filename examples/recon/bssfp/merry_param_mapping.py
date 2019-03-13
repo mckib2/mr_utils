@@ -4,6 +4,8 @@ Ellipses have 5 degrees of freedom, so you should use 5 or more phase-cycles.
 Use multiples of 4 since we're using GS recon, so use minimum 8.
 '''
 
+import logging
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,12 +15,15 @@ from mr_utils.recon.ssfp.merry_param_mapping.plot_ellipse import plotEllipse
 from mr_utils.utils.ellipse import do_planet_rotation
 from mr_utils import view
 
+mpl_logger = logging.getLogger('matplotlib')
+mpl_logger.setLevel(logging.WARNING)
+
 if __name__ == '__main__':
 
     # First initialize everything
     N = 32
     SNR = 50
-    add_noise = True
+    add_noise = False
     disp = True # this will display interesting plots along the way and at end
     num_pcs = 16 # number of phase cycles to generate -- must be divisible by 4
     chunksize = 50 # how many pixels to give a cpu core at once
@@ -66,17 +71,7 @@ if __name__ == '__main__':
                                      ' divisible by 4!')
     num_sets = int(num_pcs/4)
     dphis = np.linspace(0, 2*np.pi, num_pcs, endpoint=False)
-    Is = []
-    a_s = []
-    b_s = []
-    Ms = []
-    for dphi in dphis:
-        Is.append(ssfp(
-            T1*1e-3, T2*1e-3, TR*1e-3, alpha, offres, phase_cyc=dphi, M0=M0))
-        M, a, b = elliptical_params(T1*1e-3, T2*1e-3, TR*1e-3, alpha, M0)
-        a_s.append(a)
-        b_s.append(b)
-        Ms.append(M)
+    Is = ssfp(T1*1e-3, T2*1e-3, TR*1e-3, alpha, offres, phase_cyc=dphis, M0=M0)
 
     ## THIS SECTION IS CURRENTLY BREAKING PYLINT, COMMENTED OUT FOR NOW
     #--------------------------------------------------------------------------
@@ -114,19 +109,17 @@ if __name__ == '__main__':
     # degrees offset from its paired image.
     #--------------------------------------------------------------------------
     if add_noise:
-        for ii, I0 in enumerate(Is):
-
-            avg_sig = np.mean(np.abs(Is[ii])[mask].flatten())
-            s = avg_sig/SNR
-
-            n = np.random.normal(
-                0, s/2, I0.shape) + 1j*np.random.normal(0, s/2, I0.shape)
-            Is[ii] += n
+        avg_sig = np.mean(np.abs(Is.flatten()))
+        s = avg_sig/SNR
+        n = np.random.normal(0, s/2, Is.shape) + 1j*np.random.normal(
+            0, s/2, Is.shape)
+        Is += n
     #--------------------------------------------------------------------------
 
     # Do the mapping
+    unwrap_fun = lambda x: np.unwrap(x, axis=1)
     t1map, t2map, offresmap, m0map = taylor_method(
-        Is, dphis, alpha, TR, mask, chunksize, disp)
+        Is, dphis, alpha, TR, mask, chunksize, unwrap_fun, disp)
 
     # Show some comparisons and residuals
     view(np.stack((offres, offresmap, offres - offresmap)))
@@ -153,13 +146,17 @@ if __name__ == '__main__':
         # So, the problem is that the ellipses have an unknown rotation that
         # we're not accounting for.  So we'll rotate everything to be a
         # vertical ellipse in the x > 0 half plane
-        xt, yt, _, _ = do_planet_rotation(It)
-        xe, ye, _, _ = do_planet_rotation(Ie)
+        xtr, ytr, _, _ = do_planet_rotation(It)
+        xer, yer, _, _ = do_planet_rotation(Ie)
         Idphi = np.array([I0[row, col] for I0 in Is])
         xdphi, ydphi, _, _ = do_planet_rotation(Idphi)
 
-        plt.plot(xt, yt, label='Rotated True Ellipse')
-        plt.plot(xe, ye, '--', label='Rotated Estimated Ellipse')
+        plt.plot(xt, yt, label='True Ellipse')
+        plt.plot(xe, ye, '--', label='Estimated Ellipse')
+        plt.plot(Idphi.real, Idphi.imag, 'kx', label='Samples')
+
+        plt.plot(xtr, ytr, label='Rotated True Ellipse')
+        plt.plot(xer, yer, '--', label='Rotated Estimated Ellipse')
         plt.plot(xdphi, ydphi, 'rx', label='Rotated Samples')
         # for ii, dphi in enumerate(dphis):
         #     plt.plot(Is[ii].real[row, col], Is[ii].imag[row, col], 'rx')
