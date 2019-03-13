@@ -27,8 +27,19 @@ from mr_utils.coils.coil_combine import coil_pca
 def mat_keys(filename, ignore_dbl_underscored=True, no_print=False):
     '''Give the keys found in a .mat filcoil_ims,coil_dim=-1,n_components=4e.
 
-    filename -- .mat filename.
-    ignore_dbl_underscored -- Remove keys beginng with two underscores.
+    Parameters
+    ==========
+    filename : str
+        .mat filename.
+    ignore_dbl_underscored : bool, optional
+        Remove keys beginng with two underscores.
+    no_print : bool, optional
+        Don't print out they keys.
+
+    Returns
+    =======
+    keys : list
+        Keys present in dictionary of read in .mat file.
     '''
 
     data = load_mat(filename)
@@ -70,38 +81,74 @@ def view(
     ):
     '''Image viewer to quickly inspect data.
 
-    image -- Name of the file including the file extension or numpy array.
-    load_opts -- Options to pass to data loader.
+    Parameters
+    ==========
+    image : str or array_like
+        Name of the file including the file extension or numpy array.
+    load_opts : dict, optional
+        Options to pass to data loader.
+    is_raw : bool, optional
+        Inform if data is raw. Will attempt to guess from extension.
+    is_line : bool, optional
+        Whether or not this is a line plot (as opposed to image).
+    prep : callable, optional
+        Lambda function to process the data before it's displayed.
+    fft : bool, optional
+        Whether or not to perform n-dimensional FFT of data.
+    fft_axes : tuple, optional
+        Axis to perform FFT over, determines dimension of n-dim FFT.
+    fftshift : bool, optional
+        Whether or not to perform fftshift. Defaults to True if fft.
+    avg_axis : int, optional
+        Take average over given set of axes.
+    coil_combine_axis : int, optional
+        Which axis to perform coil combination over.
+    coil_combine_method : {'walsh', 'inati', 'pca'}, optional
+        Method to use to combine coils.
+    coil_combine_opts : dict, optional
+        Options to pass to the coil combine method.
+    is_imspace : bool, optional
+        Whether or not the data is in image space. For coil combine.
+    mag : bool, optional
+        View magnitude image. Defaults to True if data is complex.
+    phase : bool, optional
+        View phase image.
+    log : bool, optional
+        View log of magnitude data. Defaults to False.
+    imshow_opts : dict, optional
+        Options to pass to imshow. Defaults to { 'cmap'='gray' }.
+    montage_axis : int, optional
+        Which axis is the number of images to be shown.
+    montage_opts : dict, optional
+        Additional options to pass to the skimage.util.montage.
+    movie_axis : int, optional
+        Which axis is the number of frames of the movie.
+    movie_repeat : bool, optional
+        Whether or not to put movie on endless loop.
+    save_npy : bool, optional
+        Whether or not to save the output as npy file.
+    debug_level : logging_level, optional
+        Level of verbosity. See logging module.
+    test_run : bool, optional
+        Doesn't show figure, returns debug object. Mostly for testing.
 
-    is_raw -- Inform if data is raw. Will attempt to guess from extension.
-    is_line -- Whether or not this is a line plot (as opposed to image).
-    prep -- Lambda function to process the data before it's displayed.
+    Returns
+    =======
+    dict, optional
+        All local variables when test_run=True.
 
-    fft -- Whether or not to perform n-dimensional FFT of data.
-    fft_axes -- Axis to perform FFT over, determines dimension of n-dim FFT.
-    fftshift -- Whether or not to perform fftshift. Defaults to True if fft.
-
-    avg_axis -- Take average over given set of axes.
-    coil_combine_axis -- Which axis to perform coil combination over.
-    coil_combine_method -- Method to use to combine coils.
-    coil_combine_opts -- Options to pass to the coil combine method.
-    is_imspace -- Whether or not the data is in image space. For coil combine.
-
-    mag -- View magnitude image. Defaults to True if data is complex.
-    phase -- View phase image.
-    log -- View log of magnitude data. Defaults to False.
-    imshow_opts -- Options to pass to imshow. Defaults to { 'cmap'='gray' }.
-
-    montage_axis -- Which axis is the number of images to be shown.
-    montage_opts -- Additional options to pass to the skimage.util.montage.
-
-    movie_axis -- Which axis is the number of frames of the movie.
-    movie_repeat -- Whether or not to put movie on endless loop.
-
-    save_npy -- Whether or not to save the output as npy file.
-
-    debug_level -- Level of verbosity. See logging module.
-    test_run -- Doesn't show figure, returns debug object. Mostly for testing.
+    Raises
+    ======
+    NotImplementedError
+        When file type is .h5.
+    Exception
+        When file type is not in ['dat', 'npy', 'mat', 'h5'].
+    ValueError
+        When coil combine requested, but fft_axes not set.
+    AssertionError
+        When Walsh coil combine requested but len(fft_axes) =/= 2.
+    ValueError
+        When there are too many dimension to display.
     '''
 
     # Set up logging...

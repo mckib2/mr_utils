@@ -1,20 +1,41 @@
+'''Tabular output.'''
 
 class Table(object):
     '''Table with header and columns. Nothing fancy.
 
     Class meant for simple column printing, e.g., printing updates for each
     iteration of an iterative algorithm.
+
+    Attributes
+    ==========
+    headings : list
+        List of strings giving column labels.
+    symbol : str
+        Character to use as separator between header and table rows.
+    pad : int
+        Number of spaces between columns.
+    widths : int or list
+        List of widths for each column in number of characters.
+    formatters : list
+        String formatters, will use %g if None is given.
     '''
 
     def __init__(self, headings, widths, formatters=None, pad=2, symbol='#'):
         '''Initialize the table object.
 
-        headings -- List of strings to use as headings for columns.
-        widths -- List of widths for each column.
-        formatters -- List of format options to use for each column.
-        pad -- Space between columns
-        symbol -- Character to use as separator between header and table rows.
+        headings : list
+            List of strings to use as headings for columns.
+        widths : list or int
+            List of widths for each column.
+        formatters : list, optional
+            List of format options to use for each column.
+        pad : int, optional
+            Space between columns
+        symbol : str, optional
+            Character to use as separator between header and table rows.
 
+        Notes
+        =====
         widths=[int] will assign each column the same width of [int].
         formatters=None will use 'g' for every column.
         '''
@@ -45,7 +66,13 @@ class Table(object):
             zip(self.widths, self.formatters)]
 
     def header(self):
-        '''Return table header.'''
+        '''Return table header.
+
+        Returns
+        =======
+        hdr : str
+            Table header.
+        '''
 
         # Create headings with specified widths
         hdr = []
@@ -59,7 +86,18 @@ class Table(object):
         return hdr
 
     def row(self, vals):
-        '''Return row of table.'''
+        '''Return row of table.
+
+        Parameters
+        ==========
+        vals : list
+            List of numbers corresponding to display for each row.
+
+        Returns
+        =======
+        line : str
+            The row.
+        '''
 
         line = []
         for idx, val in enumerate(vals):

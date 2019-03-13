@@ -9,22 +9,37 @@ from scipy.stats import wasserstein_distance
 def dH(H1, H2, mode='l2'):
     '''Histogram metrics.
 
-    H1, H2 -- 1d histograms with matched bins.
-    mode -- Metric to use.
+    Parameters
+    ==========
+    H1 : array_like
+        1d histogram.
+    H2 : array_like
+        1d histogram with bins matched to H1.
+    mode : {'l2', 'l1', 'vcos', 'intersect', 'chi2', 'jsd', 'emd'}, optional
+        Metric to use.
 
+    Returns
+    =======
+    float
+        Distance between H1, H2.
+
+    Notes
+    =====
     Similar bins means the same number and size over the same range.
 
     Modes:
-        l2 -- Euclidean distance
-        l1 -- Manhattan distance
-        vcos -- Vector cosine distance
-        intersect -- Histogram intersection distance
-        chi2 -- Chi square distance
-        jsd -- Jensen-Shannan Divergence
-        emd -- Earth Mover's Distance
+
+    - l2 -- Euclidean distance
+    - l1 -- Manhattan distance
+    - vcos -- Vector cosine distance
+    - intersect -- Histogram intersection distance
+    - chi2 -- Chi square distance
+    - jsd -- Jensen-Shannan Divergence
+    - emd -- Earth Mover's Distance
 
     Issues:
-        I'm not completely convinced that intersect is doing the right thing.
+
+    - I'm not completely convinced that intersect is doing the right thing.
 
     The quality of the metric will depend a lot on the qaulity of the
     histograms themselves.  Obviously more samples and well-chosen bins will
@@ -54,24 +69,27 @@ def dH(H1, H2, mode='l2'):
     return val
 
 def hist_match(source, template):
-    '''
+    '''Histogram matching.
+
     Adjust the pixel values of a grayscale image such that its histogram
     matches that of a target image
 
-    Arguments:
-    -----------
-        source: np.ndarray
-            Image to transform; the histogram is computed over the flattened
-            array
-        template: np.ndarray
-            Template image; can have different dimensions to source
-    Returns:
-    -----------
-        matched: np.ndarray
-            The transformed output image
+    Parameters
+    ----------
+    source: np.ndarray
+        Image to transform; the histogram is computed over the flattened
+        array
+    template: np.ndarray
+        Template image; can have different dimensions to source
 
-    See:
-        https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+    Returns
+    -------
+    matched: np.ndarray
+        The transformed output image
+
+    Notes
+    =====
+    https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
     '''
 
     oldshape = source.shape

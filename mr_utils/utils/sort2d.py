@@ -1,15 +1,30 @@
+'''2D sorting algorithms.'''
+
 import numpy as np
 
 def sort2d_loop(A):
     '''An efficient selection sorting algorithm for two-dimensional arrays.
 
-    A -- 2d array to be sorted.
+    Parameters
+    ==========
+    A : array_like
+        2d array to be sorted.
 
-    Implementation of algorithm from:
-        Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
-        algorithm for two-dimensional arrays. In Genetic and Evolutionary
-        Computing (ICGEC), 2010 Fourth International Conference on
-        (pp. 853-855). IEEE.
+    Returns
+    =======
+    B : array_like
+        Monotonically sorted A (along both axes).
+
+    Notes
+    =====
+    Implementation of algorithm from [1]_.
+
+    References
+    ==========
+    .. [1] Zhou, M., & Wang, H. (2010, December). An efficient selection
+           sorting algorithm for two-dimensional arrays. In Genetic and
+           Evolutionary Computing (ICGEC), 2010 Fourth International Conference
+           on (pp. 853-855). IEEE.
     '''
 
     # (1) Sort each row by selection sorting, (assume elements are sorted in
@@ -39,16 +54,30 @@ def sort2d_loop(A):
 def sort2d(A):
     '''Sorting algorithm for two-dimensional arrays.
 
-    A -- Array to be sorted.
+    Parameters
+    ==========
+    A : array_like
+        2d array to be sorted.
 
-    Note: if A is complex, you may want to provide abs(A).  Returns sorted
-    array and flattened indices.
+    Returns
+    =======
+    array_like
+        sorted A
+    array_like
+        flattened indices giving the sort order.
 
-    Numpy implementation of algorithm from:
-        Zhou, M., & Wang, H. (2010, December). An efficient selection sorting
-        algorithm for two-dimensional arrays. In Genetic and Evolutionary
-        Computing (ICGEC), 2010 Fourth International Conference on
-        (pp. 853-855). IEEE.
+    Notes
+    =====
+    Note: if A is complex, you may want to provide abs(A).
+
+    Numpy implementation of algorithm from [2]_.
+
+    References
+    ==========
+    .. [2] Zhou, M., & Wang, H. (2010, December). An efficient selection
+           sorting algorithm for two-dimensional arrays. In Genetic and
+           Evolutionary Computing (ICGEC), 2010 Fourth International Conference
+           on (pp. 853-855). IEEE.
     '''
 
     # Get the indices -- tread carefully...

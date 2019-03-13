@@ -8,10 +8,21 @@ from scipy.optimize import leastsq
 def get_semiaxes(c):
     '''Solve for semi-axes of the cartesian form of the ellipse equation.
 
-    c -- Coefficients of general quadratic polynomial function for conic funs.
+    Parameters
+    ==========
+    c : array_like
+        Coefficients of general quadratic polynomial function for conic funs.
 
-    See:
-        https://en.wikipedia.org/wiki/Ellipse
+    Returns
+    =======
+    float
+        Semi-major axis
+    float
+        Semi-minor axis
+
+    Notes
+    =====
+    https://en.wikipedia.org/wiki/Ellipse
     '''
     A, B, C, D, E, F = c[:]
     B2 = B**2
@@ -29,7 +40,17 @@ def get_semiaxes(c):
 def get_center(c):
     '''Compute center of ellipse from implicit function coefficients.
 
-    c -- Coefficients of general quadratic polynomial function for conic funs.
+    Parameters
+    ==========
+    c : array_like
+        Coefficients of general quadratic polynomial function for conic funs.
+
+    Returns
+    =======
+    xc : float
+        x coordinate of center.
+    yc : float
+        y coordinate of center.
     '''
     A, B, C, D, E, _F = c[:]
     den = B**2 - 4*A*C
@@ -40,9 +61,23 @@ def get_center(c):
 def rotate_points(x, y, phi, p=(0, 0)):
     '''Rotate points x, y through angle phi w.r.t. point p.
 
-    x, y -- Points to be rotated.
-    phi -- Angle in radians to rotate points.
-    p -- Point to rotate around.
+    Parameters
+    ==========
+    x : array_like
+        x coordinates of points to be rotated.
+    y : array_like
+        y coordinates of points to be rotated.
+    phi : float
+        Angle in radians to rotate points.
+    p : tuple, optional
+        Point to rotate around.
+
+    Returns
+    =======
+    xr : array_like
+        x coordinates of rotated points.
+    yr : array_like
+        y coordinates of rotated points.
     '''
     x = x.flatten()
     y = y.flatten()
@@ -53,12 +88,21 @@ def rotate_points(x, y, phi, p=(0, 0)):
 def rotate_coefficients(c, phi):
     '''Rotate coefficients of implicit equations through angle phi.
 
-    c -- Coefficients of general quadratic polynomial function for conic funs.
-    phi -- Angle in radians to rotate ellipse.
+    Parameters
+    ==========
+    c : array_like
+        Coefficients of general quadratic polynomial function for conic funs.
+    phi : float
+        Angle in radians to rotate ellipse.
 
-    See:
-        http://www.mathamazement.com/Lessons/Pre-Calculus/
-        09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
+    Returns
+    =======
+    array_like
+        Coefficients of rotated ellipse.
+
+    Notes
+    =====
+    http://www.mathamazement.com/Lessons/Pre-Calculus/09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
     '''
     cp, c2p = np.cos(phi), np.cos(2*phi)
     sp, s2p = np.sin(phi), np.sin(2*phi)
@@ -73,7 +117,22 @@ def rotate_coefficients(c, phi):
 def do_planet_rotation(I):
     '''Rotate complex points to fit vertical ellipse centered at (xc, 0).
 
-    I -- Complex points from SSFP experiment.
+    Parameters
+    ==========
+    I : array_like
+        Complex points from SSFP experiment.
+
+    Returns
+    =======
+    xr : array_like
+        x coordinates of rotated points.
+    yr : array_like
+        y coordinates of rotated points.
+    cr : array_like
+        Coefficients of rotated ellipse.
+    phi : float
+        Rotation angle in radians of effective rotation to get ellipse vertical
+        and in the x > 0 half plane.
     '''
 
     # Represent complex number in 2d plane
@@ -130,20 +189,38 @@ def do_planet_rotation(I):
 def check_fit(C, x, y):
     '''General quadratic polynomial function.
 
-    C -- coefficients.
-    x, y -- Coordinates assumed to be on ellipse.
+    Parameters
+    ==========
+    C : array_like
+        coefficients.
+    x : array_like
+        x coordinates assumed to be on ellipse.
+    y : array_like
+        y coordinates assumed to be on ellipse.
 
+    Returns
+    =======
+    float
+        Measure of how well the ellipse fits the points (x, y).
+
+    Notes
+    =====
     We want this to equal 0 for a good ellipse fit.   This polynomial is called
     the algebraic distance of the point (x, y) to the given conic.
 
-    See:
-        Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
-        simultaneous T1 and T2 mapping using phase‐cycled balanced steady‐state
-        free precession." Magnetic resonance in medicine 79.2 (2018): 711-722.
+    This equation is referenced in [1]_ and [2]_.
 
-        Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
-        fitting of ellipses." Proc. 6th International Conference in Central
-        Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+    References
+    ==========
+    .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
+           simultaneous T1 and T2 mapping using phase‐cycled balanced
+           steady‐state free precession." Magnetic resonance in medicine 79.2
+           (2018): 711-722.
+
+    .. [2] Halır, Radim, and Jan Flusser. "Numerically stable direct least
+           squares fitting of ellipses." Proc. 6th International Conference in
+           Central Europe on Computer Graphics and Visualization. WSCG. Vol.
+           98. 1998.
     '''
     x = x.flatten()
     y = y.flatten()
@@ -152,21 +229,31 @@ def check_fit(C, x, y):
 def fit_ellipse_halir(x, y):
     '''Python port of improved ellipse fitting algorithm by Halir and Flusser.
 
-    x, y -- Coordinates assumed to be on ellipse.
+    Parameters
+    ==========
+    x : array_like
+        y coordinates assumed to be on ellipse.
+    y : array_like
+        y coordinates assumed to be on ellipse.
 
+    Returns
+    =======
+    array_like
+        Ellipse coefficients.
+
+    Notes
+    =====
     Note that there should be at least 6 pairs of (x,y).
 
     From the paper's conclusion:
+
         "Due to its systematic bias, the proposed fitting algorithm cannot be
         used directly in applications where excellent accuracy of the fitting
         is required. But even in that applications our method can be useful as
         a fast and robust estimator of a good initial solution of the fitting
         problem..."
 
-    See figure 2 from:
-        Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
-        fitting of ellipses." Proc. 6th International Conference in Central
-        Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+    See figure 2 from [2]_.
     '''
 
     # We should just have a bunch of points, so we can shape it into a column
@@ -196,15 +283,24 @@ def fit_ellipse_halir(x, y):
 def fit_ellipse_fitzgibon(x, y):
     '''Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
 
-    x, y -- Coordinates assumed to be on ellipse.
+    Parameters
+    ==========
+    x : array_like
+        y coordinates assumed to be on ellipse.
+    y : array_like
+        y coordinates assumed to be on ellipse.
 
-    See Figure 1 from:
-        Halır, Radim, and Jan Flusser. "Numerically stable direct least squares
-        fitting of ellipses." Proc. 6th International Conference in Central
-        Europe on Computer Graphics and Visualization. WSCG. Vol. 98. 1998.
+    Returns
+    =======
+    array_like
+        Ellipse coefficients.
+
+    Notes
+    =====
+    See Figure 1 from [2]_.
 
     Also see previous python port:
-        http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html
+    http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html
     '''
 
     # Like a pancake...
@@ -231,15 +327,29 @@ def fit_ellipse_fitzgibon(x, y):
 def fit_ellipse_nonlin(x, y, polar=False):
     '''Fit ellipse only depending on semi-major axis and eccentricity.
 
-    x, y -- Coordinates assumed to be on ellipse.
-    polar -- Whether or not coordinates are provided as polar or Cartesian.
+    Parameters
+    ==========
+    x : array_like
+        y coordinates assumed to be on ellipse.
+    y : array_like
+        y coordinates assumed to be on ellipse.
+    polar : bool, optional
+        Whether or not coordinates are provided as polar or Cartesian.
 
+    Returns
+    =======
+    a : float
+        Semi-major axis
+    e : float
+        Eccentricity
+
+    Notes
+    =====
     Note that if polar=True, then x will be assumed to be radius and y will be
     assumed to be theta.
 
     See:
-        https://scipython.com/book/chapter-8-scipy/examples/
-        non-linear-fitting-to-an-ellipse/
+    https://scipython.com/book/chapter-8-scipy/examples/non-linear-fitting-to-an-ellipse/
     '''
 
     # Convert cartesian coordinates to polar

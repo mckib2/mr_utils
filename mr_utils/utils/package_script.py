@@ -106,9 +106,20 @@ def get_imports(filename, existing_modules=None):
 def package_script(filename, existing_modules=None):
     '''Package a script together with all dependencies.
 
-    filename -- Path to Python script we wish to package.
-    existing_modules -- List of terminating modules.
+    Parameters
+    ==========
+    filename : str
+        Path to Python script we wish to package.
+    existing_modules : list, optional
+        List of terminating modules.
 
+    Returns
+    =======
+    str
+        Bundled python script with only existing_modules dependencies.
+
+    Notes
+    =====
     "Terminating module" is a module we assume is available on the machine we
     want to run the packaged script on.  These are python's built-in modules
     plus all existing_modules specified by caller.

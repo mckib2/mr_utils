@@ -17,8 +17,18 @@ from mr_utils.utils import find_nearest
 def col_stacked_order(x):
     '''Find ordering of monotonically varying flattened array, x.
 
-    x -- Array to find ordering of.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
 
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
+
+    Notes
+    =====
     Note that you might want to provide abs(x) if x is a complex array.
     '''
     idx = np.argsort(x.flatten())
@@ -27,7 +37,15 @@ def col_stacked_order(x):
 def colwise(x):
     '''Find ordering of monotonically varying columns.
 
-    x -- Array to find ordering of.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
+
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
     '''
     indicies = np.arange(x.size).reshape(x.shape)
     idx = np.argsort(x, axis=0)
@@ -38,7 +56,15 @@ def colwise(x):
 def rowwise(x):
     '''Find ordering of monotonically varying rows.
 
-    x -- Array to find ordering of.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
+
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
     '''
     indicies = np.arange(x.size).reshape(x.shape)
     idx = np.argsort(x, axis=1)
@@ -49,7 +75,15 @@ def rowwise(x):
 def inverse_permutation(ordering):
     '''Given some permutation, find the inverse permutation.
 
-    ordering -- Flattened indicies, such as output of np.argsort.
+    Parameters
+    ==========
+    ordering : array_like
+        Flattened indicies, such as output of np.argsort.
+
+    Returns
+    =======
+    inverse_ordering
+        Inverse permutation.
     '''
     inverse_ordering = [0]*len(ordering)
     for send_from, send_to in enumerate(ordering):
@@ -60,7 +94,20 @@ def inverse_permutation(ordering):
 def brute_force1d(x, T):
     '''Given transform matrix, T, sort 1d signal exhaustively.
 
-    This IS NOT A GOOD IDEA.
+    Parameters
+    ==========
+    x : array_like
+        1D signal to find ordering of.
+    T : array_like
+        Transform matrix.
+
+    Returns
+    =======
+    array_like
+        Flattened indices giving sorted order.
+
+    .. warning::
+        This IS NOT A GOOD IDEA.
     '''
 
     idx = range(x.size)
@@ -70,7 +117,7 @@ def brute_force1d(x, T):
         if metric < winner_metric:
             winner = np.array(p)
             winner_metric = metric
-            print('New winner: %g' % winner_metric)
+            tqdm.write('New winner: %g' % winner_metric)
 
     return winner
 
@@ -78,14 +125,30 @@ def brute_force1d(x, T):
 def random_search(x, T, k, compare='l1', compare_opts=None, disp=False):
     '''Given transform T, find the best of k permutations.
 
-    x -- Array to find the ordering of.
-    T -- Transform matrix/function that we want x to be sparse under.
-    k -- Number of permutations to try (randomly selected).
-    compare -- How to compare two permutations.
-    compare_opts -- Arguments to pass to compare function.
-    disp -- Verbose mode.
+    Parameters
+    ==========
+    x : array_like
+        Array to find the ordering of.
+    T : array_like or callable
+        Transform matrix/function that we want x to be sparse under.
+    k : int
+        Number of permutations to try (randomly selected).
+    compare : {'nonzero', 'l1'} or callable, optional
+        How to compare two permutations.
+    compare_opts : dict, optional
+        Arguments to pass to compare function.
+    disp : bool, optional
+        Verbose mode.
 
-    compare={'nonzero', 'l1', fun}.
+    Returns
+    =======
+    array_like
+        Flattened indices giving sorted order.
+
+    Raises
+    ======
+    NotImplementedError
+        If compare is not valid option or callable.
     '''
 
     # Make sure we only look for what we can get
@@ -150,7 +213,20 @@ def random_search(x, T, k, compare='l1', compare_opts=None, disp=False):
     return winner
 
 def gen_sort1d(x, T):
-    '''Given 1D transform T, sort 1d signal, x.'''
+    '''Given 1D transform T, sort 1d signal, x.
+
+    Parameters
+    ==========
+    x : array_like
+        1D signal to find ordering of.
+    T : array_like
+        Transform matrix.
+
+    Returns
+    =======
+    array_like
+        Flattened indices giving sorted order.
+    '''
 
     M, N = T.shape[:]
     assert x.size == N, 'T, x must be conformal!'
@@ -176,10 +252,25 @@ def gen_sort1d(x, T):
 def bulk_up(x, T, Ti, k):
     '''Given existing nonzero coefficients, try to make large ones larger.
 
-    x -- Array to find ordering of.
-    T -- Transform function.
-    Ti -- Inverse transform function.
-    k -- Percent of coefficients to shoot for.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
+    T : callable
+        Transform function.
+    Ti : callable
+        Inverse transform function.
+    k : float
+        Percent of coefficients to shoot for.
+
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
+
+    Notes
+    =====
+    Uses random_match(), should probably use min linear assignment.
     '''
 
     # Keep the largest coefficients
@@ -196,10 +287,25 @@ def bulk_up(x, T, Ti, k):
 def whittle_down(x, T, Ti, k):
     '''Given existing nonzero coefficients, try to remove lower ones.
 
-    x -- Array to find ordering of.
-    T -- Transform function.
-    Ti -- Inverse transform function.
-    k -- Percent of coefficients to shoot for.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
+    T : callable
+        Transform function.
+    Ti : callable
+        Inverse transform function.
+    k : float
+        Percent of coefficients to shoot for.
+
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
+
+    Notes
+    =====
+    Uses random_match(), should probably use min linear assignment.
     '''
 
     t = T(x)
@@ -216,9 +322,21 @@ def whittle_down(x, T, Ti, k):
 def random_match(x, T, return_sorted=False):
     '''Match x to T as closely as possible pixel by pixel.
 
-    x -- Array to find ordering of.
-    T -- Target matrix.
-    return_sorted -- Whether or not to return the sorted matrix.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
+    T : array_like
+        Target matrix.
+    return_sorted : bool, optional
+        Whether or not to return the sorted matrix.
+
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
+    array_like, optional
+        Sorted array.
     '''
 
     # Pick a random pixel and place in recon
@@ -240,9 +358,21 @@ def random_match(x, T, return_sorted=False):
 def random_match_by_col(x, T, return_sorted=False):
     '''Given matrix T, choose reordering of x that matches it col by col.
 
-    x -- Array to find ordering of.
-    T -- Target matrix.
-    return_sorted -- Whether or not to return the sorted matrix.
+    Parameters
+    ==========
+    x : array_like
+        Array to find ordering of.
+    T : array_like
+        Target matrix.
+    return_sorted : bool, optional
+        Whether or not to return the sorted matrix.
+
+    Returns
+    =======
+    idx : array_like
+        Flattened indices giving sorted order.
+    array_like, optional
+        Sorted array.
     '''
 
     # Find number of basis functions, fi, and number of samples, M

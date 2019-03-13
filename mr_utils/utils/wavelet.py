@@ -10,18 +10,26 @@ def combine_chunks(wvlt, shape, dtype=float):
 
     Parameters
     ==========
-    wvlt : array_like
+    wvlt : list of array_like
         Output of pywt.wavedec2().
     shape : tuple
         Desired shape.
-    dtype : np.dtype
+    dtype : np.dtype, optional
         Type of numpy array.
+
+    Returns
+    =======
+    wavelet_transform : array_like
+        The stitched together elements wvlt (see notes).
+    locations : list
+        Indices telling us how we stitched it together so we can take it back
+        apart.
 
     Notes
     =====
 
     .. code-block:: none
-    
+
         We have tuples that look like this:
                                     -------------------
                                     |        |        |
@@ -80,9 +88,21 @@ def combine_chunks(wvlt, shape, dtype=float):
 def split_chunks(coeffs, locations):
     '''Separate the stitched together transform into blocks again.
 
-    x -- Stitched together wavelet transform.
-    locations -- Indices where the coefficients for each block are located.
+    Parameters
+    ==========
+    x : array_like
+        Stitched together wavelet transform.
+    locations : list
+        Indices where the coefficients for each block are located.
 
+    Returns
+    =======
+    coeff_list : list of array_like
+        List of coefficients of wavelet decomposition (like the output of
+        pywt.wavedec2()).
+
+    Notes
+    =====
     x, locations are the output of combine_chunks().
     '''
 
@@ -110,12 +130,29 @@ def split_chunks(coeffs, locations):
 def wavelet_forward(x, wavelet, mode='symmetric', level=None, axes=(-2, -1)):
     '''Wrapper for the multilevel 2D discrete wavelet transform.
 
-    x -- Input data.
-    wavelet -- Wavelet to use.
-    mode -- Signal extension mode.
-    level -- Decomposition level (must be >= 0).
-    axes -- Axes over which to compute the DWT.
+    Parameters
+    ==========
+    x : array_like
+        Input data.
+    wavelet : str
+        Wavelet to use.
+    mode : str, optional
+        Signal extension mode.
+    level : int, optional
+        Decomposition level (must be >= 0).
+    axes : tuple, optional
+        Axes over which to compute the DWT.
 
+    Returns
+    =======
+    wavelet_transform : array_like
+        The stitched together elements wvlt (see combine_chunks).
+    locations : list
+        Indices telling us how we stitched it together so we can take it back
+        apart.
+
+    Notes
+    =====
     See PyWavelets documentation on pywt.wavedec2() for more information.
 
     If level=None (default) then it will be calculated using the dwt_max_level
@@ -140,12 +177,26 @@ def wavelet_inverse(
         coeffs, locations, wavelet, mode='symmetric', axes=(-2, -1)):
     '''Wrapper for the multilevel 2D inverse discrete wavelet transform.
 
-    coeffs -- Combined coefficients.
-    locations -- Indices where the coefficients for each block are located.
-    wavelet -- Wavelet to use.
-    mode -- Signal extension mode.
-    axes -- Axes over which to compute the IDWT.
+    Parameters
+    ==========
+    coeffs : array_like
+        Combined coefficients.
+    locations : list
+        Indices where the coefficients for each block are located.
+    wavelet : str
+        Wavelet to use.
+    mode : str, optional
+        Signal extension mode.
+    axes : tuple, optional
+        Axes over which to compute the IDWT.
 
+    Returns
+    =======
+    array_like
+        Inverse transform of wavelet transform, the original image.
+
+    Notes
+    =====
     coeffs, locations are the output of forward().
     '''
 
@@ -155,19 +206,34 @@ def wavelet_inverse(
 
 
 def cdf97_2d_forward(x, level):
+    #pylint: disable=C0301
     '''Forward 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
 
-    x -- 2D signal.
-    level -- Decomposition level.
+    Parameters
+    ==========
+    x : array_like
+        2D signal.
+    level : int
+        Decomposition level.
 
+    Returns
+    =======
+    wavelet_transform : array_like
+        The stitched together elements wvlt (see combine_chunks).
+    locations : list
+        Indices telling us how we stitched it together so we can take it back
+        apart.
+
+    Notes
+    =====
     Returns transform, same shape as input, with locations.  Locations is a
     list of indices instructing cdf97_2d_inverse where the coefficients for
     each block are located.
 
     Biorthogonal 4/4 is the same as CDF 9/7 according to wikipedia:
-        see https://en.wikipedia.org/wiki/
-            Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
+    see https://en.wikipedia.org/wiki/Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
     '''
+    #pylint: enable=C0301
 
     # Make sure we don't go too deep
     max_level = pywt.dwtn_max_level(x.shape, 'bior4.4')
@@ -188,7 +254,17 @@ def cdf97_2d_forward(x, level):
 def cdf97_2d_inverse(coeffs, locations):
     '''Inverse 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
 
-    coeffs,locations -- Output of cdf97_2d_forward().
+    Parameters
+    ==========
+    coeffs : array_like
+        Stitched together wavelet transform.
+    locations : list
+        Output of cdf97_2d_forward().
+
+    Returns
+    =======
+    array_like
+        Inverse CDF97 transform.
     '''
 
     # Split coefficients out into coefficient list

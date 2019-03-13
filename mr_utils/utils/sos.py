@@ -5,8 +5,17 @@ import numpy as np
 def sos(im, axes=0):
     '''Root sum of squares combination along given axes.
 
-    im -- Input image.
-    axes -- Dimensions to sum across.
+    Parameters
+    ==========
+    im : array_like
+        Input image.
+    axes : tuple
+        Dimensions to sum across.
+
+    Returns
+    =======
+    array_like
+        SOS combination of image.
     '''
     return np.sqrt(np.sum(np.abs(im)**2, axis=axes))
 

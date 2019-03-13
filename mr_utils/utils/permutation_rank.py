@@ -1,11 +1,14 @@
 '''Determining rank of a permutation and generating permutation given rank.
 
 This implementation is due to:
-    https://rosettacode.org/wiki/Permutations/Rank_of_a_permutation#Python
+https://rosettacode.org/wiki/Permutations/Rank_of_a_permutation#Python
 
-See:
-    Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations in
-    linear time." Information Processing Letters 79.6 (2001): 281-284.
+Implementation of algorithms described in [1]_.
+
+References
+==========
+.. [1] Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations in
+       linear time." Information Processing Letters 79.6 (2001): 281-284.
 '''
 
 from math import factorial as fact
@@ -107,10 +110,22 @@ def get_random_ranks(permsize, samplesize):
 def pi2rank(pi, method='rank2', iterative=True):
     '''Return rank of permutation pi.
 
-    pi -- Permutation.
-    method -- Which ranking method to use, one of {'rank1', 'rank2'}.
-    iterative -- Whether or not to use iterative or recursive version.
+    Parameters
+    ==========
+    pi : list
+        Permutation.
+    method : {'rank1', 'rank2'}, optional
+        Which ranking method to use.
+    iterative : bool, optional
+        Whether or not to use iterative or recursive version.
 
+    Returns
+    =======
+    rank : int
+        The rank of the provided permutation.
+
+    Notes
+    =====
     The permutation pi should be a permutation of the list range(n) and contain
     n elements.
 
@@ -118,9 +133,7 @@ def pi2rank(pi, method='rank2', iterative=True):
     schemes presented in the Myrvold and Ruskey paper.  There is an iterative
     version available for both algorithms.
 
-    Implements algorithms from:
-        Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations
-        in linear time." Information Processing Letters 79.6 (2001): 281-284.
+    Implements algorithms from [1]_.
     '''
 
     # Choose which ranker function to use
@@ -142,13 +155,23 @@ def pi2rank(pi, method='rank2', iterative=True):
 def rank2pi(r, n, method='rank2'):
     '''Given rank and permutation length produce the corresponding permutation.
 
-    r -- Rank.
-    n -- Lenth of the permutation.
-    method -- Which ranking method to use, one of {'rank1', 'rank2'}.
+    Parameters
+    ==========
+    r : int
+        Rank.
+    n : int
+        Lenth of the permutation.
+    method : {'rank1', 'rank2'}
+        Which ranking method to use.
 
-    Implements algorithms from:
-        Myrvold, Wendy, and Frank Ruskey. "Ranking and unranking permutations
-        in linear time." Information Processing Letters 79.6 (2001): 281-284.
+    Returns
+    =======
+    pi : list
+        Associated permutation.
+
+    Notes
+    =====
+    Implements algorithms from [1]_.
     '''
 
     # Choose which unranker function to use
