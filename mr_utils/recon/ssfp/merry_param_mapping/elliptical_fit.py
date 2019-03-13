@@ -7,6 +7,8 @@ from mr_utils.sim.ssfp import ssfp
 def ellipticalfit(Ireal, TR, dphis, offres, M0, alpha, T1, T2):
     '''ELLIPTICALFIT
 
+    Parameters
+    ==========
     Ireal : array_like
         Hermtian transposed phase-cycle values for single pixel.
     TR : float
