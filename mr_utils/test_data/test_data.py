@@ -307,46 +307,7 @@ def load_test_data(path, files, do_return=True):
 
 # # For GRAPPA Recon
 # class GRAPPA(object):
-#
-#     @staticmethod
-#     def phantom_shl():
-#         path = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_shl.npy').resolve())
-#         return(np.load(path))
-#
-#     @staticmethod
-#     def csm():
-#         path1 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_1.npy').resolve())
-#         path2 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_2.npy').resolve())
-#         path3 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_3.npy').resolve())
-#         path4 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_4.npy').resolve())
-#         path5 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_5.npy').resolve())
-#         path6 = str(Path('mr_utils/test_data/tests/recon/grappa/ch_sensitivity_6.npy').resolve())
-#         ch1 = np.load(path1)
-#         ch2 = np.load(path2)
-#         ch3 = np.load(path3)
-#         ch4 = np.load(path4)
-#         ch5 = np.load(path5)
-#         ch6 = np.load(path6)
-#         channels = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
-#         return(channels)
-#
-#     @staticmethod
-#     def phantom_ch():
-#         path1 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_1.npy').resolve())
-#         path2 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_2.npy').resolve())
-#         path3 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_3.npy').resolve())
-#         path4 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_4.npy').resolve())
-#         path5 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_5.npy').resolve())
-#         path6 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_6.npy').resolve())
-#         ch1 = np.load(path1)
-#         ch2 = np.load(path2)
-#         ch3 = np.load(path3)
-#         ch4 = np.load(path4)
-#         ch5 = np.load(path5)
-#         ch6 = np.load(path6)
-#         coils = np.stack((ch1,ch2,ch3,ch4,ch5,ch6))
-#         return(coils)
-#
+
 #     @staticmethod
 #     def phantom_ch_k():
 #         path1 = str(Path('mr_utils/test_data/tests/recon/grappa/phantom_ch_1_k.npy').resolve())

@@ -57,12 +57,8 @@ class BSSFP2DSimTestCase(unittest.TestCase):
         from mr_utils.sim.ssfp import ssfp
         from mr_utils.recon.ssfp import gs_recon
 
-        pcs = np.zeros((4, self.dim, self.dim), dtype='complex')
-        for ii, pc in enumerate([0, np.pi/2, np.pi, 3*np.pi/2]):
-            pcs[ii, ...] = ssfp(**self.args, phase_cyc=pc)
-        # view(pcs)
-
-        _recon = gs_recon(*[x.squeeze() for x in np.split(pcs, 4)])
+        pcs = ssfp(**self.args, phase_cyc=[0, np.pi/2, np.pi, 3*np.pi/2])
+        _recon = gs_recon(pcs)
         # view(recon)
 
 if __name__ == '__main__':

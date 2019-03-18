@@ -152,10 +152,12 @@ class EllipticalSignalTestCase(unittest.TestCase):
                   phase_cyc=np.pi)
         I4 = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df,
                   phase_cyc=3*np.pi/2)
+        Is = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df,
+                  phase_cyc=[0, np.pi/2, np.pi, 3*np.pi/2])
 
         # Find cross points
         x0, y0 = get_cross_point(I1, I2, I3, I4)
-        M = get_complex_cross_point(I1, I2, I3, I4)
+        M = get_complex_cross_point(Is)
 
         # Make sure we get the same answer
         self.assertTrue(np.allclose(x0 + 1j*y0, M))

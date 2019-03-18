@@ -13,7 +13,6 @@ class TestPLANET(unittest.TestCase):
 
     def setUp(self):
         self.num_pc = 6
-        self.I = np.zeros(self.num_pc, dtype='complex')
         self.pcs = [2*np.pi*n/self.num_pc for n in range(self.num_pc)]
         self.TR = 10e-3
         self.alpha = np.deg2rad(30)
@@ -21,14 +20,8 @@ class TestPLANET(unittest.TestCase):
         self.T1 = 1.5
         self.T2 = .8
         self.T1s = np.linspace(.2, 2, 100)
-        for ii, pc in enumerate(self.pcs):
-            self.I[ii] = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df,
-                              phase_cyc=pc)
-
-    def test_requires_6_phase_cycles(self):
-        '''Make sure we can't continue without 6 phase-cycles.'''
-        with self.assertRaises(AssertionError):
-            PLANET(self.I[:5], self.alpha, self.TR, T1s=self.T1s)
+        self.I = ssfp(self.T1, self.T2, self.TR, self.alpha, self.df,
+                      phase_cyc=self.pcs)
 
     def test_ellipse_fit(self):
         '''Make sure we can fit an ellipse using complex ssfp data.'''

@@ -11,6 +11,7 @@ with warnings.catch_warnings():
 
 # from mr_utils import view
 from mr_utils.utils import sos
+from mr_utils.test_data import load_test_data
 
 class GRAPPAUnitTest(unittest.TestCase):
 
@@ -19,21 +20,21 @@ class GRAPPAUnitTest(unittest.TestCase):
 
     def test_recon(self):
         '''Replicate MATLAB results.'''
-        from mr_utils.test_data import GRAPPA
 
         # Get the shepp logan phantom
-        im = GRAPPA.phantom_shl()
+        path = 'mr_utils/test_data/tests/recon/grappa/'
+        im = load_test_data(path, ['phantom_shl'])[0]
         dim = im.shape[0]
 
         # Get simple coil sensitivities
         N = 6
         # csm = simple_csm(N,(dim,dim))
-        csm = GRAPPA.csm()
+        csm = load_test_data(path, ['ch_sensitivity'])[0]
         # self.assertTrue(np.allclose(csm,csm_mat))
 
         # Apply csm to image to get coil images
         coils = csm*im
-        coils_mat = GRAPPA.phantom_ch()
+        coils_mat = load_test_data(path, ['phantom_ch'])
         self.assertTrue(np.allclose(coils, coils_mat))
 
         # Put each channel into kspace
