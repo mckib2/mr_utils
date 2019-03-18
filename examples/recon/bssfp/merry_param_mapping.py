@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from mr_utils.recon.ssfp import taylor_method
-from mr_utils.sim.ssfp import ssfp, elliptical_params
+from mr_utils.sim.ssfp import ssfp
 from mr_utils.recon.ssfp.merry_param_mapping.plot_ellipse import plotEllipse
 from mr_utils.utils.ellipse import do_planet_rotation
 from mr_utils import view
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     disp = True # this will display interesting plots along the way and at end
     num_pcs = 16 # number of phase cycles to generate -- must be divisible by 4
     chunksize = 50 # how many pixels to give a cpu core at once
-    TR = 10 # in milliseconds
+    TR = 10e-3 # in seconds
     T1 = np.zeros((N, N))
     T2 = np.zeros((N, N))
     offres = np.zeros((N, N))
@@ -50,16 +50,16 @@ if __name__ == '__main__':
     # 325 T2
     mask0 = np.zeros((N, N)).astype(bool)
     mask0[lo:mid, lo:hi] = True
-    T1[mask0] = 300
-    T2[mask0] = 85
+    T1[mask0] = .300
+    T2[mask0] = .085
     M0[mask0] = 1
 
     # At 3 T water has a T1 of 3000 ms and a T2 of 160 ms. Cartilage 1568 T1 32
     # T2
     mask1 = np.zeros((N, N)).astype(bool)
     mask1[mid+1:hi, lo:hi] = True
-    T1[mask1] = 1200
-    T2[mask1] = 30
+    T1[mask1] = 1.200
+    T2[mask1] = .030
     M0[mask1] = 1
 
     # Get effective mask:
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                                      ' divisible by 4!')
     num_sets = int(num_pcs/4)
     dphis = np.linspace(0, 2*np.pi, num_pcs, endpoint=False)
-    Is = ssfp(T1*1e-3, T2*1e-3, TR*1e-3, alpha, offres, phase_cyc=dphis, M0=M0)
+    Is = ssfp(T1, T2, TR, alpha, offres, phase_cyc=dphis, M0=M0)
 
     ## THIS SECTION IS CURRENTLY BREAKING PYLINT, COMMENTED OUT FOR NOW
     #--------------------------------------------------------------------------
@@ -135,10 +135,10 @@ if __name__ == '__main__':
         row, col = idx[0], idx[1]
         xt, yt = plotEllipse(T1[row, col], T2[row, col], TR,
                              alpha[row, col], offres[row, col], M0[row, col],
-                             1)
+                             True)
         xe, ye = plotEllipse(t1map[row, col], t2map[row, col], TR,
                              alpha[row, col], offresmap[row, col],
-                             m0map[row, col], 1)
+                             m0map[row, col], True)
 
         It = xt + 1j*yt
         Ie = xe + 1j*ye

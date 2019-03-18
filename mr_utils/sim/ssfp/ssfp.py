@@ -32,7 +32,8 @@ def ssfp_old(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
         Mxy *= get_bssfp_phase(TR, field_map)
     return Mxy
 
-def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
+def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
+         phi_edd=0, phi_drift=0):
     r'''SSFP transverse signal at time TE after excitation.
 
     Parameters
@@ -51,6 +52,14 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
         Linear phase-cycle increment (in rad).
     M0 : float or array_like, optional
         proton density.
+    delta_cs : float, optional
+        chemical shift of species w.r.t. the water peak (Hz).
+    phi_rf : float, optional
+        RF phase offset, related to the combin. of Tx/Rx phases (rad).
+    phi_edd : float, optional
+        phase errors due to eddy current effects (rad).
+    phi_drift : float, optional
+        phase errors due to B0 drift (rad).
 
     Returns
     -------
@@ -95,7 +104,7 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     E2[T2 > 0] = np.exp(-TR/T2[T2 > 0])
 
     # Precompute theta and some cos, sin
-    theta = get_theta(TR, field_map, phase_cyc)
+    theta = get_theta(TR, field_map, phase_cyc, delta_cs)
     ca = np.cos(alpha)
     sa = np.sin(alpha)
     ct = np.cos(theta)
@@ -106,7 +115,7 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     Mx = M0*((1 - E1)*sa)*(1 - E2*ct)/den
     My = -M0*((1 - E1)*E2*sa*st)/den
     Mxy = Mx + 1j*My
-    Mxy *= get_bssfp_phase(TR, field_map)
+    Mxy *= get_bssfp_phase(TR, field_map, delta_cs, phi_rf, phi_edd, phi_drift)
 
     return Mxy.squeeze()
 
@@ -116,13 +125,13 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
     Parameters
     ==========
     T1 : array_like
-        longitudinal exponential decay time constant.
+        longitudinal exponential decay time constant (in sec).
     T2 : array_like
-        transverse exponential decay time constant.
+        transverse exponential decay time constant (in sec).
     TR : float
-        repetition time.
+        repetition time (in sec).
     alpha : float
-        flip angle.
+        flip angle (in rad).
     M0 : array_like, optional
         Proton density.
 
@@ -179,7 +188,7 @@ def ssfp_from_ellipse(M, a, b, TR, field_map, phase_cyc=0):
     b : array_like
         Theta-independent ellipse parameter.
     TR : float
-        repetition time.
+        Repetition time (in sec).
     field_map : array_like
         Off-resonance map (in Hz).
     phase_cyc : float
@@ -305,13 +314,13 @@ def get_center_of_mass_nmr(T1, T2, TR, alpha, M0=1):
     Parameters
     ==========
     T1 : array_like
-        longitudinal exponential decay time constant.
+        longitudinal exponential decay time constant (in sec).
     T2 : array_like
-        transverse exponential decay time constant.
+        transverse exponential decay time constant (in sec).
     TR : float
-        repetition time.
+        Repetition time (in sec).
     alpha : float
-        flip angle.
+        Flip angle (in rad).
     M0 : array_like, optional
         Proton density.
 
@@ -334,13 +343,13 @@ def spectrum(T1, T2, TR, alpha):
     Parameters
     ==========
     T1 : array_like
-        longitudinal exponential decay time constant.
+        longitudinal exponential decay time constant (in sec).
     T2 : array_like
-        transverse exponential decay time constant.
+        transverse exponential decay time constant (in sec).
     TR : float
-        repetition time.
+        Repetition time (in sec).
     alpha : float
-        flip angle.
+        Flip angle (in rad).
 
     Returns
     =======
@@ -353,14 +362,14 @@ def spectrum(T1, T2, TR, alpha):
     sig = ssfp_old(T1, T2, TR, alpha, df)
     return sig
 
-def get_bssfp_phase(
-        TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0, phi_drift=0):
+def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
+                    phi_drift=0):
     '''Additional bSSFP phase factors.
 
     Parameters
     ==========
     TR : float
-        repetition time.
+        repetition time (in sec).
     field_map : array_like
         off-resonance map (Hz).
     delta_cs : float, optional
@@ -404,17 +413,19 @@ def get_bssfp_phase(
     phase = np.exp(1j*phi)
     return phase
 
-def get_theta(TR, field_map, phase_cyc=0):
+def get_theta(TR, field_map, phase_cyc=0, delta_cs=0):
     '''Get theta, spin phase per repetition time, given off-resonance.
 
     Parameters
     ==========
     TR : float
-        repetition time.
+        repetition time (in sec).
     field_map : array_like
         Off-resonance map (in Hz).
-    phase_cyc : array_like
-        Phase-cycling.
+    phase_cyc : array_like, optional
+        Phase-cycling (in rad).
+    delta_cs : float, optional, optional
+        chemical shift of species w.r.t. the water peak (Hz).
 
     Returns
     =======
@@ -423,7 +434,8 @@ def get_theta(TR, field_map, phase_cyc=0):
 
     Notes
     =====
-    Equation for theta=2*pi*df*TR is in Appendix A of [5]_.
+    Equation for theta=2*pi*df*TR is in Appendix A of [5]_.  The additional
+    chemical shift term can be found, e.g., in [4]_.
 
     References
     ==========
@@ -433,7 +445,7 @@ def get_theta(TR, field_map, phase_cyc=0):
            Magnetic Resonance in Medicine 46.1 (2001): 149-158.
     '''
 
-    theta = 2*np.pi*field_map*TR + phase_cyc
+    theta = 2*np.pi*(delta_cs + field_map)*TR + phase_cyc
     return theta
 
 def get_cross_point(I1, I2, I3, I4):

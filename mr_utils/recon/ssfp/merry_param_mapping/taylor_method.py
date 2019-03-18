@@ -25,11 +25,11 @@ def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
     Is : array_like
         Array of phase-cycled images, (dphi, x, y).
     TR : float
-        Repetition time.
+        Repetition time (in sec).
     dphis : array_like
         Phase-cycles (in radians).
     offres_est : array_like
-        Off-resonance map estimation.
+        Off-resonance map estimation (in Hz).
     alpha : array_like
         Flip angle map (in rad).
 
@@ -45,8 +45,7 @@ def optim_wrapper(idx, Is, TR, dphis, offres_est, alpha):
     ii, jj = idx[0], idx[1]
     I = Is[:, ii, jj]
     xopt, _fopt = optimize(
-        I.conj().T, TR, dphis, offres_est[ii, jj]/100, 1.2, alpha[ii, jj],
-        1000/100, 100/10)
+        I, TR, dphis, offres_est[ii, jj], 1.2, alpha[ii, jj], 1, .1)
     return(ii, jj, xopt)
 
 def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
@@ -62,7 +61,7 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
     alpha : array_like
         Flip angle map (in rad).
     TR : float
-        Repetition time (milliseconds).
+        Repetition time (in sec).
     mask : array_like, optional
         Locations to compute map estimates.
     chunksize : int, optional
@@ -76,11 +75,11 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
     Returns
     =======
     t1map : array_like
-        T1 map estimation
+        T1 map estimation (in sec)
     t2map : array_like
-        T2 map estimation
+        T2 map estimation (in sec)
     offresmap : array_like
-        Off-resonance map estimation
+        Off-resonance map estimation (in Hz)
     m0map : array_like
         Proton density map estimation
 
@@ -163,7 +162,7 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
     offres_est = np.angle(M)
     m_offres_est = np.ma.array(offres_est, mask=mask & 0)
     offres_est = unwrap_fun(m_offres_est)*mask
-    offres_est /= np.pi*TR*1e-3
+    offres_est /= np.pi*TR
     view(offres_est)
 
     sh = Is.shape[1:]
@@ -185,9 +184,9 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
 
     # The answers are then unpacked (not garanteed to be in the right order)
     for ii, jj, xopt in res:
-        t1map[ii, jj] = xopt[0]*100
-        t2map[ii, jj] = xopt[1]*10
-        offresmap[ii, jj] = xopt[2]*100
+        t1map[ii, jj] = xopt[0]
+        t2map[ii, jj] = xopt[1]
+        offresmap[ii, jj] = xopt[2]
         m0map[ii, jj] = xopt[3]
 
     return(t1map, t2map, offresmap, m0map)

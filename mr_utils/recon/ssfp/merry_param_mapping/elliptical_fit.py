@@ -1,6 +1,8 @@
 '''Calculates residuals for least_squares fit.'''
 
-import numpy as np
+from ctypes import c_double
+
+# import numpy as np
 
 from mr_utils.sim.ssfp import ssfp
 
@@ -12,7 +14,7 @@ def ellipticalfit(Ireal, TR, dphis, offres, M0, alpha, T1, T2):
     Ireal : array_like
         Hermtian transposed phase-cycle values for single pixel.
     TR : float
-        Repetition time.
+        Repetition time (in sec).
     M0 :
         Estmated proton density from the band reduction algorithm.
     phasecycles :
@@ -26,19 +28,16 @@ def ellipticalfit(Ireal, TR, dphis, offres, M0, alpha, T1, T2):
         Real part of difference concatenated with imaginary part of difference
     '''
 
-    T1 *= 100
-    T2 *= 10
-    offres *= 100 # in Hz
-    num = dphis.size
+    I = ssfp(T1, T2, TR, alpha, offres, phase_cyc=dphis, M0=M0)
+    return (I - Ireal).view(dtype=c_double)
 
-    Mxans = np.zeros(num)
-    Myans = np.zeros(num)
-    for ii, dphi in np.ndenumerate(dphis):
-        I = ssfp(
-            T1*1e-3, T2*1e-3, TR*1e-3, alpha, offres, phase_cyc=dphi, M0=M0)
 
-        # oposite signs because of the hermitian transpose
-        Mxans[ii] = I.real - Ireal[ii].real
-        Myans[ii] = I.imag + Ireal[ii].imag
-
-    return np.hstack((Mxans, Myans))
+    # for ii, dphi in np.ndenumerate(dphis):
+    #     I = ssfp(
+    #         T1, T2, TR, alpha, offres, phase_cyc=dphi, M0=M0)
+    #
+    #     # oposite signs because of the hermitian transpose
+    #     Mxans[ii] = I.real - Ireal[ii].real
+    #     Myans[ii] = I.imag - Ireal[ii].imag
+    #
+    # return np.hstack((Mxans, Myans))
