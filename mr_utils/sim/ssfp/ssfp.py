@@ -496,19 +496,13 @@ def get_cross_point(I1, I2, I3, I4):
     y0 = ((x1*y3 - x3*y1)*(y2 - y4) - (x2*y4 - x4*y2)*(y1 - y3))/den
     return(x0, y0)
 
-def get_complex_cross_point(I1, I2, I3, I4):
+def get_complex_cross_point(Is):
     '''Find the intersection of two straight lines connecting diagonal pairs.
 
     Parameters
     ==========
-    I1 : array_like
-        First of the first phase-cycle pair (0 degrees).
-    I2 : array_like
-        First of the second phase-cycle pair (90 degrees).
-    I3 : array_like
-        Second of the first phase-cycle pair (180 degrees).
-    I4 : array_like
-        Second of the second phase-cycle pair (270 degrees).
+    Is : array_like
+        4 phase-cycled images: [I0, I1, I2, I3].
 
     Returns
     =======
@@ -517,9 +511,11 @@ def get_complex_cross_point(I1, I2, I3, I4):
 
     Notes
     =====
-    (xi,yi) are the real and imaginary parts of complex valued pixels in four
+    We assume that Is has the phase-cycle dimenension along the first axis.
+
+    (xi, yi) are the real and imaginary parts of complex valued pixels in four
     bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
-    with 0 < i <= 4.
+    with 0 < i < 4.
 
     This is Equation [13] from [7]_.
 
@@ -530,17 +526,18 @@ def get_complex_cross_point(I1, I2, I3, I4):
            in medicine 71.3 (2014): 927-933.
     '''
 
-    x1, y1 = I1.real, I1.imag
-    x2, y2 = I2.real, I2.imag
-    x3, y3 = I3.real, I3.imag
-    x4, y4 = I4.real, I4.imag
+    x1, y1 = Is[0, ...].real, Is[0, ...].imag
+    x2, y2 = Is[1, ...].real, Is[1, ...].imag
+    x3, y3 = Is[2, ...].real, Is[2, ...].imag
+    x4, y4 = Is[3, ...].real, Is[3, ...].imag
 
     den = (x1 - x3)*(y2 - y4) + (x2 - x4)*(y3 - y1)
     if (den == 0).any():
         # Make sure we're not dividing by zero
         den += np.finfo(float).eps
 
-    M = ((x1*y3 - x3*y1)*(I2 - I4) - (x2*y4 - x4*y2)*(I1 - I3))/den
+    M = ((x1*y3 - x3*y1)*(Is[1, ...] - Is[3, ...]) - (x2*y4 - x4*y2)*(
+        Is[0, ...] - Is[2, ...]))/den
     return M
 
 if __name__ == '__main__':

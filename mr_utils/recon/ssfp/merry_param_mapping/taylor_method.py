@@ -113,8 +113,7 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
     num_sets = int(len(Is)/4)
     Ms = np.zeros((num_sets,) + Is[0].shape, dtype='complex')
     for ii in range(num_sets):
-        Is0 = Is[ii::num_sets, ...]
-        Ms[ii, ...] = gs_recon(Is0[0], Is0[1], Is0[2], Is0[3])
+        Ms[ii, ...] = gs_recon(Is[ii::num_sets, ...])
     M = np.mean(Ms, axis=0)
 
     # Display elliptical model image.

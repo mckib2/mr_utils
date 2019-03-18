@@ -304,59 +304,7 @@ def load_test_data(path, files, do_return=True):
 #     def recon_at_iter_50():
 #         path = str(Path('mr_utils/test_data/tests/recon/reordering/recon_at_iter_50.mat').resolve())
 #         return(load_mat(path,'img_est'))
-#
-# # For elliptical signal model:
-# class EllipticalSignal(object):
-#     @staticmethod
-#     def I1():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/I1.mat').resolve())
-#         return(load_mat(path,key='I1'))
-#
-#     @staticmethod
-#     def I2():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/I2.mat').resolve())
-#         return(load_mat(path,key='I2'))
-#
-#     @staticmethod
-#     def I3():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/I3.mat').resolve())
-#         return(load_mat(path,key='I3'))
-#
-#     @staticmethod
-#     def I4():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/I4.mat').resolve())
-#         return(load_mat(path,key='I4'))
-#
-#     @staticmethod
-#     def Id():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/Id.mat').resolve())
-#         return(load_mat(path,key='M'))
-#
-#     @staticmethod
-#     def I():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/I.mat').resolve())
-#         return(load_mat(path,key='I'))
-#
-#     @staticmethod
-#     def I_max_mag():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/I_max_mag.mat').resolve())
-#         return(load_mat(path,key='maximum'))
-#
-#     @staticmethod
-#     def CS():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/CS.mat').resolve())
-#         return(load_mat(path,key='CS'))
-#
-#     @staticmethod
-#     def w13():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/w13.mat').resolve())
-#         return(load_mat(path,key='w1'))
-#
-#     @staticmethod
-#     def w24():
-#         path = str(Path('mr_utils/test_data/tests/recon/ssfp/w24.mat').resolve())
-#         return(load_mat(path,key='w2'))
-#
+
 # # For GRAPPA Recon
 # class GRAPPA(object):
 #

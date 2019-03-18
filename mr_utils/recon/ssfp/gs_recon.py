@@ -9,9 +9,10 @@ with warnings.catch_warnings():
 
 from mr_utils.sim.ssfp import get_complex_cross_point
 
+# __all__ = ['gs_recon', 'gs_recon3d']
+
 def get_max_magnitudes(I1, I2, I3, I4):
     '''Find maximum magnitudes for each pixel over all four input images.
-
     Parameters
     ==========
     I0 : array_like
@@ -22,7 +23,6 @@ def get_max_magnitudes(I1, I2, I3, I4):
         Second of the first phase-cycle pair (180 degrees).
     I3 : array_like
         Second of the second phase-cycle pair (270 degrees).
-
     Returns
     =======
     I_mag : array_like
@@ -35,7 +35,6 @@ def get_max_magnitudes(I1, I2, I3, I4):
 
 def get_max_magnitudes_for_loop(I1, I2, I3, I4):
     '''Find maximum magnitudes for each pixel over all four input images.
-
     Parameters
     ==========
     I0 : array_like
@@ -46,12 +45,10 @@ def get_max_magnitudes_for_loop(I1, I2, I3, I4):
         Second of the first phase-cycle pair (180 degrees).
     I3 : array_like
         Second of the second phase-cycle pair (270 degrees).
-
     Returns
     =======
     I_mag : array_like
         Maximum magnitude image at each pixel.
-
     Notes
     =====
     This one loops over each pixel as verification for get_max_magnitudes().
@@ -69,6 +66,26 @@ def get_max_magnitudes_for_loop(I1, I2, I3, I4):
     for ii in range(I1.size):
         I_mag[ii] = np.max([I1[ii], I2[ii], I3[ii], I4[ii]])
     return I_mag.reshape(shape0)
+
+def complex_sum(I1, I2, I3, I4):
+    '''Complex sum image combination method.
+    Parameters
+    ==========
+    I0 : array_like
+        First of the first phase-cycle pair (0 degrees).
+    I1 : array_like
+        First of the second phase-cycle pair (90 degrees).
+    I2 : array_like
+        Second of the first phase-cycle pair (180 degrees).
+    I3 : array_like
+        Second of the second phase-cycle pair (270 degrees).
+    Returns
+    =======
+    CS : array_like
+        Complex sum image.
+    '''
+    CS = (I1 + I2 + I3 + I4)/4
+    return CS
 
 def gs_recon_for_loop(I1, I2, I3, I4):
     '''GS recon implemented using a straightfoward loop for verification.
@@ -100,7 +117,9 @@ def gs_recon_for_loop(I1, I2, I3, I4):
     # Demodulate bSSFP signal pixel by pixel
     Id = np.zeros(I1.shape, dtype='complex')
     for ii in range(I1.size):
-        Id[ii] = get_complex_cross_point(I1[ii], I2[ii], I3[ii], I4[ii])
+        # Id[ii] = get_complex_cross_point(I1[ii], I2[ii], I3[ii], I4[ii])
+        Id[ii] = get_complex_cross_point(np.stack(
+            (I1[ii], I2[ii], I3[ii], I4[ii])))
 
         # Regularize with complex sum
         if ((np.abs(Id[ii]) > np.abs(I1[ii]))
@@ -122,28 +141,6 @@ def gs_recon_for_loop(I1, I2, I3, I4):
     # noise
     I = (Iw13 + Iw24)/2
     return I
-
-def complex_sum(I1, I2, I3, I4):
-    '''Complex sum image combination method.
-
-    Parameters
-    ==========
-    I0 : array_like
-        First of the first phase-cycle pair (0 degrees).
-    I1 : array_like
-        First of the second phase-cycle pair (90 degrees).
-    I2 : array_like
-        Second of the first phase-cycle pair (180 degrees).
-    I3 : array_like
-        Second of the second phase-cycle pair (270 degrees).
-
-    Returns
-    =======
-    CS : array_like
-        Complex sum image.
-    '''
-    CS = (I1 + I2 + I3 + I4)/4
-    return CS
 
 def gs_recon3d(I1, I2, I3, I4, slice_axis=-1, isophase=np.pi):
     '''Full 3D Geometric Solution method following Xiang and Hoff's 2014 paper.
@@ -196,25 +193,21 @@ def gs_recon3d(I1, I2, I3, I4, slice_axis=-1, isophase=np.pi):
     # Run gs_recon for each slice
     recon = np.zeros(I1.shape, dtype='complex')
     for sl in range(num_slices):
-        recon[..., sl] = gs_recon(I1[..., sl], I2[..., sl], I3[..., sl],
-                                  I4[..., sl], isophase=isophase)
+        recon[..., sl] = gs_recon(
+            np.stack((I1[..., sl], I2[..., sl], I3[..., sl], I4[..., sl])),
+            isophase=isophase)
     return recon
 
-def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
+def gs_recon(Is, pc_axis=0, isophase=np.pi, second_pass=True):
     '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     Parameters
     ==========
-    I0 : array_like
-        First of the first phase-cycle pair (0 degrees).
-    I1 : array_like
-        First of the second phase-cycle pair (90 degrees).
-    I2 : array_like
-        Second of the first phase-cycle pair (180 degrees).
-    I3 : array_like
-        Second of the second phase-cycle pair (270 degrees).
-    slice_axis : int, optional
-        Slice dimension, default is the last dimension.
+    Is : array_like
+        4 phase-cycled images: [I0, I1, I2, I3].  (I0, I2) and (I1, I3) are
+        phase-cycle pairs.
+    pc_axis : int, optional
+        Phase-cycle dimension, default is the first dimension.
     isophase : float
         Only neighbours with isophase max phase difference contribute.
     second_pass : bool, optional
@@ -223,10 +216,24 @@ def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
     Returns
     =======
     I : array_like
-        GS solution to elliptical signal model.
+        Second pass GS solution to elliptical signal model.
+    Id : array_like, optional
+        If second_pass=False, GS solution to the elliptical signal model
+        (without linear weighted solution).
 
     Notes
     =====
+    `Is` is an array of 4 2D images: I0, I1, I2, and I3.  I0 and I2 make up the
+    first phase-cycle pair, that is they are 180 degrees phase-cycled relative
+    to each other.  I1 and I3 are also phase-cycle pairs and must be different
+    phase-cycles than either I0 or I2.  Relative phase-cycles are assumed as
+    follows:
+
+        - I0: 0 deg
+        - I1: 90 deg
+        - I2: 180 deg
+        - I3: 270 deg
+
     Implements algorithm shown in Fig 2 of [1]_.
 
     References
@@ -236,14 +243,17 @@ def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
            in medicine 71.3 (2014): 927-933.
     '''
 
+    # Put the pc_axis first
+    Is = np.moveaxis(Is, pc_axis, 0)
+
     # Get direct geometric solution for demoduled M for all pixels
-    Id = get_complex_cross_point(I1, I2, I3, I4)
+    Id = get_complex_cross_point(Is)
 
     # Get maximum pixel magnitudes for all input images
-    I_max_mag = get_max_magnitudes(I1, I2, I3, I4)
+    I_max_mag = np.max(np.abs(Is), axis=0)
 
     # Compute complex sum
-    CS = complex_sum(I1, I2, I3, I4)
+    CS = np.mean(Is, axis=0)
 
     # For each pixel, if the magnitude if greater than the maximum magnitude of
     # all four input images, then replace the pixel with the CS solution.  This
@@ -257,8 +267,8 @@ def gs_recon(I1, I2, I3, I4, isophase=np.pi, second_pass=True):
         return Id
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
-    Iw13 = compute_Iw(I1, I3, Id, isophase=isophase)
-    Iw24 = compute_Iw(I2, I4, Id, isophase=isophase)
+    Iw13 = compute_Iw(Is[0, ...], Is[2, ...], Id, isophase=isophase)
+    Iw24 = compute_Iw(Is[1, ...], Is[3, ...], Id, isophase=isophase)
 
     # Final result is found by averaging the two linear solutions for reduced
     # noise
