@@ -114,9 +114,11 @@ if __name__ == '__main__':
         print('k is: %d' % k)
         pi_real = relaxed_ordinator(recon_none.real, lam=.5, k=k,
                                     unsparsify=unsparsify)
+        np.save('pi_real.npy', pi_real)
         print('done with pi_real')
         pi_imag = relaxed_ordinator(recon_none.imag, lam=.5, k=k,
                                     unsparsify=unsparsify)
+        np.save('pi_imag.npy', pi_imag)
         print('done with pi_imag')
         idx_ls = pi_real + 1j*pi_imag
         lagrangesort = lambda x: idx_ls
@@ -126,4 +128,5 @@ if __name__ == '__main__':
             unsparsify, reorder_fun=lagrangesort, mode='soft', alpha=alpha0,
             thresh_sep=True, selective=None, x=x, ignore_residual=False,
             disp=True, maxiter=500)
-        view(recon_ls)
+        np.save('recon_ls.npy', recon_ls)
+        # view(recon_ls)
