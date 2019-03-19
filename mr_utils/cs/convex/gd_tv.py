@@ -64,6 +64,7 @@ def GD_TV(
     if x is None:
         compare_mse = lambda xx, yy: 0
         logging.info('No true x provided, MSE will not be calculated.')
+        xabs = 0
     else:
         from skimage.measure import compare_mse
         xabs = np.abs(x) # Precompute absolute value of true image
@@ -121,8 +122,8 @@ def GD_TV(
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
         if not ignore_residual and stop_criteria > prev_stop_criteria:
-            logging.warning('Breaking out of loop after %d iterations. \
-                Norm of residual increased!', ii)
+            logging.warning(('Breaking out of loop after %d iterations. '
+                             'Norm of residual increased!'), ii)
             break
         prev_stop_criteria = stop_criteria
 

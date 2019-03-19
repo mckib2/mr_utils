@@ -21,7 +21,7 @@ import matplotlib.animation as animation
 from skimage.util import montage as skimontage
 from ismrmrdtools.coils import calculate_csm_walsh, calculate_csm_inati_iter
 
-from mr_utils.load_data import load_raw, load_mat
+from mr_utils.load_data import load_raw, load_mat, load_ismrmrd
 from mr_utils.coils.coil_combine import coil_pca
 
 def mat_keys(filename, ignore_dbl_underscored=True, no_print=False):
@@ -139,8 +139,6 @@ def view(
 
     Raises
     ======
-    NotImplementedError
-        When file type is .h5.
     Exception
         When file type is not in ['dat', 'npy', 'mat', 'h5'].
     ValueError
@@ -194,7 +192,7 @@ def view(
             if data is None:
                 data = load_mat(image, **load_opts)
         elif ext == '.h5':
-            raise NotImplementedError()
+            data = load_ismrmrd(image, **load_opts)
         else:
             raise Exception('File type %s not understood!' % ext)
 

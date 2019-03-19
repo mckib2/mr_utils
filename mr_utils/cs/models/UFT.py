@@ -30,13 +30,15 @@ class UFT(object):
         '''
         self.samp = samp
 
-    def forward(self, x):
+    def forward(self, x, axes=None):
         '''Fourier encoding with binary undersampling pattern applied.
 
         Parameters
         ==========
         x : array_like
             Matrix to be transformed.
+        axes : tuple
+            Dimensions to Fourier transform if x is not 2d.
 
         Returns
         =======
@@ -47,6 +49,8 @@ class UFT(object):
         =====
         This forward transform has no fftshift applied.
         '''
+        if axes is not None:
+            return np.fft.fftn(x, axes=axes)*self.samp
         return np.fft.fft2(x)*self.samp
 
     def forward_s(self, x):
@@ -90,19 +94,23 @@ class UFT(object):
         tmp *= self.samp/np.sqrt(tmp.size)
         return tmp
 
-    def inverse(self, x):
+    def inverse(self, x, axes=None):
         '''Inverse fourier encoding.
 
         Parameters
         ==========
         x : array_like
             Matrix to be transformed.
+        axes : tuple
+            Dimensions to Fourier transform if x is not 2d.
 
         Returns
         =======
         array_like
             Inverse fourier transform of `x`.
         '''
+        if axes is not None:
+            return np.fft.ifftn(x, axes=axes)
         return np.fft.ifft2(x)
 
     def inverse_ortho(self, x):
