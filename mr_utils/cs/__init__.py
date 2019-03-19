@@ -10,3 +10,4 @@ from .convex.proximal_gd import proximal_GD
 from .greedy.cosamp import *
 from .ordinator import ordinator1d
 from .convex.temporal_gd_tv.temporal_gd_tv import GD_temporal_TV
+from .relaxed_ordinator import relaxed_ordinator

@@ -1,0 +1,87 @@
+'''Lagrangian relaxation of ordinator.'''
+
+from functools import partial
+
+import numpy as np
+from scipy.optimize import minimize
+from scipy.optimize import linear_sum_assignment as lsa
+from scipy.spatial.distance import cdist
+
+def make_xhat(c0, unsparsify, norm=False):
+    '''Construct xhat from coefficients c0.'''
+    xhat = unsparsify(c0)
+    if norm:
+        return xhat/np.max(np.abs(xhat.flatten()))
+    return xhat
+
+
+def obj1(c0, x, lam, norm):
+    '''Find the cost between current xhat and x using lsa.
+
+    Notes
+    =====
+    This bakes the cost of linear sum assignment right into the objectve
+    function and adds a regularizing l1 term to encourage the solution to be
+    sparse.
+    '''
+    xhat = make_xhat(c0, norm)
+    C = cdist(xhat[:, None], x[:, None])
+    row, col = lsa(C)
+    return C[row, col].sum() + lam*np.linalg.norm(c0, ord=1)
+
+def obj(c0, x, lam, unsparsify, norm):
+    '''Find cost between current xhat and x using sort.
+
+    Notes
+    =====
+    This is a reduction of the histogram case to a bin-width of 1, also adding
+    an l1 term to encourage a sparse solution.
+    '''
+    xhat = make_xhat(c0.reshape(x.shape), unsparsify, norm)
+    return np.linalg.norm(np.sort(x.flatten()) - np.sort(xhat.flatten())) + \
+        lam*np.linalg.norm(c0, ord=1)
+
+def relaxed_ordinator(x, lam, k, unsparsify, norm=False, maxiter=None):
+    '''Find ordering pi that makes x[pi] sparse.
+
+    Parameters
+    ==========
+    x : array_like
+        Signal to find ordering of.
+    lam : float
+        Lagrangian weight on l1 term of objective function.
+    k : int
+        Expected sparsity level (number of nonzero coefficients) of ordererd
+        signal, x[pi].
+    unsparsify : callable
+        Function that computes inverse sparsifying transform.
+    norm : bool, optional
+        Normalize xhat at each step (probably don't do this.)
+    maxiter : int, optional
+        Maximum number of iterations to run optimizer.
+
+    Returns
+    =======
+    pi : array_like
+        Flattened ordering array (like is returned by numpy.argsort).
+    '''
+
+    pobj = partial(obj, x=x, lam=lam, unsparsify=unsparsify, norm=norm)
+    c0 = np.ones(x.size)
+    res = minimize(pobj, c0, callback=lambda x: print(pobj(x)), options={'maxiter': maxiter, 'disp': True})
+    # print(res)
+
+    # Go ahead and hard threshold here
+    c_est = res['x']
+    c_est[np.abs(c_est) < np.sort(np.abs(c_est))[-k]] = 0
+
+    # plt.plot(res['x'])
+    # plt.plot(c_true)
+    # plt.show()
+
+    # Do the assignment and try to recover x
+    xhat = make_xhat(c_est.reshape(x.shape), unsparsify, norm)
+    C = cdist(xhat.flatten()[:, None], x.flatten()[:, None])
+    _row, pi = lsa(C)
+
+    return pi
