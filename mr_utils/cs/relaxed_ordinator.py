@@ -1,6 +1,7 @@
 '''Lagrangian relaxation of ordinator.'''
 
 from functools import partial
+import os
 
 import numpy as np
 from scipy.optimize import minimize
@@ -41,6 +42,18 @@ def obj(c0, x, lam, unsparsify, norm):
     return np.linalg.norm(np.sort(x.flatten()) - np.sort(xhat.flatten())) + \
         lam*np.linalg.norm(c0, ord=1)
 
+def save_intermediate(c, fval):
+    '''Save the intermediate solutions and print update message.'''
+
+    np.save('c_intermediate.npy', c)
+    print('fval: %g' % fval)
+
+def load_intermediate():
+    '''Load any intermediate values that have saved to do warm start.'''
+    if os.path.isfile('c_intermediate.npy'):
+        return np.load('c_intermediate.npy')
+    return None
+
 def relaxed_ordinator(x, lam, k, unsparsify, norm=False, maxiter=None):
     '''Find ordering pi that makes x[pi] sparse.
 
@@ -66,9 +79,15 @@ def relaxed_ordinator(x, lam, k, unsparsify, norm=False, maxiter=None):
         Flattened ordering array (like is returned by numpy.argsort).
     '''
 
+    # Check to see if we can warm start
+    c0 = load_intermediate()
+    if c0 is None:
+        c0 = np.ones(x.size)
+    else:
+        print('WARM START')
+
     pobj = partial(obj, x=x, lam=lam, unsparsify=unsparsify, norm=norm)
-    c0 = np.ones(x.size)
-    res = minimize(pobj, c0, callback=lambda x: print(pobj(x)), options={'maxiter': maxiter, 'disp': True})
+    res = minimize(pobj, c0, callback=lambda x: save_intermediate(x, pobj(x))) #, options={'maxiter': maxiter, 'disp': True})
     # print(res)
 
     # Go ahead and hard threshold here
