@@ -30,7 +30,7 @@ def obj1(c0, x, lam, norm):
     row, col = lsa(C)
     return C[row, col].sum() + lam*np.linalg.norm(c0, ord=1)
 
-def obj(c0, x, lam, unsparsify, norm):
+def obj(c0, x, lam, unsparsify, norm, transform_shape):
     '''Find cost between current xhat and x using sort.
 
     Notes
@@ -38,15 +38,17 @@ def obj(c0, x, lam, unsparsify, norm):
     This is a reduction of the histogram case to a bin-width of 1, also adding
     an l1 term to encourage a sparse solution.
     '''
-    xhat = make_xhat(c0.reshape(x.shape), unsparsify, norm)
+    xhat = make_xhat(c0.reshape(transform_shape), unsparsify, norm)
     return np.linalg.norm(np.sort(x.flatten()) - np.sort(xhat.flatten())) + \
         lam*np.linalg.norm(c0, ord=1)
 
-def save_intermediate(c, fval):
+def save_intermediate(c, fval, saveit=False, disp=False):
     '''Save the intermediate solutions and print update message.'''
 
-    np.save('c_intermediate.npy', c)
-    print('fval: %g' % fval)
+    if saveit:
+        np.save('c_intermediate.npy', c)
+    if disp:
+        print('fval: %g' % fval)
 
 def load_intermediate():
     '''Load any intermediate values that have saved to do warm start.'''
@@ -54,7 +56,8 @@ def load_intermediate():
         return np.load('c_intermediate.npy')
     return None
 
-def relaxed_ordinator(x, lam, k, unsparsify, norm=False, maxiter=None):
+def relaxed_ordinator(x, lam, k, unsparsify, norm=False,
+                      warm=False, transform_shape=None, disp=False):
     '''Find ordering pi that makes x[pi] sparse.
 
     Parameters
@@ -70,24 +73,39 @@ def relaxed_ordinator(x, lam, k, unsparsify, norm=False, maxiter=None):
         Function that computes inverse sparsifying transform.
     norm : bool, optional
         Normalize xhat at each step (probably don't do this.)
-    maxiter : int, optional
-        Maximum number of iterations to run optimizer.
+    warm : bool
+        Whether to look for warm start file and save intermedate results.
+    transform_shape : int
+        Shape of transform coefficients (if different than x.shape). None will
+        use x.shape.
+    disp : bool
+        Display progress messages.
 
     Returns
     =======
     pi : array_like
         Flattened ordering array (like is returned by numpy.argsort).
+
+    Notes
+    =====
+    `size_transform` will be x.size - 1 for finite differences transform.
     '''
+
+    # If size of coefficients is different than x.shape, make note
+    if transform_shape is None:
+        transform_shape = x.shape
 
     # Check to see if we can warm start
     c0 = load_intermediate()
-    if c0 is None:
-        c0 = np.ones(x.size)
+    if not warm or c0 is None:
+        c0 = np.ones(transform_shape).flatten()
     else:
         print('WARM START')
 
-    pobj = partial(obj, x=x, lam=lam, unsparsify=unsparsify, norm=norm)
-    res = minimize(pobj, c0, callback=lambda x: save_intermediate(x, pobj(x))) #, options={'maxiter': maxiter, 'disp': True})
+    pobj = partial(obj, x=x, lam=lam, unsparsify=unsparsify, norm=norm,
+                   transform_shape=transform_shape)
+    res = minimize(pobj, c0, callback=lambda x: save_intermediate(
+        x, pobj(x), disp))
     # print(res)
 
     # Go ahead and hard threshold here
@@ -99,7 +117,7 @@ def relaxed_ordinator(x, lam, k, unsparsify, norm=False, maxiter=None):
     # plt.show()
 
     # Do the assignment and try to recover x
-    xhat = make_xhat(c_est.reshape(x.shape), unsparsify, norm)
+    xhat = make_xhat(c_est.reshape(transform_shape), unsparsify, norm)
     C = cdist(xhat.flatten()[:, None], x.flatten()[:, None])
     _row, pi = lsa(C)
 

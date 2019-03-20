@@ -1,7 +1,5 @@
-'''1D examples to show us that we can find effective orderings.'''
 
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.fftpack import dct, idct
 
 class Sparsify(object):
@@ -25,16 +23,3 @@ class Sparsify(object):
     def inverse_dct(self, x):
         '''Inverse sparsifying transform, discrete cosine transform.'''
         return idct(x, norm='ortho')
-
-if __name__ == '__main__':
-
-    # Let's make a signal, any signal will do
-    N = 70
-    x = np.random.normal(1, 1, N)
-    S = Sparsify(x)
-
-    plt.plot(x)
-    plt.show()
-
-    # Finite differences
-    
