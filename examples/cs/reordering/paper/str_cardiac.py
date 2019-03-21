@@ -25,9 +25,11 @@ if __name__ == '__main__':
         Si = Sparsify(xi)
 
         rpi[ii, jj, :] = relaxed_ordinator(
-            xr, lam=.08, k=10, unsparsify=Sr.inverse_fd, transform_shape=(xr.size-1,))
+            xr, lam=.08, k=10, unsparsify=Sr.inverse_fd,
+            transform_shape=(xr.size-1,))
         ipi[ii, jj, :] = relaxed_ordinator(
-            xi, lam=0.1, k=13, unsparsify=Si.inverse_fd, transform_shape=(xi.size-1,))
+            xi, lam=0.1, k=13, unsparsify=Si.inverse_fd,
+            transform_shape=(xi.size-1,))
 
     np.save('rpi.npy', rpi)
     np.save('ipy.npy', ipi)
