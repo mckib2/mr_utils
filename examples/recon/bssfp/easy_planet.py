@@ -1,4 +1,29 @@
 '''Do simple planet implementation to make sure we know what to do.
+
+Notes
+-----
+Off-resonance estimator now working, but we have an extra minus sign.
+Need to track that down.  I would also love to look at the search
+space for the K1, K2 optimization -- is a supplied Jacobian possible?
+
+a_check and a are sometimes slightly different (why I put the
+assertion as an allclose).  Is one better than the other?  Should we
+taking the mean?  Does it even matter?
+
+We still don't know how to adjust the location of the ellipse in the
+case of noise.  I haven't tried that with this implementation, but
+I suspect it will break all the same.
+
+TODO
+----
+Bring fixed code from this implementation over to PLANET proper.
+Also should clean that code up, I think I did some premature
+optimization thinking that I would get it to work faster and better
+than it does...
+
+We should revisit the do_planet_rotation function.  I would love for
+that to be automated but I don't trust it completely yet.  This
+script must be hand "unwrapped" so the ellipse ends up vertical.
 '''
 
 import numpy as np
