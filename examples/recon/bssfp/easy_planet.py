@@ -3,8 +3,10 @@
 Notes
 -----
 Off-resonance estimator now working, but we have an extra minus sign.
-Need to track that down.  I would also love to look at the search
-space for the K1, K2 optimization -- is a supplied Jacobian possible?
+Need to track that down.
+
+I have also identified another case to check when computing df.  If low flip
+angle (b > a), then the math is different!
 
 a_check and a are sometimes slightly different (why I put the
 assertion as an allclose).  Is one better than the other?  Should we
@@ -41,8 +43,8 @@ if __name__ == '__main__':
     dphis = np.linspace(0, 2*np.pi, num_pcs, endpoint=False)
     T1, T2 = .675, .075
     TR = 10e-3
-    alpha = np.deg2rad(20)
-    df = 9
+    alpha = np.deg2rad(5)
+    df = -3
     M0 = 1
     phi_rf = np.deg2rad(5)
     I = ssfp(T1, T2, TR, alpha, df, dphis, M0, phi_rf=phi_rf)
@@ -101,19 +103,33 @@ if __name__ == '__main__':
     print(M0, Mest)
 
     # Step 4. Off-resonance estimation.
+    # costheta = np.zeros(dphis.size)
+    # for nn in range(dphis.size):
+    #     x, y = I0[nn].real, I0[nn].imag
+    #     tanbeta = y/(x - xc)
+    #     t = np.arctan(A/B*tanbeta)
+    #     costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
+
     costheta = np.zeros(dphis.size)
     for nn in range(dphis.size):
         x, y = I0[nn].real, I0[nn].imag
-        tanbeta = y/(x - xc)
-        t = np.arctan(A/B*tanbeta)
-        costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
+        t = np.arctan2(y, x - xc)
 
-    obj = lambda x: np.linalg.norm(
-        costheta - x[0]*np.cos(dphis) - x[1]*np.sin(dphis))**2
-    res = minimize(obj, np.ones(2))
-    K1, K2 = res['x'][:]
+        if a > b:
+            costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
+        else:
+            # Sherbakova doesn't talk about this case in the paper!
+            # print('doing weird case!')
+            costheta[nn] = (np.cos(t) + b)/(b*np.cos(t) + 1)
+            # costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
+
+    # Get least squares estimate for K1, K2
+    X = np.array([np.cos(dphis), np.sin(dphis)]).T
+    K = np.linalg.multi_dot((np.linalg.pinv(X.T.dot(X)), X.T, costheta))
+    K1, K2 = K[:]
+
     print(K1, K2)
-    theta0 = np.arctan(K2/K1)
+    theta0 = np.arctan2(K2, K1)
     dfest = theta0/(2*np.pi*TR)
 
     print('1/TR: %g' % (1/TR))
