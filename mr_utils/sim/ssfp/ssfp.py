@@ -33,7 +33,7 @@ def ssfp_old(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     return Mxy
 
 def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
-         phi_edd=0, phi_drift=0):
+         phi_edd=0, phi_drift=0, pos=False):
     r'''SSFP transverse signal at time TE after excitation.
 
     Parameters
@@ -60,6 +60,8 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
         phase errors due to eddy current effects (rad).
     phi_drift : float, optional
         phase errors due to B0 drift (rad).
+    pos : bool, optional
+        Whether or not to make bssfp phase positive or negative.
 
     Returns
     -------
@@ -115,7 +117,8 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
     Mx = M0*((1 - E1)*sa)*(1 - E2*ct)/den
     My = -M0*((1 - E1)*E2*sa*st)/den
     Mxy = Mx + 1j*My
-    Mxy *= get_bssfp_phase(TR, field_map, delta_cs, phi_rf, phi_edd, phi_drift)
+    Mxy *= get_bssfp_phase(
+        TR, field_map, delta_cs, phi_rf, phi_edd, phi_drift, pos)
 
     return Mxy.squeeze()
 
@@ -363,7 +366,7 @@ def spectrum(T1, T2, TR, alpha):
     return sig
 
 def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
-                    phi_drift=0):
+                    phi_drift=0, pos=False):
     '''Additional bSSFP phase factors.
 
     Parameters
@@ -380,6 +383,8 @@ def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
         phase errors due to eddy current effects (rad).
     phi_drift : float, optional
         phase errors due to B0 drift (rad).
+    pos : bool, optional
+        Use
 
     Returns
     =======
@@ -390,8 +395,8 @@ def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
     =====
     This is exp(-i phi) from end of p. 930 in [3]_.
 
-    We use a positive exponent, exp(i phi), as in Hoff and Taylor MATLAB
-    implementations.
+    pos=True uses a positive exponent, exp(i phi), as in Hoff and
+    Taylor MATLAB implementations.
 
     In Hoff's paper the equation is not explicitly given for phi, so we
     implement equation [5] that gives more detailed terms, found in [4]_.
@@ -408,9 +413,10 @@ def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
            (2018): 711-722.
     '''
 
+    val = (-1)**(not pos) # 1 for pos=True, -1 for pos=False
     TE = TR/2 # assume bSSFP
     phi = 2*np.pi*(delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
-    phase = np.exp(1j*phi)
+    phase = np.exp(val*1j*phi)
     return phase
 
 def get_theta(TR, field_map, phase_cyc=0, delta_cs=0):
