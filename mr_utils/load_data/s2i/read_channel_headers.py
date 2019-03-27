@@ -33,8 +33,9 @@ def readChannelHeaders(siemens_dat, VBFILE, scanhead):
 
         else:
             # If not VB, then we can read the sChannelHeader directly:
+            channels[c] = ChannelHeaderAndData()
             channels[c].header = np.fromfile(
-                siemens_dat, dtype=sChannelHeader, count=1)[0]
+                siemens_dat, dtype=sChannelHeader, count=1)
 
         # Read the channel data in as complex64 (float32 + 1j*float32)
         channels[c].data = np.fromfile(
