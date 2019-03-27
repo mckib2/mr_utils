@@ -7,7 +7,7 @@ phase correction to match the actual spectral profile.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from mr_utils.sim.ssfp import ssfp, elliptical_params
+from mr_utils.sim.ssfp import ssfp
 
 if __name__ == '__main__':
 
@@ -34,6 +34,7 @@ if __name__ == '__main__':
 
 
     # # It appears that we need to do a phase correction!
+    # from mr_utils.sim.ssfp import elliptical_params
     # M, a, b = elliptical_params(T1, T2, TR, alpha, M0)
     # thetan = 2*np.pi*dfs*TR
     # phin = np.pi*dfs*TR
