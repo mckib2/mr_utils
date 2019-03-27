@@ -12,7 +12,7 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
     '''Simultaneous T1, T2 mapping using phase‐cycled bSSFP.
 
     Parameters
-    ==========
+    ----------
     I : array_like
         Complex voxels from phase-cycled bSSFP images.
     alpha : float
@@ -25,27 +25,25 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
         Function used to fit data points to ellipse.
     pcs : array_like, optional
         Phase-cycles that generate phase-cycle images of I (required if
-        computing df).
+        computing df) (in rad).
     compute_df : bool, optional
         Whether or not estimate local off-resonance, df.
     disp : bool, optional
-        Show plots.
+        Show debug plots.
 
     Returns
-    =======
+    -------
     Meff : array_like
-        Effective magnetization amplitude
+        Effective magnetization amplitude (arbitrary units).
     T1 : array_like
-        Estimate of T1 values
+        Estimate of T1 values (in sec).
     T2 : array_like
-        Estimate of T2 values
+        Estimate of T2 values (in sec).
     df : array_like, optional
-        Estimate of off-resonance values.
+        Estimate of off-resonance values (in Hz).
 
     Raises
-    ======
-    NotImplementedError
-        If compute_df=True
+    ------
     AssertionError
         If fit_ellipse returns something that is not an ellipse
     AssertionError
@@ -58,7 +56,7 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
         If the sign of b cannot be determined.
 
     Notes
-    =====
+    -----
     Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
     method they use (and which is implemented here) may not be the best
     method, but it is quick.  Could add more options for fitting in the future.
@@ -73,7 +71,7 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
     Implements algorithm described in [1]_.
 
     References
-    ==========
+    ----------
     .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
            simultaneous T1 and T2 mapping using phase‐cycled balanced
            steady‐state free precession." Magnetic resonance in medicine 79.2
