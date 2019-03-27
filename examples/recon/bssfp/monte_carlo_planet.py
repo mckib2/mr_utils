@@ -12,48 +12,55 @@ if __name__ == '__main__':
 
     num_pc = 10
     I = np.zeros(num_pc, dtype='complex')
-    pcs = [2*np.pi*n/num_pc for n in range(num_pc)]
+    pcs = np.linspace(0, 2*np.pi, num_pc, endpoint=False)
     TR = 10e-3
+    M0 = 1
     T1s = np.linspace(.2, 2, 100)
     alpha = np.deg2rad(30)
-    sigma = 0.001
-    rtol = .05
+    sigma = 0.0005
 
-    iters = 100
-    T1_misses = 0
-    T2_misses = 0
+    iters = 1000
+    T1_true = np.zeros(iters)
+    T2_true = np.zeros(iters)
+    df_true = np.zeros(iters)
+
+    T1_est = np.zeros(iters)*np.nan
+    T2_est = np.zeros(iters)*np.nan
+    df_est = np.zeros(iters)*np.nan
+
     asserts = 0
-    df_err = np.zeros(iters)*np.nan
-    snr = np.zeros(iters)
     for jj in trange(iters, leave=False):
-        df_true = np.random.uniform(-1/TR, 1/TR)
-        T1_true = np.random.choice(T1s)
-        T2_true = np.random.uniform(.01, .5*T1_true)
-        for ii, pc in enumerate(pcs):
-            I[ii] = ssfp(T1_true, T2_true, TR, alpha, df_true, pc)
-            n = np.random.normal(0, sigma/2) + 1j*np.random.normal(0, sigma/2)
-            snr[ii] = np.abs(I[ii])/np.abs(n)
-            I += n
-        try:
-            Meff, T1, T2 = PLANET(I, alpha, TR, T1s, disp=False)
-            df = 0
-            df_err[jj] = np.abs(df_true - df)
-            if not np.allclose(T1, T1_true, rtol=rtol):
-                T1_misses += 1
-            if not np.allclose(T2, T2_true, rtol=rtol):
-                T2_misses += 1
+        # Try to stay away from edges, (-1/TR, 1/TR) gets confused at bnds
+        df_true[jj] = np.random.uniform(-1/(2*TR), 1/(2*TR))
+        T1_true[jj] = np.random.choice(T1s)
+        T1_guess = T1_true[jj]
+        T2_true[jj] = np.random.uniform(.01, .5*T1_true[jj])
 
+        I = ssfp(T1_true[jj], T2_true[jj], TR, alpha, df_true[jj], pcs, M0=M0)
+        n = np.random.normal(0, sigma/2, I.shape) + 1j*np.random.normal(
+            0, sigma/2, I.shape)
+        I += n
+
+        try:
+            _Meff, T1_est[jj], T2_est[jj], df_est[jj] = PLANET(
+                I, alpha, TR, T1_guess, compute_df=True)
         except AssertionError as e:
             tqdm.write(str(e))
             asserts += 1
 
-    print('Avg SNR: %g' % np.mean(snr))
-    print('%d T1 missed out of %d, %%%g' % (T1_misses, iters,
-                                            T1_misses/iters*100))
-    print('%d T2 missed out of %d, %%%g' % (T2_misses, iters,
-                                            T2_misses/iters*100))
-    print('%d assert out of %d, %%%g' % (asserts, iters, asserts/iters*100))
-    # print('mean df err: %g hz, std: %g' % (
-    #     np.nanmean(df_err), np.nanstd(df_err)))
-    # plt.stem(df_err)
-    # plt.show()
+    # Compute percent difference
+    T1diff = 100*(T1_true - T1_est)/T1_true
+    T2diff = 100*(T2_true - T2_est)/T2_true
+    dfdiff = 100*(df_true - df_est)/df_true
+
+    # Tell us all about it
+    print('T1 %%err, mean: %%%g, std: %g' % (
+        np.nanmean(T1diff), np.nanstd(T1diff)))
+    print('T2 %%err, mean: %%%g, std: %g' % (
+        np.nanmean(T2diff), np.nanstd(T2diff)))
+    print('df %%err, mean: %%%g, std: %g' % (
+        np.nanmean(dfdiff), np.nanstd(dfdiff)))
+
+    if asserts > 0:
+        print(
+            '%d asserts out of %d, %%%g' % (asserts, iters, asserts/iters*100))

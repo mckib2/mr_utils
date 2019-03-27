@@ -30,7 +30,6 @@ script must be hand "unwrapped" so the ellipse ends up vertical.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
 
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.utils import (fit_ellipse_halir, rotate_coefficients,
