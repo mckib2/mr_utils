@@ -43,6 +43,7 @@ def readScanHeader(siemens_dat, VBFILE):
         scanhead['ulCRC'] = 0
 
     else:
+        mdh = None
         scanhead = np.fromfile(siemens_dat, dtype=sScanHeader, count=1)[0]
 
     return(scanhead, mdh)

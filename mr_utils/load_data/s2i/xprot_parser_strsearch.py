@@ -24,10 +24,10 @@ def findp(p, config):
     if p in ['MEAS', 'YAPS', 'HEADER', 'IRIS', 'DERIVED', 'DICOM',
              'RECOMPOSE', ''] or p[:1] in ['s']:
         tag = 'ParamMap'
-    elif p[:2] in ['as']:
+    elif p[:2] in ['as'] or p in ['aRxCoilSelectData']:
         tag = 'ParamArray'
     elif (p[:2] in ['al', 'uc', 'ai']) or (p[:1] in ['i', 'l', 'n']) or \
-            p in ['ImageColumns', 'ImageLines', 'MeasUID']:
+            p in ['ImageColumns', 'ImageLines', 'MeasUID', 'ReconMeasDependencies']:
         tag = 'ParamLong'
     elif (p[:3] in ['afl']) or (p[:2] in ['ad', 'fl']) or (p[:1] in ['d']) or \
             p in ['phaseOversampling']:

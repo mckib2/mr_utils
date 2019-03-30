@@ -198,7 +198,8 @@ def gs_recon3d(I1, I2, I3, I4, slice_axis=-1, isophase=np.pi):
             isophase=isophase)
     return recon
 
-def gs_recon(Is, pc_axis=0, isophase=np.pi, second_pass=True):
+def gs_recon(Is, pc_axis=0, isophase=np.pi, second_pass=True,
+             patch_size=None):
     '''Full 2D Geometric Solution method following Xiang and Hoff's 2014 paper.
 
     Parameters
@@ -212,6 +213,8 @@ def gs_recon(Is, pc_axis=0, isophase=np.pi, second_pass=True):
         Only neighbours with isophase max phase difference contribute.
     second_pass : bool, optional
         Compute the second pass solution, increasing SNR by sqrt(2).
+    patch_size : tuple, optional
+        Size of patches in pixels (x, y).
 
     Returns
     =======
@@ -267,8 +270,10 @@ def gs_recon(Is, pc_axis=0, isophase=np.pi, second_pass=True):
         return Id
 
     # Find weighted sums of image pairs (I1,I3) and (I2,I4)
-    Iw13 = compute_Iw(Is[0, ...], Is[2, ...], Id, isophase=isophase)
-    Iw24 = compute_Iw(Is[1, ...], Is[3, ...], Id, isophase=isophase)
+    Iw13 = compute_Iw(
+        Is[0, ...], Is[2, ...], Id, patch_size=patch_size, isophase=isophase)
+    Iw24 = compute_Iw(
+        Is[1, ...], Is[3, ...], Id, patch_size=patch_size, isophase=isophase)
 
     # Final result is found by averaging the two linear solutions for reduced
     # noise
@@ -316,7 +321,7 @@ def mask_isophase(numerator_patches, patch_size, isophase):
     return mask_mat
 
 
-def compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=np.pi):
+def compute_Iw(I0, I1, Id, patch_size=None, mode='constant', isophase=np.pi):
     '''Computes weighted sum of image pair (I0,I1).
 
     Parameters
@@ -328,7 +333,7 @@ def compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=np.pi):
     Id : array_like
         result of regularized direct solution.
     patch_size : tuple, optional
-        size of patches in pixels (x, y).
+        size of patches in pixels (x, y).  Defaults to (5, 5).
     mode : {'contant', 'edge'}, optional
         mode of numpy.pad. Probably choose 'constant' or 'edge'.
     isophase : float
@@ -364,9 +369,17 @@ def compute_Iw(I0, I1, Id, patch_size=(5, 5), mode='constant', isophase=np.pi):
            in medicine 71.3 (2014): 927-933.
     '''
 
+    # Make sure we have a patch size
+    if patch_size is None:
+        patch_size = (5, 5)
+
     # Expressions for the numerator and denominator
     numerator = np.conj(I1 - Id)*(I1 - I0) + np.conj(I1 - I0)*(I1 - Id)
     den = np.conj(I0 - I1)*(I0 - I1)
+
+    # We'll have trouble with a 1d input if we don't do this
+    numerator = np.atleast_2d(numerator)
+    den = np.atleast_2d(den)
 
     # Pad the image so we can generate patches where we need them
     edge_pad = [int(p/2) for p in patch_size]

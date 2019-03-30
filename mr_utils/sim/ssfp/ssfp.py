@@ -61,7 +61,9 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0,
     phi_edd : float, optional
         phase errors due to eddy current effects (in rad).
     phi_drift : float, optional
-        phase errors due to B0 drift (in rad).
+        phase errors due to B0 drift (rad).
+    pos : bool, optional
+        Whether or not to make bssfp phase positive or negative.
 
     Returns
     -------
@@ -400,6 +402,8 @@ def get_bssfp_phase(T2, TR, field_map, delta_cs=0, phi_rf=0,
         phase errors due to eddy current effects (rad).
     phi_drift : float, optional
         phase errors due to B0 drift (rad).
+    pos : bool, optional
+        Use
 
     Returns
     -------
@@ -433,6 +437,7 @@ def get_bssfp_phase(T2, TR, field_map, delta_cs=0, phi_rf=0,
            49.2 (2003): 395-397.
     '''
 
+    val = (-1)**(not pos) # 1 for pos=True, -1 for pos=False
     TE = TR/2 # assume bSSFP
     phi = 2*np.pi*(
         delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
