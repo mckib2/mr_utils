@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # Do the thing once with no phi_rf, once with to see difference
     I = ssfp(T1, T2, TR, alpha, 0, pcs, M0, phi_rf=0)
-    Idf = ssfp(T1, T2, TR, alpha, dfs, M0, phi_rf=0)
+    Idf = ssfp(T1, T2, TR, alpha, dfs, 0, M0, phi_rf=0)
 
     # Look at the spectral profile
     pcs_deg = np.rad2deg(pcs)
