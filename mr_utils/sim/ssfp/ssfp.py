@@ -86,7 +86,8 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0,
 
     .. math::
 
-        \theta = 2 \pi (\delta_{cs} + \Delta f_0) + \Delta \theta.
+        \theta = 2 \pi (\delta_{cs} + \Delta f_0)\text{TR} + \Delta
+        \theta.
 
     Notice that this is opposite of the convention used in PLANET,
     where phase_cyc is subtracted (see equation [12] in [2]_).
