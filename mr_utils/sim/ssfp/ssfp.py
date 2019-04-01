@@ -81,6 +81,16 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0,
     flipped in the paper, so we fix that here.  We also assume that
     the field map will be provided given the Freeman-Hill convention.
 
+    We will additionally assume that linear phase increments
+    (phase_cyc) will be given in the form:
+
+    .. math::
+
+        \theta = 2 \pi (\delta_{cs} + \Delta f_0) + \Delta \theta.
+
+    Notice that this is opposite of the convention used in PLANET,
+    where phase_cyc is subtracted (see equation [12] in [2]_).
+
     Also see equations [2.7] and [2.10a--b] from [4]_ and equations
     [3] and [6--12] from [5]_.
 
@@ -103,6 +113,11 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0,
     # so we need to negate to make use with this Ernst-Anderson-
     # based implementation from Hoff
     field_map = -1*field_map
+
+    # We also assume that linear phase cycles will be added, but the
+    # formulation used by Hoff, PLANET assumes subtracted, so let's
+    # flip the signs
+    phase_cyc = -1*phase_cyc
 
     # Make sure we're working with arrays
     T1 = np.atleast_2d(T1)
@@ -456,7 +471,7 @@ def get_theta(TR, field_map, phase_cyc=0, delta_cs=0):
     phase_cyc : array_like, optional
         Phase-cycling (in rad).
     delta_cs : float, optional, optional
-        chemical shift of species w.r.t. the water peak (Hz).
+        Chemical shift of species w.r.t. the water peak (Hz).
 
     Returns
     -------
@@ -465,12 +480,12 @@ def get_theta(TR, field_map, phase_cyc=0, delta_cs=0):
 
     Notes
     -----
-    Equation for theta=2*pi*df*TR is in Appendix A of [3]_.  The
+    Equation for theta=2*pi*df*TR is in Appendix A of [6]_.  The
     additional chemical shift term can be found, e.g., in [2]_.
 
     References
     ----------
-    .. [3] Hargreaves, Brian A., et al. "Characterization and
+    .. [6] Hargreaves, Brian A., et al. "Characterization and
            reduction of the transient response in steady‐state MR
            imaging." Magnetic Resonance in Medicine: An Official
            Journal of the International Society for Magnetic
