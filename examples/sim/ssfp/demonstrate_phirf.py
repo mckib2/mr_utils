@@ -30,7 +30,7 @@ if __name__ == '__main__':
     dphis = np.linspace(0, 2*np.pi, num_dphis, endpoint=False)
     Is_phi = ssfp(T1, T2, TR, alpha, 0, dphis, M0, phi_rf=phi_rf)
     Is_df = ssfp(
-        T1, T2, TR, alpha, -phi_rf/(TR*np.pi), dphis, M0, phi_rf=0)
+        T1, T2, TR, alpha, phi_rf/(TR*np.pi), dphis, M0, phi_rf=0)
 
     # Show the two ellipses on top of each other to see have
     # phase-cycles have "moved along the racetrack"

@@ -155,8 +155,11 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0,
     Mx = -M0*((1 - E1)*E2*sa*st)/den
     My = M0*((1 - E1)*sa)*(1 - E2*ct)/den
     Mxy = Mx + 1j*My
+
+    # Add additional phase factor for readout at TE = TR/2.
+    # Notice that phi_i are negated
     Mxy *= get_bssfp_phase(
-        T2, TR, field_map, delta_cs, phi_rf, phi_edd, phi_drift)
+        T2, TR, field_map, delta_cs, -phi_rf, -phi_edd, -phi_drift)
 
     return Mxy.squeeze()
 
