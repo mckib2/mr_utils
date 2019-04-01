@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ismrmrdtools.simulation import generate_birdcage_sensitivities
 
+from mr_utils import view
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.recon.ssfp import gs_recon
 from mr_utils.utils import (do_planet_rotation, get_center,
@@ -57,6 +58,15 @@ if __name__ == '__main__':
         # plt.plot(I0[cc, :].real, I0[cc, :].imag)
         # plt.axis('square')
         # plt.show()
+
+    # Get coil sensitivity map estimates
+    from ismrmrdtools.coils import calculate_csm_walsh
+    recons = np.zeros(ncoils, dtype='complex')
+    for cc in range(ncoils):
+        view(gs_recon(I[cc, :]))
+        # recons[cc] = gs_recon(I[cc, :][:, None, None], pc_axis=-1)
+    # csm_est = calculate_csm_walsh(recons[:, None, None])
+    # view(csm_est)
 
     # # Can we find the null?
     # fig, ax1 = plt.subplots()
