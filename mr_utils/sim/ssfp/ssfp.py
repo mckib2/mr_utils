@@ -387,9 +387,10 @@ def get_bssfp_phase(T2, TR, field_map, delta_cs=0, phi_rf=0,
 
     Parameters
     ----------
-    T1 : array_like
+    T2 : array_like
+        Longitudinal relaxation constant (in sec).
     TR : float
-        repetition time (in sec).
+        Repetition time (in sec).
     field_map : array_like
         off-resonance map (Hz).
     delta_cs : float, optional
@@ -438,7 +439,7 @@ def get_bssfp_phase(T2, TR, field_map, delta_cs=0, phi_rf=0,
         delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
 
     T2 = np.array(T2)
-    idx = np.where(T2 > 0)[0]
+    idx = np.where(T2 > 0)
     val = np.zeros(T2.shape)
     val[idx] = -TE/T2[idx]
     return np.exp(1j*phi)*np.exp(val)
