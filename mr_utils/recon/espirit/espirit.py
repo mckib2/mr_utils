@@ -85,14 +85,14 @@ class FFT2d:
         return im
 
 def espirit_2d(
-    xcrop,
-    x_shape,
-    nsingularv=150,
-    hkwin_shape=(16,16),
-    pad_before_espirit=0,
-    pad_fact=1,
-    sigv_th=0.01,
-    nsigv_th=0.2):
+        xcrop,
+        x_shape,
+        nsingularv=150,
+        hkwin_shape=(16,16),
+        pad_before_espirit=0,
+        pad_fact=1,
+        sigv_th=0.01,
+        nsigv_th=0.2):
     '''
     2d espirit
 

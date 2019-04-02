@@ -1,80 +1,145 @@
 '''Do the same off-resonance mapping but with a phantom data.'''
 
-from os.path import isfile
-
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.filters import threshold_li
 from ismrmrdtools.coils import calculate_csm_walsh
-from tqdm import tqdm
+from ismrmrdtools.coils import calculate_csm_inati_iter
+from tqdm import tqdm, trange
+from skimage.restoration import unwrap_phase
 
-from mr_utils.load_data import load_raw
 from mr_utils.recon.ssfp import gs_recon
-# from mr_utils import view
+from mr_utils import view
 
 if __name__ == '__main__':
 
     # Load in data
-    path = '/home/nicholas/Documents/mr_utils/examples/sim/ssfp/'
-    file = 'meas_MID38_TRUFI_NBPM_2019_03_22_FID41493.dat'
-    if not isfile(path + 'phantom.npy'):
-        data = load_raw(path + file, use='rdi')
-        np.save(path + 'phantom.npy', data)
-    else:
-        data = np.load(path + 'phantom.npy')
-    print(data.shape)
-
-    file = 'meas_MID39_TRUFI_NBPM_2019_03_22_GRAPPA_R2_FID41494.dat'
-    if not isfile(path + 'phantom_grappa.npy'):
-        data_grappa = load_raw(path + file, use='rdi')
-        np.save(path + 'phantom_grappa.npy', data)
-    else:
-        data_grappa = np.load(path + 'phantom_grappa.npy')
-    print(data_grappa.shape)
-
-
-    # Dimensions are (avgs, pcs, coils, z, y, x), let's go ahead and
-    # collapse the averages dimension
-    data = np.mean(data, axis=0)
-    data_grappa = np.mean(data, axis=0)
-
-    # Let's put it in image space because that's where we live
-    data = np.fft.fftshift(np.fft.fft2(
-        data, axes=(-2, -1)), axes=(-2, -1))
-    # view(data[:, :, 8, :, :], montage_axis=0, movie_axis=1)
+    path = '/home/nicholas/Documents/rawdata/GSFIELDMAP/'
+    data = np.load(path + 'set1_fft.npy')
+    # Dimensions are (pcs, coils, z, y, x)
 
     # For now, let's choose 1 slice
-    sl = int(data.shape[2]/2)
+    sl = 8
     data = data[:, :, sl, :, :]
     # view(data, montage_axis=0, movie_axis=0)
 
     # Grab all the dimensions
     npcs, ncoils, sx, sy = data.shape[:]
+    pcs = np.linspace(0, 2*np.pi, 4, endpoint=False)
+    pcs = np.tile(pcs, (sy, sx, 1)).T
 
     # Estimate the sensitivity maps from coil images
+    # Try espirit
+    csm_est = np.load(path + 'csm_P.npy')[
+        :, :, sl, :].transpose((2, 0, 1))
+    # csm_est = np.load(path + 'csm_P_S.npy')[
+    #     :, :, sl, :, 0].transpose((2, 0, 1))
+    # print(csm_est.shape)
+    # view(csm_est*mask)
+
     M = np.zeros((ncoils, sx, sy), dtype='complex')
     for cc in range(ncoils):
         M[cc, ...] = gs_recon(data[:, cc, ...], pc_axis=0)
+        # M[cc, ...] *= np.exp(1j*pcs[0, ...]/2)
+        # view(M[cc, ...])
     thresh = threshold_li(np.abs(M))
     mask = np.abs(M) > thresh
     mask0 = mask[0, ...]
-    csm_est, _ = calculate_csm_walsh(M)
-    # view(csm_est*mask)
+    # csm_est, _ = calculate_csm_walsh(M)
+    # csm_est, _ = calculate_csm_inati_iter(M)
 
     # Let's recall the scan parameters
-    TR = 5e-3
+    TR = 6e-3
+
+
+    # Comparing to GRE dual echo field map
+    gre_fm_c1 = np.load(path + 'fm_c1_s8.npy')
+    gre_fm_c2 = np.load(path + 'fm_c2_s8.npy')
+    gre_fm_c3 = np.load(path + 'fm_c3_s8.npy')
+    gre_fm_c4 = np.load(path + 'fm_c4_s8.npy')
+    gre_fm = (gre_fm_c1 + gre_fm_c2 + gre_fm_c3 + gre_fm_c4)/4
+    pad = int(sx/4)
+    gre_fm = gre_fm[pad:-pad, :]
+    mask0 = mask0[pad:-pad, :]
+
+    # # Can we get it right here?
+    # M0 = np.sum(csm_est.conj()*M, axis=0)[pad:-pad, :]
+    # M0a = np.angle(M0)*mask0
+    # M0a = np.fft.fft2(M0a)
+    # win = np.kaiser(M0a.shape[0], 5)
+    # M0a = np.abs(np.fft.ifft2(M0a*np.outer(win, win)))
+    # M0a /= np.pi*TR
+    # view(M0a)
+
 
     # Solve for off-resonance at each voxel
-    w0 = np.zeros((sx, sy))
-    for idx in tqdm(np.ndindex((sx, sy)), total=sx*sy, leave=False):
-        ii, jj = idx[:]
-        tmp = np.angle(M[:, ii, jj]) - np.angle(csm_est[:, ii, jj])
-        w0[ii, jj] = np.mean(tmp)
+    #     phi_rf + w0 = angle(M)
+    Ma = np.angle(M)[:, pad:-pad, :]
+    # view(Ma)
+    # Ma = unwrap_phase(Ma)
+    # Ma = np.fft.fft2(Ma, axes=(-2, -1))
+    # win = np.kaiser(Ma.shape[1], .1)
+    # Ma = np.fft.ifft2(Ma*np.outer(win, win), axes=(-2, -1)).real
+    # Ma /= np.mean(np.abs(csm_est)[:, pad:-pad, :], axis=0)
+    view(Ma)
+    # view(Ma)
+    csma = np.angle(csm_est)
+    csma = csma[:, pad:-pad, :]
+    csma = unwrap_phase(csma)
+    view(csma)
+    print(csma.shape)
+    print(Ma.shape)
+    x, y = int(265/2), 138
+    num = 5
+    print(csma[:, x:x+num, y])
+    print(Ma[:, x:x+num, y])
+    print(csma[:, x:x+num, y] - Ma[:, x:x+num, y])
+    print(np.mean(
+        csma[:, x:x+num, y] - Ma[:, x:x+num, y], axis=0)/(np.pi*TR))
+    print(gre_fm[x:x+num, y])
+    w0 = np.mean(Ma + csma, axis=0)
+
+    # Low pass filter to get rid of spurious sign flipping
+    w0 = np.fft.fft2(w0)
+    win = np.kaiser(w0.shape[0], 14)
+    plt.plot(win)
+    plt.show()
+    w0 = np.abs(np.fft.ifft2(w0*np.outer(win, win)))
 
     # Convert to Hz
+    w0 = unwrap_phase(w0)
     df_est = w0/(np.pi*TR)
-    pad = int(sx/4)
-    plt.imshow((df_est*mask0)[pad:-pad, :])
+
+    # # Manual unwrapping
+    # poss = np.arange(-5, 6).astype(int)
+    # fac = 1/(2*TR)
+    # for idx, df in tqdm(
+    #         np.ndenumerate(df_est), total=df_est.size, leave=False):
+    #     ii, jj = idx[:]
+    #     cost = np.zeros(poss.size*2)
+    #     ll = 0
+    #     for kk in range(poss.size):
+    #         cost[ll] = gre_fm[ii, jj] - (
+    #             df_est[ii, jj] + poss[kk]*fac)
+    #         cost[ll+1] = gre_fm[ii, jj] - (
+    #             -df_est[ii, jj] + poss[kk]*fac)
+    #         ll += 2
+    #     nn = np.argmin(np.abs(cost))
+    #
+    #     modnn = np.mod(nn, 2)
+    #     if modnn > 0:
+    #         df_est[ii, jj] = -df_est[
+    #             ii, jj] + poss[int(nn/2)]*fac
+    #     else:
+    #         df_est[ii, jj] += poss[int(nn/2)]*fac
+
+
+
+    view(np.stack((df_est*mask0, gre_fm*mask0)))
+    view((gre_fm - df_est)*mask0)
+
+
+    plt.imshow((df_est*mask0))
     plt.title('Field Map (Hz)')
     plt.colorbar()
     plt.show()
