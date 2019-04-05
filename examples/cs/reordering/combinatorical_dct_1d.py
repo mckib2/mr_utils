@@ -79,7 +79,7 @@ def err_fun(cc, N, bins, lims):
 if __name__ == '__main__':
 
     # Assume there is a k-sparse representation,
-    N = 30 # these choices of N,k give unique solution most of the time
+    N = 256 # these choices of N,k give unique solution most of the time
     k = 3
     cx = np.zeros(N)
     idx_true = np.random.choice(np.arange(N), k, False)

@@ -29,7 +29,7 @@ def bssfp_acq(T1s, T2s, PD, field_map, TR=5e-3,
 def gre_acq(T1s, T2s, PD, field_map, TR, TE, alpha=np.pi/2):
     '''Wrapper to simulate spoled GRE acquisition.'''
     return gre_sim(T1s, T2s, TR=TR, TE=TE, alpha=alpha, field_map=field_map,
-                   phi=0, dphi=0, M0=PD, tol=1e-5, iter=None, spoil=True)
+                   phi=0, dphi=0, M0=PD, tol=1e-5, maxiter=None, spoil=True)
 
 def hrf(times0):
     '''Return values for HRF at given times
