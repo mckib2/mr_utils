@@ -48,6 +48,11 @@ if __name__ == '__main__':
     # csm_est, _ = calculate_csm_walsh(M)
     # csm_est, _ = calculate_csm_inati_iter(M)
 
+    # I think what should actually happen is that coil sensitivity
+    # map phase information should be applied to each phase-cycle
+    # image before GS recon, then 
+
+
     # Let's recall the scan parameters
     TR = 6e-3
 

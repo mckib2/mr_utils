@@ -1,18 +1,20 @@
-'''Iterative hard thresholding using variable encoding model with TV constraint
+'''Iterative hard thresholding with variable encoding model, uses TV.
 '''
 
 import logging
 
 import numpy as np
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s: %(message)s',
+                    level=logging.DEBUG)
 
-def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8, do_reordering=False,
-           x=None, ignore_residual=False, disp=False, maxiter=500):
+def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8,
+           do_reordering=False, x=None, ignore_residual=False,
+           disp=False, maxiter=500):
     r'''IHT for generic encoding model and TV constraint.
 
     Parameters
-    ==========
+    ----------
     y : array_like
         Measured data, i.e., y = Ax.
     forward_fun : callable
@@ -37,17 +39,18 @@ def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8, do_reordering=False,
         Maximum number of iterations.
 
     Returns
-    =======
+    -------
     x_hat : array_like
         Estimate of x.
 
     Notes
-    =====
+    -----
     Solves the problem:
 
     .. math::
 
-        \min_x || y - Ax ||^2_2 \text{ s.t. } || \text{TV}(x) ||_0 \leq k
+        \min_x || y - Ax ||^2_2 \text{ s.t. } || \text{TV}(x) ||_0
+        \leq k
 
     If `x=None`, then MSE will not be calculated.
     '''
@@ -88,8 +91,8 @@ def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8, do_reordering=False,
         if x is not None:
             k = np.sum(np.abs(np.diff(x.flatten()[reordering])) > 0)
         else:
-            logging.warning(
-                'Make sure sparsity level k is adjusted for reordering!')
+            logging.warning(('Make sure sparsity level k is '
+                             'adjusted for reordering!'))
 
     # Do the thing
     for ii in range(int(maxiter)):
@@ -106,7 +109,7 @@ def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8, do_reordering=False,
             val = val[reordering]
 
         # Finite differences transformation
-        first_samp = val[0] # save the first sample for inverse transform
+        first_samp = val[0] # save first sample for inverse transform
         fd = np.diff(val)
 
         # Hard thresholding
@@ -121,7 +124,8 @@ def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8, do_reordering=False,
         stop_criteria = np.linalg.norm(r)/norm_y
 
         # If the stop_criteria gets worse, get out of dodge
-        if not ignore_residual and (stop_criteria > prev_stop_criteria):
+        if not ignore_residual and (
+                stop_criteria > prev_stop_criteria):
             logging.warning('Residual increased! Not continuing!')
             break
         prev_stop_criteria = stop_criteria
@@ -132,7 +136,8 @@ def IHT_TV(y, forward_fun, inverse_fun, k, mu=1, tol=1e-8, do_reordering=False,
         # Show the people what they asked for
         if disp:
             logging.info(
-                table.row([ii, stop_criteria, compare_mse(xabs, x_hat)]))
+                table.row([ii, stop_criteria,
+                           compare_mse(xabs, x_hat)]))
         if stop_criteria < tol:
             break
 

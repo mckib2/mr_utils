@@ -4,7 +4,7 @@
 Based on [1]_.
 
 References
-==========
+----------
 .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/gadgets/rms_coil_combine.py
 '''
 # pylint: enable=C0301

@@ -1,11 +1,12 @@
 '''Package a script together with all its dependencies.
 
-For example, on a remote computer I know for a fact that numpy and scipy are
-available, but I cannot or cannot easily gaurantee that module x will be
-installed.  I want to run script MyScript.py on this remote machine, but it
-depends on module x.  package_script() will recurse through MyScript.py and
-prepend module x (and all of module x's dependencies down to numpy, scipy, and
-default python modules, assuming I've set existing_modules=['numpy', 'scipy']).
+For example, on a remote computer I know for a fact that numpy and
+scipy are available, but I cannot or cannot easily gaurantee that
+module x will be installed.  I want to run script MyScript.py on this
+remote machine, but it depends on module x.  package_script() will
+recurse through MyScript.py and prepend module x (and all of module
+x's dependencies down to numpy, scipy, and default python modules,
+assuming I've set existing_modules=['numpy', 'scipy']).
 '''
 
 import importlib
@@ -45,7 +46,7 @@ def get_imports(filename, existing_modules=None):
     imports = set()
     files = set()
     with open(filename, 'r') as f:
-        for line in f:
+        for line in f: #pylint: disable=R1702
 
             # Remove lines we don't care for
             if '__all__' in line:
@@ -107,22 +108,23 @@ def package_script(filename, existing_modules=None):
     '''Package a script together with all dependencies.
 
     Parameters
-    ==========
+    ----------
     filename : str
         Path to Python script we wish to package.
     existing_modules : list, optional
         List of terminating modules.
 
     Returns
-    =======
+    -------
     str
         Bundled python script with only existing_modules dependencies.
 
     Notes
-    =====
-    "Terminating module" is a module we assume is available on the machine we
-    want to run the packaged script on.  These are python's built-in modules
-    plus all existing_modules specified by caller.
+    -----
+    "Terminating module" is a module we assume is available on the
+    machine we want to run the packaged script on.  These are
+    python's built-in modules plus all existing_modules specified by
+    caller.
     '''
 
     stripped_concat = ''
@@ -133,8 +135,17 @@ def package_script(filename, existing_modules=None):
     prev_files.add(filename)
     while len(files) > prev_len:
 
+        new_files = []
         for prev_f in prev_files:
-            stripped, keep, new_files = get_imports(prev_f, existing_modules)
+            try:
+                stripped, keep, new_files = get_imports(
+                    prev_f, existing_modules)
+            except ModuleNotFoundError as e:
+                # Sometimes the module we're looking for doesn't
+                # exist on the system running package_script(), so we
+                # carry on assuming the user knows what's best...
+                print(e)
+                continue
             stripped_concat += '\n' + stripped
 
             # Add the imports we want to keep to the list

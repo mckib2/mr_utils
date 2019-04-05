@@ -142,8 +142,16 @@ def proximal_GD(
             reorder_idx = reorder_fun(grad_step)
             reorder_idx_r = reorder_idx.real.astype(int)
             reorder_idx_i = reorder_idx.imag.astype(int)
+
             unreorder_idx_r = inverse_permutation(reorder_idx_r)
             unreorder_idx_i = inverse_permutation(reorder_idx_i)
+            # unreorder_idx_r = np.arange(
+            #     reorder_idx_r.size).astype(int)
+            # unreorder_idx_r[reorder_idx_r] = reorder_idx_r
+            # unreorder_idx_i = np.arange(
+            #     reorder_idx_i.size).astype(int)
+            # unreorder_idx_i[reorder_idx_i] = reorder_idx_i
+
             grad_step = (
                 grad_step.real[np.unravel_index(
                     reorder_idx_r, y.shape)] \

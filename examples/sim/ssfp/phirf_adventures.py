@@ -1,6 +1,7 @@
 '''Estimate phi_rf from coil sensitivity maps.'''
 
 import numpy as np
+import matplotlib.pyplot as plt
 from ismrmrdtools.simulation import generate_birdcage_sensitivities
 from ismrmrdtools.coils import calculate_csm_walsh
 # from ismrmrdtools.coils calculate_csm_inati_iter
@@ -38,6 +39,14 @@ if __name__ == '__main__':
     # Create true coil sensitivity maps
     csm = generate_birdcage_sensitivities(N, number_of_coils=ncoils)
     phi_rf = np.angle(csm)
+    plt.imshow(phi_rf[0, ...])
+    plt.title('Coil sensitivity phase (rad)')
+    plt.colorbar()
+    plt.show()
+    plt.imshow(np.abs(csm[0, ...]))
+    plt.title('Coil sensitivity mag')
+    plt.colorbar()
+    plt.show()
     csm_mag = np.tile(
         np.abs(csm), (npcs, 1, 1, 1,)).transpose((1, 0, 2, 3))
 
@@ -95,5 +104,17 @@ if __name__ == '__main__':
     # Convert to Hz
     df_est = (w0/(np.pi*TR)).reshape(df.shape)
 
-    view(np.stack((df, -df_est)))
-    view(df + df_est)# + 1/(2*TR))
+    # # view(np.stack((df, -df_est)))
+    # plt.imshow(df)
+    # plt.title('True field map (Hz)')
+    # plt.colorbar()
+    # plt.show()
+    # plt.imshow(-df_est)
+    # plt.title('Estimated field map (Hz)')
+    # plt.colorbar()
+    # plt.show()
+    # plt.imshow(df + df_est)
+    # plt.title('Residual (Hz)')
+    # plt.colorbar()
+    # plt.show()
+    # view(df + df_est)# + 1/(2*TR))
