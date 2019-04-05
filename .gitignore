@@ -13,3 +13,5 @@ tmp.h5
 testdata.h5
 docs/_build/
 src/
+c_intermediate.npy
+meas_MID42_CV_Radial7Off_triple_2.9ml_FID242_GROG.mat

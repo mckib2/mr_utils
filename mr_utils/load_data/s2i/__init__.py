@@ -12,3 +12,5 @@ from .read_channel_headers import readChannelHeaders
 from .get_acquisition import getAcquisition
 from .parse_xml import parseXML
 from .fill_ismrmrd_header import fill_ismrmrd_header
+from .read_sync_data import readSyncdata
+from .pmu_type import PMU_Type, PMU_Type_inverse

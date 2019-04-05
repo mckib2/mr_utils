@@ -7,44 +7,43 @@ import numpy as np
 
 from mr_utils.utils import get_semiaxes, do_planet_rotation, get_center
 
-def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
+def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
            compute_df=False, disp=False):
     '''Simultaneous T1, T2 mapping using phase‐cycled bSSFP.
 
     Parameters
-    ==========
+    ----------
     I : array_like
         Complex voxels from phase-cycled bSSFP images.
     alpha : float
         Flip angle (in rad).
     TR : float
         Repetition time (in sec).
-    T1s : array_like, optional
-        Range of T1s.
+    T1_guess : float
+        Estimate of expected T1 value (in sec).
     fit_ellipse : callable, optional
         Function used to fit data points to ellipse.
-    pcs : list, optional
-        List of phase-cycles in I (required if computing df).
+    pcs : array_like, optional
+        Phase-cycles that generate phase-cycle images of I (required if
+        computing df) (in rad).
     compute_df : bool, optional
         Whether or not estimate local off-resonance, df.
     disp : bool, optional
-        Show plots.
+        Show debug plots.
 
     Returns
-    =======
+    -------
     Meff : array_like
-        Effective magnetization amplitude
+        Effective magnetization amplitude (arbitrary units).
     T1 : array_like
-        Estimate of T1 values
+        Estimate of T1 values (in sec).
     T2 : array_like
-        Estimate of T2 values
+        Estimate of T2 values (in sec).
     df : array_like, optional
-        Estimate of off-resonance values.
+        Estimate of off-resonance values (in Hz).
 
     Raises
-    ======
-    NotImplementedError
-        If compute_df=True
+    ------
     AssertionError
         If fit_ellipse returns something that is not an ellipse
     AssertionError
@@ -57,7 +56,7 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
         If the sign of b cannot be determined.
 
     Notes
-    =====
+    -----
     Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
     method they use (and which is implemented here) may not be the best
     method, but it is quick.  Could add more options for fitting in the future.
@@ -72,7 +71,7 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     Implements algorithm described in [1]_.
 
     References
-    ==========
+    ----------
     .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
            simultaneous T1 and T2 mapping using phase‐cycled balanced
            steady‐state free precession." Magnetic resonance in medicine 79.2
@@ -86,73 +85,61 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
 
     # Make sure we know what phase-cycles we have if we're computing df
     if compute_df:
-        from scipy.optimize import curve_fit
         if pcs is None:
-            pcs = [2*np.pi*nn/I.size for nn in range(I.size)]
-        assert len(pcs) == I.size, 'Phase-cycle list must match entries of I!'
-
-        # For now, let's just die
-        raise NotImplementedError('compute_df not working yet...')
-
-    # Make sure we have a reasonable range of T1s to work with if the user
-    # doesn't provide any
-    if T1s is None:
-        T1s = np.linspace(.2, 2, 100)
+            pcs = np.linspace(0, 2*np.pi, I.size, endpoint=False)
+        else:
+            # Make sure we get phase-cycles as a numpy array
+            pcs = np.array(pcs)
+        assert pcs.size == I.size, ('Number of phase-cycles must match entries'
+                                    ' of I!')
 
     ## Step 1. Direct linear least squares ellipse fitting to phase-cycled
     ## bSSFP data.
-    c = fit_ellipse(I.real, I.imag)
+    C = fit_ellipse(I.real, I.imag)
 
     # Look at it in standard form
-    A, B, C, D, E, F = c[:]
-    assert B**2 - 4*A*C < 0, 'Not an ellipse!'
+    C1, C2, C3, _C4, _C5, _C6 = C[:]
+    assert C2**2 - 4*C1*C3 < 0, 'Not an ellipse!'
 
     ## Step 2. Rotation of the ellipse to initial vertical conic form.
-    xr, yr, cr, _phi = do_planet_rotation(I)
-    xc, yc = get_center(cr)
+    xr, yr, Cr, _phi = do_planet_rotation(I)
+    I0 = xr + 1j*yr
+    xc, yc = get_center(Cr)
 
-    # Make sure we got what we wanted:
-    assert np.allclose(yc, 0), 'Ellipse rotation failed! yc = %g' % yc
-    assert xc > 0, 'xc needs to be in the right half-plane! xc = %g' % xc
-    Ar, Br, Cr, Dr, Er, Fr = cr[:]
-
-    # If we want to look at it (for debugging mostly)
+    # Look at it to make sure we've rotated correctly
     if disp:
         import matplotlib.pyplot as plt
-        _fig, ax = plt.subplots()
-        x = np.linspace(-0.5, 0.5, 1000)
-        y = np.linspace(-0.5, 0.5, 1000)
-        X, Y = np.meshgrid(x, y)
-        eqn = A*X**2 + B*X*Y + C*Y**2 + D*X + E*Y + F
-        ax.contour(X, Y, eqn, [0])
-        ax.grid()
-        ax.plot(I.real, I.imag, '.')
-
-        ax.plot(xr, yr, '*')
-        eqn = Ar*X**2 + Br*X*Y + Cr*Y**2 + Dr*X + Er*Y + Fr
-        ax.contour(X, Y, eqn, [0])
-        ax.relim()
-        ax.autoscale_view(True)
-        plt.axis('scaled')
+        Idraw = np.concatenate((I, [I[0]]))
+        I0draw = np.concatenate((I0, [I0[0]]))
+        plt.plot(Idraw.real, Idraw.imag, label='Sampled')
+        plt.plot(I0draw.real, I0draw.imag, label='Rotated')
+        plt.legend()
+        plt.axis('square')
         plt.show()
+
+    # Sanity check: make sure we got what we wanted:
+    assert np.allclose(yc, 0), 'Ellipse rotation failed! yc = %g' % yc
+    assert xc > 0, 'xc needs to be in the right half-plane! xc = %g' % xc
+    # C1r, C2r, C3r, C4r, C5r, C6r = Cr[:]
+
 
     ## Step 3. Analytical solution for parameters Meff, T1, T2.
     # Get the semi axes, AA and BB
-    AA, BB = get_semiaxes(cr)
+    A, B = get_semiaxes(Cr)
     # Ellipse must be vertical -- so make the axes look like it
-    if AA > BB:
-        AA, BB = BB, AA
-    AA2 = AA**2
-    BB2 = BB**2
+    if A > B:
+        A, B = B, A
+    A2 = A**2
+    B2 = B**2
 
-    # Decide sign of b
-    E1 = np.exp(-TR/T1s)
+    # Decide sign of first term of b
+    E1 = np.exp(-TR/T1_guess)
     aE1 = np.arccos(E1)
-    if np.all(alpha > aE1):
+    if alpha > aE1:
         val = -1
-    elif np.all(alpha < aE1):
+    elif alpha < aE1:
         val = 1
-    elif np.all(alpha == aE1):
+    elif alpha == aE1:
         raise ValueError('Ellipse is a line! x = Meff')
     else:
         raise ValueError('Houston, we should never have raised this error...')
@@ -160,15 +147,12 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
     # See Appendix
     # xc = np.abs(xc) # THIS IS NOT IN THE APPENDIX but by def in eq [9]
     xc2 = xc**2
-    xcAA = xc*AA
-    b = (val*xcAA + np.sqrt(xcAA**2 - (xc2 + BB2)*(AA2 - BB2)))/(xc2 + BB2)
+    xcA = xc*A
+    b = (val*xcA + np.sqrt(xcA**2 - (xc2 + B2)*(A2 - B2)))/(xc2 + B2)
     b2 = b**2
-    a = BB/(xc*np.sqrt(1 - b2) + b*BB)
-    # if a > 1:
-    #     a = 1 - 1e-8
+    a = B/(xc*np.sqrt(1 - b2) + b*B)
     ab = a*b
     Meff = xc*(1 - b2)/(1 - ab)
-
 
     # Sanity checks:
     assert 0 < b < 1, '0 < b < 1 has been violated! b = %g' % b
@@ -182,16 +166,36 @@ def PLANET(I, alpha, TR, T1s=None, fit_ellipse=None, pcs=None,
 
     ## Step 4. Estimation of the local off-resonance df.
     if compute_df:
-        tanbeta = I.imag/(I.real - xc)
-        tn = np.arctan2(AA*tanbeta, BB)
-        ctn = np.cos(tn)
-        ct = (ctn - b)/(b*ctn - 1)
+        # The beta way:
+        # costheta = np.zeros(dphis.size)
+        # for nn in range(dphis.size):
+        #     x, y = I0[nn].real, I0[nn].imag
+        #     tanbeta = y/(x - xc)
+        #     t = np.arctan(A/B*tanbeta)
+        #     costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
 
-        k, _cov = curve_fit(
-            lambda x, k0, k1: k0*np.cos(x) + k1*np.sin(x), pcs, ct)
-        theta0 = np.arctan2(k[1], k[0])
-        df = theta0/(2*np.pi*TR)
+        # The atan2 way:
+        costheta = np.zeros(pcs.size)
+        for nn in range(pcs.size):
+            x, y = I0[nn].real, I0[nn].imag
+            t = np.arctan2(y, x - xc)
+
+            if a > b:
+                costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
+            else:
+                # Sherbakova doesn't talk about this case in the paper!
+                costheta[nn] = (np.cos(t) + b)/(b*np.cos(t) + 1)
+
+        # Get least squares estimate for K1, K2
+        X = np.array([np.cos(pcs), np.sin(pcs)]).T
+        K = np.linalg.multi_dot((np.linalg.pinv(X.T.dot(X)), X.T, costheta))
+        K1, K2 = K[:]
+
+        # And finally...
+        theta0 = np.arctan2(K2, K1)
+        df = -1*theta0/(2*np.pi*TR) # spurious negative sign, currently a bug
         return(Meff, T1, T2, df)
+
     # else...
     return(Meff, T1, T2)
 

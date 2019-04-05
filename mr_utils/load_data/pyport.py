@@ -52,11 +52,11 @@ with warnings.catch_warnings():
     warnings.filterwarnings('ignore', category=FutureWarning)
     from ismrmrd import Dataset, xsd
 
-from mr_utils.load_data.s2i import defs, sScanHeader, fill_ismrmrd_header
-from mr_utils.load_data.s2i import readParcFileEntries, readScanHeader
-from mr_utils.load_data.s2i import readMeasurementHeaderBuffers, parseXML
-from mr_utils.load_data.s2i import readChannelHeaders, getAcquisition
-from mr_utils.load_data.s2i import xml_fun, readXmlConfig
+from mr_utils.load_data.s2i import (
+    defs, sScanHeader, fill_ismrmrd_header, readParcFileEntries,
+    readScanHeader, readMeasurementHeaderBuffers, parseXML,
+    readChannelHeaders, getAcquisition, xml_fun, readXmlConfig,
+    readSyncdata)
 
 def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
            file=None, pMapStyle=None, measNum=1, pMap=None, user_map=None,
@@ -260,7 +260,8 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
         position_in_meas = siemens_dat.tell() - ParcFileEntries[
             measNum-1]['off_']
         if np.mod(position_in_meas, 32) != 0:
-            siemens_dat.seek(32 - np.mod(position_in_meas, 32), os.SEEK_CUR)
+            siemens_dat.seek(
+                int(32 - np.mod(position_in_meas, 32)), os.SEEK_CUR)
 
         # Measurement header done!
         # Now we should have the measurement headers, so let's use the Meas
@@ -366,15 +367,19 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
             if scanhead['aulEvalInfoMask'][0] & (1 << 5):
                 print('dma_length = %d' % dma_length)
                 print('sync_data_packets = %d' % sync_data_packets)
-                raise NotImplementedError()
-                # last_scan_counter = acquisitions - 1
-                # # TODO:
-                # # auto waveforms = readSyncdata(siemens_dat, VBFILE,
-                #  acquisitions, dma_length,scanhead,header,last_scan_counter);
-                # # for (auto& w : waveforms)
-                # #     ismrmrd_dataset->appendWaveform(w);
-                # sync_data_packets += 1
-                # continue
+
+                # raise NotImplementedError()
+                last_scan_counter = acquisitions - 1
+
+                # TODO:
+
+                waveforms = readSyncdata(
+                    siemens_dat, VBFILE, acquisitions, dma_length,
+                    scanhead, header, last_scan_counter)
+                # for (auto& w : waveforms)
+                #     ismrmrd_dataset->appendWaveform(w);
+                sync_data_packets += 1
+                continue
 
             if first_call:
                 time_stamp = scanhead['ulTimeStamp']
@@ -416,12 +421,13 @@ def pyport(version=False, list_embed=False, extract=None, user_stylesheet=None,
                 ## Create an ISMRMRD dataset
 
             # This check only makes sense in VD line files.
+            # print(scanhead['lMeasUID'], pfe['measId_'])
             if not VBFILE and (scanhead['lMeasUID'] != pfe['measId_']):
                 # Something must have gone terribly wrong. Bail out.
                 if first_call:
                     msg = ('Corrupted or retro-recon dataset detected '
                            '(scanhead.lMeasUID != ParcFileEntries[%d].measId_'
-                           'Fix the scanhead.lMeasUID...' % (measNum-1))
+                           '. Fix the scanhead.lMeasUID...' % (measNum-1))
                     logging.error(msg)
                 scanhead['lMeasUID'] = pfe['measId_']
 

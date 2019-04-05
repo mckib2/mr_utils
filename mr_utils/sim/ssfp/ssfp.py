@@ -14,9 +14,10 @@ def ssfp_old(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
     ct = np.cos(theta)
     st = np.sin(theta)
 
-    # If field_map and T1 or T2 are matrices, then we need to do matrix
-    # operations.
-    if (np.array([T1, T2]).size > 2) and (np.array(field_map).size > 1):
+    # If field_map and T1 or T2 are matrices, then we need to do
+    # matrix operations.
+    if (np.array([T1, T2]).size > 2) and (
+            np.array(field_map).size > 1):
 
         den = (1 - E1*ca)[:, None]*(1 - np.outer(E2, ct)) \
             - (E2*(E1 - ca))[:, None]*(E2[:, None] - ct)
@@ -29,11 +30,11 @@ def ssfp_old(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1):
         My = -M0*(1 - E1)*E2*sa*st/den
         Mxy = Mx + 1j*My
 
-        Mxy *= get_bssfp_phase(TR, field_map)
+        Mxy *= get_bssfp_phase(T2, TR, field_map)
     return Mxy
 
-def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
-         phi_edd=0, phi_drift=0):
+def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0,
+         phi_rf=0, phi_edd=0, phi_drift=0):
     r'''SSFP transverse signal at time TE after excitation.
 
     Parameters
@@ -53,13 +54,14 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
     M0 : float or array_like, optional
         proton density.
     delta_cs : float, optional
-        chemical shift of species w.r.t. the water peak (Hz).
+        chemical shift of species w.r.t. the water peak (in Hz).
     phi_rf : float, optional
-        RF phase offset, related to the combin. of Tx/Rx phases (rad).
+        RF phase offset, related to the combin. of Tx/Rx phases (in
+        rad).
     phi_edd : float, optional
-        phase errors due to eddy current effects (rad).
+        phase errors due to eddy current effects (in rad).
     phi_drift : float, optional
-        phase errors due to B0 drift (rad).
+        phase errors due to B0 drift (in rad).
 
     Returns
     -------
@@ -68,18 +70,55 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
 
     Notes
     -----
-    `T1`, `T2`, `alpha`, `field_map`, and `M0` can all be either a scalar or
-    an MxN array.  `phase_cyc` can be a scalar or length L vector.
+    `T1`, `T2`, `alpha`, `field_map`, and `M0` can all be either a
+    scalar or an MxN array.  `phase_cyc` can be a scalar or length L
+    vector.
 
-    Implementation of equations [1-2] in [1]_.
+    Implementation of equations [1--2] in [1]_.  These equations are
+    based on the Ernst-Anderson derivation [4]_ where off-resonance
+    is assumed to be subtracted as opposed to added (as in the
+    Freeman-Hill derivation [5]_).  Hoff actually gets Mx and My
+    flipped in the paper, so we fix that here.  We also assume that
+    the field map will be provided given the Freeman-Hill convention.
+
+    We will additionally assume that linear phase increments
+    (phase_cyc) will be given in the form:
+
+    .. math::
+
+        \theta = 2 \pi (\delta_{cs} + \Delta f_0)\text{TR} + \Delta
+        \theta.
+
+    Notice that this is opposite of the convention used in PLANET,
+    where phase_cyc is subtracted (see equation [12] in [2]_).
+
+    Also see equations [2.7] and [2.10a--b] from [4]_ and equations
+    [3] and [6--12] from [5]_.
 
     References
     ----------
+    .. [1] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact
+           removal for bSSFP imaging with an elliptical signal
+           model." Magnetic resonance in medicine 71.3 (2014):
+           927-933.
 
-    .. [1] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-       bSSFP imaging with an elliptical signal model." Magnetic resonance in
-       medicine 71.3 (2014): 927-933.
+    .. [4] Ernst, Richard R., and Weston A. Anderson. "Application of
+           Fourier transform spectroscopy to magnetic resonance."
+           Review of Scientific Instruments 37.1 (1966): 93-102.
+
+    .. [5] Freeman R, Hill H. Phase and intensity anomalies in
+           fourier transform NMR. J Magn Reson 1971;4:366–383.
     '''
+
+    # We are assuming Freeman-Hill convention for off-resonance map,
+    # so we need to negate to make use with this Ernst-Anderson-
+    # based implementation from Hoff
+    field_map = -1*field_map
+
+    # We also assume that linear phase cycles will be added, but the
+    # formulation used by Hoff, PLANET assumes subtracted, so let's
+    # flip the signs
+    phase_cyc = -1*phase_cyc
 
     # Make sure we're working with arrays
     T1 = np.atleast_2d(T1)
@@ -91,7 +130,8 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
     # If we have more than one phase-cycle, then add that dimension
     if phase_cyc.size > 1:
         reps = (phase_cyc.size, 1, 1)
-        phase_cyc = np.tile(phase_cyc, T1.shape[:] + (1,)).transpose((2, 0, 1))
+        phase_cyc = np.tile(
+            phase_cyc, T1.shape[:] + (1,)).transpose((2, 0, 1))
         T1 = np.tile(T1, reps)
         T2 = np.tile(T2, reps)
         alpha = np.tile(alpha, reps)
@@ -112,10 +152,14 @@ def ssfp(T1, T2, TR, alpha, field_map, phase_cyc=0, M0=1, delta_cs=0, phi_rf=0,
 
     # Get to business
     den = (1 - E1*ca)*(1 - E2*ct) - (E2*(E1 - ca))*(E2 - ct)
-    Mx = M0*((1 - E1)*sa)*(1 - E2*ct)/den
-    My = -M0*((1 - E1)*E2*sa*st)/den
+    Mx = -M0*((1 - E1)*E2*sa*st)/den
+    My = M0*((1 - E1)*sa)*(1 - E2*ct)/den
     Mxy = Mx + 1j*My
-    Mxy *= get_bssfp_phase(TR, field_map, delta_cs, phi_rf, phi_edd, phi_drift)
+
+    # Add additional phase factor for readout at TE = TR/2.
+    # Notice that phi_i are negated
+    Mxy *= get_bssfp_phase(
+        T2, TR, field_map, delta_cs, -phi_rf, -phi_edd, -phi_drift)
 
     return Mxy.squeeze()
 
@@ -123,7 +167,7 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
     '''Return ellipse parameters M, a, b.
 
     Parameters
-    ==========
+    ----------
     T1 : array_like
         longitudinal exponential decay time constant (in sec).
     T2 : array_like
@@ -136,7 +180,7 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
         Proton density.
 
     Returns
-    =======
+    -------
     M : array_like
         Cross point.
     a : array_like
@@ -145,17 +189,11 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
         Theta-independent ellipse parameter.
 
     Notes
-    =====
-    Outputs are the parameters of ellipse an ellipse, (M, a, b).  These
-    parameters do not depend on theta.
+    -----
+    Outputs are the parameters of ellipse an ellipse, (M, a, b).
+    These parameters do not depend on theta.
 
-    Implementation of equations [3-5] in [2]_.
-
-    References
-    ==========
-    .. [2] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-           bSSFP imaging with an elliptical signal model." Magnetic resonance
-           in medicine 71.3 (2014): 927-933.
+    Implementation of equations [3-5] in [1]_.
     '''
 
     # Make sure we're working with arrays
@@ -177,10 +215,10 @@ def elliptical_params(T1, T2, TR, alpha, M0=1):
     return(M, a, b)
 
 def ssfp_from_ellipse(M, a, b, TR, field_map, phase_cyc=0):
-    '''Simulate banding artifacts given elliptical signal params and field map.
+    '''Simulate banding given elliptical signal params and field map.
 
     Parameters
-    ==========
+    ----------
     M : array_like
         Cross point.
     a : array_like
@@ -195,21 +233,21 @@ def ssfp_from_ellipse(M, a, b, TR, field_map, phase_cyc=0):
         Phase-cycling increment (in rad).
 
     Returns
-    =======
+    -------
     I : array_like
         SSFP simulation result.
     '''
 
     theta = get_theta(TR, field_map, phase_cyc)
     I = M*(1 - a*np.exp(1j*theta))/(1 - b*np.cos(theta))
-    I *= get_bssfp_phase(TR, field_map)
+    I *= get_bssfp_phase(0, TR, field_map) # what is T2?
     return I
 
 def  get_geo_center(M, a, b):
     '''Get geometric center of ellipse.
 
     Parameters
-    ==========
+    ----------
     M : array_like
         Cross point.
     a : array_like
@@ -218,7 +256,7 @@ def  get_geo_center(M, a, b):
         Theta-independent ellipse parameter.
 
     Returns
-    =======
+    -------
     xc : array_like
         x coordinates of geometric center of ellipse.
     yc : array_like
@@ -233,7 +271,7 @@ def get_cart_elliptical_params(M, a, b):
     '''Get parameters needed for cartesian representation of ellipse.
 
     Parameters
-    ==========
+    ----------
     M : array_like
         Cross point.
     a : array_like
@@ -242,7 +280,7 @@ def get_cart_elliptical_params(M, a, b):
         Theta-independent ellipse parameter.
 
     Returns
-    =======
+    -------
     xc : array_like
         x coordinates of geometric center of ellipse.
     yc : array_like
@@ -263,7 +301,7 @@ def make_cart_ellipse(xc, yc, A, B, num_t=100):
     '''Make a cartesian ellipse, return x,y coordinates for plotting.
 
     Parameters
-    ==========
+    ----------
     xc : array_like
         x coordinates of geometric center of ellipse.
     yc : array_like
@@ -274,7 +312,7 @@ def make_cart_ellipse(xc, yc, A, B, num_t=100):
         Semi-minor axis.
 
     Returns
-    =======
+    -------
     x : array_like
         Cartesian x coordinates.
     y : array_like
@@ -291,7 +329,7 @@ def get_center_of_mass(M, a, b):
     '''Give center of mass a function of ellipse parameters.
 
     Parameters
-    ==========
+    ----------
     M : array_like
         Cross point.
     a : array_like
@@ -300,7 +338,7 @@ def get_center_of_mass(M, a, b):
         Theta-independent ellipse parameter.
 
     Returns
-    =======
+    -------
     cm : array_like
         Center of mass.
     '''
@@ -312,7 +350,7 @@ def get_center_of_mass_nmr(T1, T2, TR, alpha, M0=1):
     '''Give center of mass as a function of NMR parameters.
 
     Parameters
-    ==========
+    ----------
     T1 : array_like
         longitudinal exponential decay time constant (in sec).
     T2 : array_like
@@ -325,7 +363,7 @@ def get_center_of_mass_nmr(T1, T2, TR, alpha, M0=1):
         Proton density.
 
     Returns
-    =======
+    -------
     cm : array_like
         Center of mass.
     '''
@@ -333,15 +371,15 @@ def get_center_of_mass_nmr(T1, T2, TR, alpha, M0=1):
     E1 = np.exp(-TR/T1)
     E2 = np.exp(-TR/T2)
     ca = np.cos(alpha)
-    cm = M0*(1 - (E1 - ca)*np.sqrt((E2**2 - 1)/(E2**2*(E1 - ca)**2 - \
-        (E1*ca - 1)**2)))*np.tan(alpha/2)
+    cm = M0*(1 - (E1 - ca)*np.sqrt((E2**2 - 1)/(E2**2*(
+        E1 - ca)**2 - (E1*ca - 1)**2)))*np.tan(alpha/2)
     return cm
 
 def spectrum(T1, T2, TR, alpha):
     '''Generate an entire period of the bSSFP signal profile.
 
     Parameters
-    ==========
+    ----------
     T1 : array_like
         longitudinal exponential decay time constant (in sec).
     T2 : array_like
@@ -352,7 +390,7 @@ def spectrum(T1, T2, TR, alpha):
         Flip angle (in rad).
 
     Returns
-    =======
+    -------
     sig : array_like
         Full, complex SSFP spectrum.
     '''
@@ -362,14 +400,16 @@ def spectrum(T1, T2, TR, alpha):
     sig = ssfp_old(T1, T2, TR, alpha, df)
     return sig
 
-def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
-                    phi_drift=0):
+def get_bssfp_phase(T2, TR, field_map, delta_cs=0, phi_rf=0,
+                    phi_edd=0, phi_drift=0):
     '''Additional bSSFP phase factors.
 
     Parameters
-    ==========
+    ----------
+    T2 : array_like
+        Longitudinal relaxation constant (in sec).
     TR : float
-        repetition time (in sec).
+        Repetition time (in sec).
     field_map : array_like
         off-resonance map (Hz).
     delta_cs : float, optional
@@ -382,42 +422,52 @@ def get_bssfp_phase(TR, field_map, delta_cs=0, phi_rf=0, phi_edd=0,
         phase errors due to B0 drift (rad).
 
     Returns
-    =======
+    -------
     phase : array_like
         Additional phase term to simulate readout at time TE = TR/2.
+        Assumes balanced (TE = TR/2).
 
     Notes
-    =====
-    This is exp(-i phi) from end of p. 930 in [3]_.
+    -----
+    This is exp(-i phi) from end of p. 930 in [1]_.
 
-    We use a positive exponent, exp(i phi), as in Hoff and Taylor MATLAB
-    implementations.
+    We use a positive exponent, exp(i phi), as in Hoff and Taylor
+    MATLAB implementations.  This phase factor is also positive in
+    equaiton [5] of [3]_.
 
-    In Hoff's paper the equation is not explicitly given for phi, so we
-    implement equation [5] that gives more detailed terms, found in [4]_.
+    In Hoff's paper the equation is not explicitly given for phi, so
+    we implement equation [5] that gives more detailed terms, found
+    in [2]_.
 
     References
-    ==========
-    .. [3] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-           bSSFP imaging with an elliptical signal model." Magnetic resonance
-           in medicine 71.3 (2014): 927-933.
+    ----------
+    .. [2] Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting
+           approach for simultaneous T1 and T2 mapping using
+           phase‐cycled balanced steady‐state free precession."
+           Magnetic resonance in medicine 79.2 (2018): 711-722.
 
-    .. [4] Shcherbakova, Yulia, et al. "PLANET: An ellipse fitting approach for
-           simultaneous T1 and T2 mapping using phase‐cycled balanced
-           steady‐state free precession." Magnetic resonance in medicine 79.2
-           (2018): 711-722.
+    .. [3] Scheffler, Klaus, and Jürgen Hennig. "Is TrueFISP a
+           gradient‐echo or a spin‐echo sequence?." Magnetic
+           Resonance in Medicine: An Official Journal of the
+           International Society for Magnetic Resonance in Medicine
+           49.2 (2003): 395-397.
     '''
 
     TE = TR/2 # assume bSSFP
-    phi = 2*np.pi*(delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
-    phase = np.exp(1j*phi)
-    return phase
+    phi = 2*np.pi*(
+        delta_cs + field_map)*TE + phi_rf + phi_edd + phi_drift
+
+    T2 = np.array(T2)
+    idx = np.where(T2 > 0)
+    val = np.zeros(T2.shape)
+    val[idx] = -TE/T2[idx]
+    return np.exp(1j*phi)*np.exp(val)
 
 def get_theta(TR, field_map, phase_cyc=0, delta_cs=0):
     '''Get theta, spin phase per repetition time, given off-resonance.
 
     Parameters
-    ==========
+    ----------
     TR : float
         repetition time (in sec).
     field_map : array_like
@@ -425,34 +475,34 @@ def get_theta(TR, field_map, phase_cyc=0, delta_cs=0):
     phase_cyc : array_like, optional
         Phase-cycling (in rad).
     delta_cs : float, optional, optional
-        chemical shift of species w.r.t. the water peak (Hz).
+        Chemical shift of species w.r.t. the water peak (Hz).
 
     Returns
-    =======
+    -------
     theta : array_like
         Spin phase per repetition time, given off-resonance.
 
     Notes
-    =====
-    Equation for theta=2*pi*df*TR is in Appendix A of [5]_.  The additional
-    chemical shift term can be found, e.g., in [4]_.
+    -----
+    Equation for theta=2*pi*df*TR is in Appendix A of [6]_.  The
+    additional chemical shift term can be found, e.g., in [2]_.
 
     References
-    ==========
-    .. [5] Hargreaves, Brian A., et al. "Characterization and reduction of the
-           transient response in steady‐state MR imaging." Magnetic Resonance
-           in Medicine: An Official Journal of the International Society for
-           Magnetic Resonance in Medicine 46.1 (2001): 149-158.
+    ----------
+    .. [6] Hargreaves, Brian A., et al. "Characterization and
+           reduction of the transient response in steady‐state MR
+           imaging." Magnetic Resonance in Medicine: An Official
+           Journal of the International Society for Magnetic
+           Resonance in Medicine 46.1 (2001): 149-158.
     '''
 
-    theta = 2*np.pi*(delta_cs + field_map)*TR + phase_cyc
-    return theta
+    return 2*np.pi*(delta_cs + field_map)*TR + phase_cyc
 
 def get_cross_point(I1, I2, I3, I4):
-    '''Find the intersection of two straight lines connecting diagonal pairs.
+    '''Find intersection of two lines connecting diagonal pairs.
 
     Parameters
-    ==========
+    ----------
     I1 : array_like
         First of the first phase-cycle pair (0 degrees).
     I2 : array_like
@@ -463,27 +513,22 @@ def get_cross_point(I1, I2, I3, I4):
         Second of the second phase-cycle pair (270 degrees).
 
     Returns
-    =======
+    -------
     x0 : array_like
         x coordinate of cross point.
     y0 : array_like
         y coordinate of cross point.
 
     Notes
-    =====
-    (xi,yi) are the real and imaginary parts of complex valued pixels in four
-    bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
-    with 0 < i < 4.
+    -----
+    (xi,yi) are the real and imaginary parts of complex valued pixels
+    in four bSSFP images denoted Ii and acquired with phase cycling
+    dtheta = (i-1)*pi/2 with 0 < i < 4.
 
-    This are Equations [11-12] from [6]_.  There is  a typo in the paper for
-    equation [12] fixed in this implementation.  The first term of the
-    numerator should have (y2 - y4) instead of (x2 - y4) as written.
-
-    References
-    ==========
-    .. [6] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-           bSSFP imaging with an elliptical signal model." Magnetic resonance
-           in medicine 71.3 (2014): 927-933.
+    This are Equations [11-12] from [1]_.  There is  a typo in the
+    paper for equation [12] fixed in this implementation.  The first
+    term of the numerator should have (y2 - y4) instead of (x2 - y4)
+    as written.
     '''
 
     x1, y1 = I1.real, I1.imag
@@ -497,33 +542,28 @@ def get_cross_point(I1, I2, I3, I4):
     return(x0, y0)
 
 def get_complex_cross_point(Is):
-    '''Find the intersection of two straight lines connecting diagonal pairs.
+    '''Find intersection of two lines connecting diagonal pairs.
 
     Parameters
-    ==========
+    ----------
     Is : array_like
         4 phase-cycled images: [I0, I1, I2, I3].
 
     Returns
-    =======
+    -------
     M : array_like
         Complex cross point.
 
     Notes
-    =====
-    We assume that Is has the phase-cycle dimenension along the first axis.
+    -----
+    We assume that Is has the phase-cycle dimenension along the first
+    axis.
 
-    (xi, yi) are the real and imaginary parts of complex valued pixels in four
-    bSSFP images denoted Ii and acquired with phase cycling dtheta = (i-1)*pi/2
-    with 0 < i < 4.
+    (xi, yi) are the real and imaginary parts of complex valued
+    pixels in four bSSFP images denoted Ii and acquired with phase
+    cycling dtheta = (i-1)*pi/2 with 0 < i < 4.
 
-    This is Equation [13] from [7]_.
-
-    References
-    ==========
-    .. [7] Xiang, Qing‐San, and Michael N. Hoff. "Banding artifact removal for
-           bSSFP imaging with an elliptical signal model." Magnetic resonance
-           in medicine 71.3 (2014): 927-933.
+    This is Equation [13] from [1]_.
     '''
 
     x1, y1 = Is[0, ...].real, Is[0, ...].imag
@@ -536,8 +576,8 @@ def get_complex_cross_point(Is):
         # Make sure we're not dividing by zero
         den += np.finfo(float).eps
 
-    M = ((x1*y3 - x3*y1)*(Is[1, ...] - Is[3, ...]) - (x2*y4 - x4*y2)*(
-        Is[0, ...] - Is[2, ...]))/den
+    M = ((x1*y3 - x3*y1)*(Is[1, ...] - Is[3, ...]) - (
+        x2*y4 - x4*y2)*(Is[0, ...] - Is[2, ...]))/den
     return M
 
 if __name__ == '__main__':

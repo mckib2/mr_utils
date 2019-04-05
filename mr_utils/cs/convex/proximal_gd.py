@@ -1,9 +1,9 @@
 '''Proximal Gradient Descent.
 
-Flexible encoding model, flexible sparsity model, and flexible reordering
-model.  This is the one I would use out of all the ones I've coded up.
-Might be slower than the others as there's a little more checking to do each
-iteration.
+Flexible encoding model, flexible sparsity model, and flexible
+reordering model.  This is the one I would use out of all the ones
+I've coded up.  Might be slower than the others as there's a little
+more checking to do each iteration.
 '''
 
 import logging
@@ -14,7 +14,8 @@ from pywt import threshold
 
 from mr_utils.utils.orderings import inverse_permutation
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s: %(message)s',
+                    level=logging.DEBUG)
 
 def proximal_GD(
         y,
@@ -31,10 +32,10 @@ def proximal_GD(
         ignore_residual=False,
         disp=False,
         maxiter=200):
-    r'''Proximal gradient descent for a generic encoding, sparsity models.
+    r'''Proximal gradient descent for generic encoding/sparsity model.
 
     Parameters
-    ==========
+    ----------
     y : array_like
         Measured data (i.e., y = Ax).
     forward_fun : callable
@@ -67,12 +68,12 @@ def proximal_GD(
         Maximum number of iterations.
 
     Returns
-    =======
+    -------
     x_hat : array_like
         Estimate of x.
 
     Notes
-    =====
+    -----
     Solves the problem:
 
     .. math::
@@ -80,14 +81,15 @@ def proximal_GD(
         \min_x || y - Ax ||^2_2  + \lambda \text{Sparsify}(x)
 
     If `x=None`, then MSE will not be calculated. You probably want
-    `mode='soft'`.  For the other options, see docs for pywt.threshold.
-    `selective=None` will not throw away any updates.
+    `mode='soft'`.  For the other options, see docs for
+    pywt.threshold. `selective=None` will not throw away any updates.
     '''
 
     # Make sure compare_mse, compare_ssim is defined
     if x is None:
         compare_mse = lambda xx, yy: 0
-        logging.info('No true x provided, MSE/SSIM will not be calculated.')
+        logging.info(
+            'No true x provided, MSE/SSIM will not be calculated.')
     else:
         from skimage.measure import compare_mse, compare_ssim
         xabs = np.abs(x) # Precompute absolute value of true image
@@ -108,7 +110,8 @@ def proximal_GD(
     else:
         # Use tqdm to give us an idea of how fast we're going
         from tqdm import trange, tqdm
-        range_fun = lambda x: trange(x, leave=False, desc='Proximal GD')
+        range_fun = lambda x: trange(
+            x, leave=False, desc='Proximal GD')
 
     # Initialize
     x_hat = np.zeros(y.shape, dtype=y.dtype)
@@ -139,16 +142,25 @@ def proximal_GD(
             reorder_idx = reorder_fun(grad_step)
             reorder_idx_r = reorder_idx.real.astype(int)
             reorder_idx_i = reorder_idx.imag.astype(int)
+
             unreorder_idx_r = inverse_permutation(reorder_idx_r)
             unreorder_idx_i = inverse_permutation(reorder_idx_i)
-            grad_step = (
-                grad_step.real[np.unravel_index(reorder_idx_r, y.shape)] \
-                +1j*grad_step.imag[np.unravel_index(reorder_idx_i, y.shape)]) \
-                .reshape(y.shape)
+            # unreorder_idx_r = np.arange(
+            #     reorder_idx_r.size).astype(int)
+            # unreorder_idx_r[reorder_idx_r] = reorder_idx_r
+            # unreorder_idx_i = np.arange(
+            #     reorder_idx_i.size).astype(int)
+            # unreorder_idx_i[reorder_idx_i] = reorder_idx_i
 
-        # Take the step, we would normally assign x_hat directly, but because
-        # we might be reordering and selectively updating, we'll store it in
-        # a temporary variable...
+            grad_step = (
+                grad_step.real[np.unravel_index(
+                    reorder_idx_r, y.shape)] \
+                +1j*grad_step.imag[np.unravel_index(
+                    reorder_idx_i, y.shape)]).reshape(y.shape)
+
+        # Take the step, we would normally assign x_hat directly, but
+        # because we might be reordering and selectively updating,
+        # we'll store it in a temporary variable...
         if thresh_sep:
             tmp = sparsify(grad_step)
             # Take a half step in each real/imag after talk with Ed
@@ -157,14 +169,16 @@ def proximal_GD(
             update = unsparsify(tmp_r + 1j*tmp_i)
         else:
             update = unsparsify(
-                threshold(sparsify(grad_step), value=alpha, mode=mode))
+                threshold(
+                    sparsify(grad_step), value=alpha, mode=mode))
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
             update = (
-                update.real[np.unravel_index(unreorder_idx_r, y.shape)] \
-                + 1j*update.imag[np.unravel_index(unreorder_idx_i, y.shape)]) \
-                .reshape(y.shape)
+                update.real[np.unravel_index(
+                    unreorder_idx_r, y.shape)] \
+                + 1j*update.imag[np.unravel_index(
+                    unreorder_idx_i, y.shape)]).reshape(y.shape)
 
         # Look at where we want to take the step - tread carefully...
         if selective is not None:

@@ -1,7 +1,8 @@
 '''Connect to network machine running MATLAB to run scripts.
 
-A way to run MATLAB scripts inside python scripts.  Meant to run things until
-I have time to port them to Python.  It's meant to match the gadgetron client.
+A way to run MATLAB scripts inside python scripts.  Meant to run
+things until I have time to port them to Python.  It's meant to match
+the gadgetron client.
 '''
 
 import socket
@@ -15,13 +16,14 @@ from mr_utils.config import ProfileConfig
 from mr_utils.matlab.contract import done_token, RUN, GET, PUT
 from mr_utils.load_data import load_mat
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s: %(message)s',
+                    level=logging.DEBUG)
 
 def get_socket(host, port, bufsize):
     '''Open a socket to the machine running MATLAB.
 
     Parameters
-    ==========
+    ----------
     host : str
         IP address of machine running MATLAB.
     port : int
@@ -30,7 +32,7 @@ def get_socket(host, port, bufsize):
         Buffer size to use for communication.
 
     Returns
-    =======
+    -------
     sock : socket.socket
         TCP socket for communication
     host : str
@@ -41,9 +43,10 @@ def get_socket(host, port, bufsize):
         Buffer size to use during communication
 
     Notes
-    =====
-    If values are not provided (i.e., None) the values for host,port,bufsize
-    will be taken from the active profile in profiles.config.
+    -----
+    If values are not provided (i.e., None) the values for
+    host, port, bufsize will be taken from the active profile in
+    profiles.config.
     '''
 
     # Find host,port from profiles.config
@@ -63,7 +66,7 @@ def client_run(cmd, host=None, port=None, bufsize=None):
     '''Run command on MATLAB server.
 
     Parameters
-    ==========
+    ----------
     cmd : str
         MATLAB command.
     host : str, optional
@@ -74,13 +77,14 @@ def client_run(cmd, host=None, port=None, bufsize=None):
         Number of bytes to transmit/recieve at a time.
 
     Returns
-    =======
+    -------
     None
 
     Notes
-    =====
-    If values are not provided (i.e., None) the values for host,port,bufsize
-    will be taken from the active profile in profiles.config.
+    -----
+    If values are not provided (i.e., None) the values for
+    host, port, bufsize will be taken from the active profile in
+    profiles.config.
     '''
 
     sock, host, port, bufsize = get_socket(host, port, bufsize)
@@ -106,10 +110,10 @@ def client_run(cmd, host=None, port=None, bufsize=None):
     logging.info(received_all.decode())
 
 def client_get(varnames, host=None, port=None, bufsize=None):
-    '''Get variables from remote MATLAB workspace into python as numpy arrays.
+    '''Get variables from remote MATLAB workspace into python.
 
     Parameters
-    ==========
+    ----------
     varnames : list
         List of names of variables in MATLAB workspace to get.
     host : str, optional
@@ -120,18 +124,18 @@ def client_get(varnames, host=None, port=None, bufsize=None):
         Number of bytes to transmit/recieve at a time.
 
     Returns
-    =======
+    -------
     vals : dict
         Contents of MATLAB workspace.
 
     Raises
-    ======
+    ------
     ValueError
         When transfered matlab workspace file cannot be read.
         When `varnames` is not a list type.
 
     Notes
-    =====
+    -----
     Notice that varnames should be a list of strings.
     '''
 
@@ -139,14 +143,16 @@ def client_get(varnames, host=None, port=None, bufsize=None):
         try:
             varnames = list(varnames)
         except:
-            raise ValueError('varnames should be a list of variable names!')
+            raise ValueError(
+                'varnames should be a list of variable names!')
 
     sock, host, port, bufsize = get_socket(host, port, bufsize)
 
     # Connect to server and send data
     try:
         sock.connect((host, port))
-        sock.sendall(('%s\n' % GET).encode()) # tell host what we want to do
+        # tell host what we want to do
+        sock.sendall(('%s\n' % GET).encode())
         sock.sendall(('%d\n' % bufsize).encode()) # tell host bufsize
 
         # make varnames a space separated list, then send
@@ -181,7 +187,7 @@ def client_put(varnames, host=None, port=None, bufsize=None):
     '''Put variables from python into MATLAB workspace.
 
     Parameters
-    ==========
+    ----------
     varnames : dict
         Python variables to be injected into MATLAB workspace.
     host : str, optional
@@ -192,19 +198,19 @@ def client_put(varnames, host=None, port=None, bufsize=None):
         Number of bytes to transmit/recieve at a time.
 
     Returns
-    =======
+    -------
     None
 
     Raises
-    ======
+    ------
     ValueError
         When `varnames` is not a dictionary object.
 
     Notes
-    =====
-    Notice that varnames should be a dictionary: keys are the desired names of
-    the variables in the MATLAB workspace and values are the python
-    variables.
+    -----
+    Notice that varnames should be a dictionary: keys are the desired
+    names of the variables in the MATLAB workspace and values are the
+    python variables.
     '''
     if not isinstance(varnames, dict):
         raise ValueError(
@@ -215,7 +221,8 @@ def client_put(varnames, host=None, port=None, bufsize=None):
     # Connect to server and send data
     try:
         sock.connect((host, port))
-        sock.sendall(('%s\n' % PUT).encode()) # tell host what we want to do
+        # tell host what we want to do
+        sock.sendall(('%s\n' % PUT).encode())
         sock.sendall(('%d\n' % bufsize).encode()) # tell host bufsize
 
         # Write the variables to mat file

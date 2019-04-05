@@ -60,7 +60,8 @@ def readParcFileEntries(siemens_dat, ParcRaidHead, VBFILE):
             entry['off_'], entry['len_'] = np.fromfile(
                 siemens_dat, dtype=np.uint64, count=2) #pylint: disable=E1101
             entry['patName_'], entry['protName_'] = np.fromfile(
-                siemens_dat, dtype='U64', count=2) # could be S64?
+                siemens_dat, dtype='S64', count=2) # could be S64?
+                # changed above from U64 -< S64 as comment suggested
 
             ParcFileEntries.append(entry)
 

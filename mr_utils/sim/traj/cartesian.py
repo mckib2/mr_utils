@@ -25,7 +25,8 @@ def cartesian_pe(shape, undersample=.5, reflines=20):
         If undersample factor is outside of interval (0, 1].
     '''
 
-    assert 0 < undersample <= 1, 'Undersampling factor must be in (0,1]!'
+    assert 0 < undersample <= 1, (
+        'Undersampling factor must be in (0,1]!')
 
     M, _N = shape[:]
     k = int(undersample*M)

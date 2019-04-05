@@ -36,7 +36,8 @@ def getAcquisition(flash_pat_ref_scan, trajectory, dwell_time_0, max_channels,
 
     # Is this is noise?
     if scanhead['aulEvalInfoMask'][0] & (1 << 25):
-        raise NotImplementedError()
+        # raise NotImplementedError()
+        ismrmrd_acq.sample_time_us = 0 # filler
         # ismrmrd_acq.sample_time_us() = compute_noise_sample_in_us(
         #     scanhead.ushSamplesInScan, isAdjustCoilSens, isAdjQuietCoilSens,
         #     isVB)

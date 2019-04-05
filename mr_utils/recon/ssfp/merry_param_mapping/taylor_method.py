@@ -161,7 +161,7 @@ def taylor_method(Is, dphis, alpha, TR, mask=None, chunksize=10,
     offres_est = np.angle(M)
     m_offres_est = np.ma.array(offres_est, mask=mask & 0)
     offres_est = unwrap_fun(m_offres_est)*mask
-    offres_est /= np.pi*TR
+    offres_est /= -1*np.pi*TR # -1 is for sign of phi in ssfp sim
     view(offres_est)
 
     sh = Is.shape[1:]
