@@ -76,6 +76,7 @@ def view(
         montage_axis=None,
         montage_opts={'padding_width':2},
         movie_axis=None,
+        movie_interval=50,
         movie_repeat=True,
         save_npy=False,
         debug_level=logging.DEBUG,
@@ -125,6 +126,8 @@ def view(
         Additional options to pass to the skimage.util.montage.
     movie_axis : int, optional
         Which axis is the number of frames of the movie.
+    movie_interval : int, optional
+        Interval to give to animation frames.
     movie_repeat : bool, optional
         Whether or not to put movie on endless loop.
     save_npy : bool, optional
@@ -467,7 +470,7 @@ def view(
             fig,
             updatefig,
             frames=data.shape[-1],
-            interval=50,
+            interval=movie_interval,
             blit=True,
             repeat=movie_repeat)
 
