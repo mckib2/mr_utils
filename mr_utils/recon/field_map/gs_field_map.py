@@ -8,7 +8,7 @@ def gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts=None):
     '''Use the elliptical signal model to estimate the field map.
 
     Parameters
-    ==========
+    ----------
     I0 : array_like
         First of the first phase-cycle pair (0 degrees).
     I2 : array_like
@@ -23,22 +23,23 @@ def gs_field_map(I0, I1, I2, I3, TR, gs_recon_opts=None):
         Options to pass to gs_recon.
 
     Returns
-    =======
+    -------
     gsfm : array_like
         Wrapped field map in hertz.
 
     Notes
-    =====
-    I0, I2 and I1, I3 must be phase-cycle pairs, meaning I0, I2 are separated
-    by 180 degrees and I1, I3 are separated by 180 degrees.  It does not matter
-    what the actual phase-cycles are.
+    -----
+    I0, I2 and I1, I3 must be phase-cycle pairs, meaning I0, I2 are
+    separated by 180 degrees and I1, I3 are separated by 180 degrees.
+    It does not matter what the actual phase-cycles are.
 
     Implements field map estimation given in [1]_.
 
     References
-    ==========
-    .. [1] Taylor, Meredith, et al. "MRI Field Mapping using bSSFP Elliptical
-           Signal model." Proceedings of the ISMRM Annual Conference (2017).
+    ----------
+    .. [1] Taylor, Meredith, et al. "MRI Field Mapping using bSSFP
+           Elliptical Signal model." Proceedings of the ISMRM Annual
+           Conference (2017).
     '''
 
     if gs_recon_opts is None:
