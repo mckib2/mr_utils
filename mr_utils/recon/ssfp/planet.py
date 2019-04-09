@@ -1,11 +1,12 @@
-'''PLANET: an ellipse fitting approach for simultaneous T1 and T2 mapping...
+'''PLANET: an ellipse fitting approach for simultaneous T1 and T2...
 
-...Using Phase-Cycled Balanced Steady-State Free Precession.
+...mapping Using Phase-Cycled Balanced Steady-State Free Precession.
 '''
 
 import numpy as np
 
-from mr_utils.utils import get_semiaxes, do_planet_rotation, get_center
+from mr_utils.utils import (
+    get_semiaxes, do_planet_rotation, get_center)
 
 def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
            compute_df=False, disp=False):
@@ -24,8 +25,8 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
     fit_ellipse : callable, optional
         Function used to fit data points to ellipse.
     pcs : array_like, optional
-        Phase-cycles that generate phase-cycle images of I (required if
-        computing df) (in rad).
+        Phase-cycles that generate phase-cycle images of I (required
+        if computing df) (in rad).
     compute_df : bool, optional
         Whether or not estimate local off-resonance, df.
     disp : bool, optional
@@ -57,25 +58,28 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
 
     Notes
     -----
-    Requires at least 6 phase cycles to fit the ellipse.  The ellipse fitting
-    method they use (and which is implemented here) may not be the best
-    method, but it is quick.  Could add more options for fitting in the future.
+    Requires at least 6 phase cycles to fit the ellipse.  The ellipse
+    fitting method they use (and which is implemented here) may not
+    be the best method, but it is quick.  Could add more options for
+    fitting in the future.
 
-    fit_ellipse(x, y) should take two arguments and return a vector containing
-    the coefficients of the implicit ellipse equation.  If fit_ellipse=None
-    then the mr_utils.utils.fit_ellipse_halir() function will be used.
+    fit_ellipse(x, y) should take two arguments and return a vector
+    containing the coefficients of the implicit ellipse equation.  If
+    fit_ellipse=None then the mr_utils.utils.fit_ellipse_halir()
+    function will be used.
 
-    pcs should be a list of phase-cycles in radians.  If pcs=None, it will be
-    determined as I.size equally spaced phasce-cycles on the interval [0, 2pi).
+    pcs should be a list of phase-cycles in radians.  If pcs=None, it
+    will be determined as I.size equally spaced phasce-cycles on the
+    interval [0, 2pi).
 
     Implements algorithm described in [1]_.
 
     References
     ----------
-    .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
-           simultaneous T1 and T2 mapping using phase‐cycled balanced
-           steady‐state free precession." Magnetic resonance in medicine 79.2
-           (2018): 711-722.
+    .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting
+           approach for simultaneous T1 and T2 mapping using
+           phase‐cycled balanced steady‐state free precession."
+           Magnetic resonance in medicine 79.2 (2018): 711-722.
     '''
 
     # Make sure we have an ellipse fitting function
@@ -83,18 +87,19 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
         from mr_utils.utils import fit_ellipse_halir
         fit_ellipse = fit_ellipse_halir
 
-    # Make sure we know what phase-cycles we have if we're computing df
+    # Make sure we know what phase-cycles we have if we're computing
+    # df
     if compute_df:
         if pcs is None:
             pcs = np.linspace(0, 2*np.pi, I.size, endpoint=False)
         else:
             # Make sure we get phase-cycles as a numpy array
             pcs = np.array(pcs)
-        assert pcs.size == I.size, ('Number of phase-cycles must match entries'
-                                    ' of I!')
+        assert pcs.size == I.size, ('Number of phase-cycles must '
+                                    'match entries of I!')
 
-    ## Step 1. Direct linear least squares ellipse fitting to phase-cycled
-    ## bSSFP data.
+    ## Step 1. Direct linear least squares ellipse fitting to
+    ## phase-cycled bSSFP data.
     C = fit_ellipse(I.real, I.imag)
 
     # Look at it in standard form
@@ -119,7 +124,8 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
 
     # Sanity check: make sure we got what we wanted:
     assert np.allclose(yc, 0), 'Ellipse rotation failed! yc = %g' % yc
-    assert xc > 0, 'xc needs to be in the right half-plane! xc = %g' % xc
+    assert xc > 0, ('xc needs to be in the right half-plane! xc = %g'
+                    '' % xc)
     # C1r, C2r, C3r, C4r, C5r, C6r = Cr[:]
 
 
@@ -142,10 +148,12 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
     elif alpha == aE1:
         raise ValueError('Ellipse is a line! x = Meff')
     else:
-        raise ValueError('Houston, we should never have raised this error...')
+        raise ValueError(
+            'Houston, we should never have raised this error...')
 
     # See Appendix
-    # xc = np.abs(xc) # THIS IS NOT IN THE APPENDIX but by def in eq [9]
+    # xc = np.abs(xc) # THIS IS NOT IN THE APPENDIX but by def in
+    # eq [9]
     xc2 = xc**2
     xcA = xc*A
     b = (val*xcA + np.sqrt(xcA**2 - (xc2 + B2)*(A2 - B2)))/(xc2 + B2)
@@ -157,11 +165,13 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
     # Sanity checks:
     assert 0 < b < 1, '0 < b < 1 has been violated! b = %g' % b
     assert 0 < a < 1, '0 < a < 1 has been violated! a = %g' % a
-    assert 0 < Meff < 1, '0 < Meff < 1 has been violated! Meff = %g' % Meff
+    assert 0 < Meff < 1, (
+        '0 < Meff < 1 has been violated! Meff = %g' % Meff)
 
     # Now we can find the things we were really after
     ca = np.cos(alpha)
-    T1 = -1*TR/(np.log((a*(1 + ca - ab*ca) - b)/(a*(1 + ca - ab) - b*ca)))
+    T1 = -1*TR/(
+        np.log((a*(1 + ca - ab*ca) - b)/(a*(1 + ca - ab) - b*ca)))
     T2 = -1*TR/np.log(a)
 
     ## Step 4. Estimation of the local off-resonance df.
@@ -183,17 +193,19 @@ def PLANET(I, alpha, TR, T1_guess, fit_ellipse=None, pcs=None,
             if a > b:
                 costheta[nn] = (np.cos(t) - b)/(b*np.cos(t) - 1)
             else:
-                # Sherbakova doesn't talk about this case in the paper!
+                # Sherbakova doesn't talk about this case in the
+                # paper!
                 costheta[nn] = (np.cos(t) + b)/(b*np.cos(t) + 1)
 
         # Get least squares estimate for K1, K2
         X = np.array([np.cos(pcs), np.sin(pcs)]).T
-        K = np.linalg.multi_dot((np.linalg.pinv(X.T.dot(X)), X.T, costheta))
+        K = np.linalg.multi_dot((np.linalg.pinv(
+            X.T.dot(X)), X.T, costheta))
         K1, K2 = K[:]
 
         # And finally...
         theta0 = np.arctan2(K2, K1)
-        df = -1*theta0/(2*np.pi*TR) # spurious negative sign, currently a bug
+        df = -1*theta0/(2*np.pi*TR) # spurious negative sign, bug!
         return(Meff, T1, T2, df)
 
     # else...
