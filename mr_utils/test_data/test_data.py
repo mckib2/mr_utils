@@ -14,7 +14,7 @@ def load_test_data(path, files, do_return=True):
     '''Load test data, download if necessary.
 
     Parameters
-    ==========
+    ----------
     path : str
         Location of directory where the test files live.
     files : list
@@ -23,16 +23,17 @@ def load_test_data(path, files, do_return=True):
         Whether or not to return loaded files as a list.
 
     Returns
-    =======
+    -------
     returnVals : list
         List of files loaded using np.load.
     None, optional
         Files are downloaded to disk, but not loaded.
 
     Notes
-    =====
-    files should be a list.  If no extension is given, .npy will be assumed.
-    do_return=True assumes .npy file will be loaded (uses numpy.load).
+    -----
+    files should be a list.  If no extension is given, .npy will be
+    assumed. do_return=True assumes .npy file will be loaded (uses
+    numpy.load).
     '''
 
     returnVals = []

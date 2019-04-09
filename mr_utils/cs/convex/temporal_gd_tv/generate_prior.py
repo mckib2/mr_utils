@@ -3,7 +3,7 @@ import numpy as np
 from mr_utils import view
 from mr_utils.load_data import load_mat
 
-def generate_prior(kspace_u):
+def generate_prior(kspace_u, inverse_fun):
     '''Hamming filter kspace data to get low-res prior.'''
 
     sx, _sy, sz = kspace_u.shape[:]
@@ -24,9 +24,9 @@ def generate_prior(kspace_u):
     filtered_temp = temp_data*(
         np.tile(filter_hamm, (sx, sz, 1)).transpose((0, 2, 1)))
 
-    new_center_data = np.zeros(center_low_res_data.shape, dtype='complex')
+    new_center_data = np.zeros(
+        center_low_res_data.shape, dtype='complex')
     new_center_data[:, :first, :] = filtered_temp[:, :first, :]
     new_center_data[:, -last:, :] = filtered_temp[:, -last:, :]
 
-    return np.fft.fftshift(np.fft.ifft2(
-        new_center_data, axes=(1, 2)), axes=(1, 2))
+    return inverse_fun(new_center_data)
