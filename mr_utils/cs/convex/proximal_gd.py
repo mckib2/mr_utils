@@ -92,7 +92,9 @@ def proximal_GD(
             'No true x provided, MSE/SSIM will not be calculated.')
     else:
         from skimage.measure import compare_mse, compare_ssim
-        xabs = np.abs(x) # Precompute absolute value of true image
+        # Precompute absolute value of true image
+        xabs = np.abs(x.astype(y.dtype))
+        xabs /= np.linalg.norm(xabs)
 
     # Get some display stuff happening
     if disp:
@@ -193,6 +195,7 @@ def proximal_GD(
         # Tell the user what happened
         if disp:
             curxabs = np.abs(x_hat)
+            curxabs /= np.linalg.norm(curxabs)
             logging.info(
                 table.row(
                     [ii, stop_criteria, compare_mse(curxabs, xabs),

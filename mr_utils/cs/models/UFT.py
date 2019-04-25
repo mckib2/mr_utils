@@ -155,7 +155,7 @@ class UFT(object):
         -----
         This inverse transform applies fftshift.
         '''
-        return np.fft.fftshift(np.fft.ifft2(
+        return np.fft.ifftshift(np.fft.ifft2(
             x, axes=self.axes), axes=self.axes)
 
     def inverse_ortho(self, x, axes=None):
