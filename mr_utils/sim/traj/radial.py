@@ -4,7 +4,8 @@ import numpy as np
 from skimage.morphology import skeletonize
 from skimage.transform import rotate
 
-def radial(shape, num_spokes, theta=None, skinny=True, extend=False):
+def radial(shape, num_spokes, theta=None, offset=0, theta0=0,
+           skinny=True, extend=False):
     '''Create 2d binary radial sampling pattern.
 
     Parameters
@@ -15,6 +16,10 @@ def radial(shape, num_spokes, theta=None, skinny=True, extend=False):
         Number of spokes to simulate.
     theta : float, optional
         Angle between spokes (rad).
+    offset : int, optional
+        Number of angles to skip.
+    theta0 : float, optional
+        Starting angle (rad).
     skinny : bool, optional
         Garuantee 1px spoke width.
     extend : bool, optional
@@ -52,8 +57,8 @@ def radial(shape, num_spokes, theta=None, skinny=True, extend=False):
     # Create all the spokes
     for ii in range(num_spokes):
         # Rotate prototype spoke to desired angle
-        idx1 = rotate(idx0, np.rad2deg(
-            theta*ii), resize=False, mode=mode).astype(bool)
+        idx1 = rotate(idx0, np.rad2deg(theta*(ii + offset) + theta0),
+                      resize=False, mode=mode).astype(bool)
 
         # If we want the spokes to gave 1px width
         if skinny:

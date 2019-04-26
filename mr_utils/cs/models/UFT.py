@@ -68,7 +68,10 @@ class UFT(object):
         '''
         if axes is None:
             axes = self.axes
-        return np.fft.fftn(x, axes=axes)*self.samp
+        tmp = np.fft.fftn(x, axes=axes)*self.samp
+        if self.scale:
+            tmp *= self.samp/np.sqrt(tmp.size)
+        return tmp
 
     def forward_s(self, x):
         '''Fourier encoding with binary undersampling pattern applied.
@@ -114,7 +117,7 @@ class UFT(object):
         if axes is None:
             axes = self.axes
         tmp = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(
-            x), axes=axes), axes=axes)
+            x, axes=axes), axes=axes), axes=axes)
         if self.scale:
             tmp *= self.samp/np.sqrt(tmp.size)
         return tmp
@@ -136,7 +139,10 @@ class UFT(object):
         '''
         if axes is None:
             axes = self.axes
-        return np.fft.ifftn(x, axes=axes)
+        tmp = np.fft.ifftn(x, axes=axes)
+        if self.scale:
+            tmp *= np.sqrt(x.size)
+        return tmp
 
     def inverse_s(self, x):
         '''Inverse fourier encoding with fftshift.

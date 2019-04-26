@@ -94,7 +94,7 @@ def proximal_GD(
         from skimage.measure import compare_mse, compare_ssim
         # Precompute absolute value of true image
         xabs = np.abs(x.astype(y.dtype))
-        xabs /= np.linalg.norm(xabs)
+        # xabs /= np.linalg.norm(xabs)
 
     # Get some display stuff happening
     if disp:
@@ -145,8 +145,8 @@ def proximal_GD(
             reorder_idx_r = reorder_idx.real.astype(int)
             reorder_idx_i = reorder_idx.imag.astype(int)
 
-            unreorder_idx_r = inverse_permutation(reorder_idx_r)
-            unreorder_idx_i = inverse_permutation(reorder_idx_i)
+            # unreorder_idx_r = inverse_permutation(reorder_idx_r)
+            # unreorder_idx_i = inverse_permutation(reorder_idx_i)
             # unreorder_idx_r = np.arange(
             #     reorder_idx_r.size).astype(int)
             # unreorder_idx_r[reorder_idx_r] = reorder_idx_r
@@ -157,7 +157,7 @@ def proximal_GD(
             grad_step = (
                 grad_step.real[np.unravel_index(
                     reorder_idx_r, y.shape)] \
-                +1j*grad_step.imag[np.unravel_index(
+                + 1j*grad_step.imag[np.unravel_index(
                     reorder_idx_i, y.shape)]).reshape(y.shape)
 
         # Take the step, we would normally assign x_hat directly, but
@@ -176,15 +176,23 @@ def proximal_GD(
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
-            update = (
-                update.real[np.unravel_index(
-                    unreorder_idx_r, y.shape)] \
-                + 1j*update.imag[np.unravel_index(
-                    unreorder_idx_i, y.shape)]).reshape(y.shape)
+            # update = (
+            #     update.real[np.unravel_index(
+            #         unreorder_idx_r, y.shape)] \
+            #     + 1j*update.imag[np.unravel_index(
+            #         unreorder_idx_i, y.shape)]).reshape(y.shape)
+
+            update_r = np.zeros(y.shape)
+            update_r[np.unravel_index(
+                reorder_idx_r, y.shape)] = update.real.flatten()
+            update_i = np.zeros(y.shape)
+            update_i[np.unravel_index(
+                reorder_idx_i, y.shape)] = update.imag.flatten()
+            update = update_r + 1j*update_i
 
         # Look at where we want to take the step - tread carefully...
         if selective is not None:
-            selective_idx = selective(x_hat, update)
+            selective_idx = selective(x_hat, update, ii)
 
         # Update image estimae
         if selective is not None:
@@ -195,7 +203,7 @@ def proximal_GD(
         # Tell the user what happened
         if disp:
             curxabs = np.abs(x_hat)
-            curxabs /= np.linalg.norm(curxabs)
+            # curxabs /= np.linalg.norm(curxabs)
             logging.info(
                 table.row(
                     [ii, stop_criteria, compare_mse(curxabs, xabs),
