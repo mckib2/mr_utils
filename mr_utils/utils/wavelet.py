@@ -166,8 +166,8 @@ def wavelet_forward(
     # Make sure we don't go too deep
     max_level = pywt.dwtn_max_level(x.shape, wavelet)
     if level is not None and level > max_level:
-        msg = 'Level %d cannot be achieved, using max level=%d!' \
-            % (level, max_level)
+        msg = ('Level %d cannot be achieved, using max level=%d!'
+               '' % (level, max_level))
         warnings.warn(msg)
         level = max_level
 
@@ -210,8 +210,7 @@ def wavelet_inverse(
     return pywt.waverec2(coeff_list, wavelet, mode, axes)
 
 
-def cdf97_2d_forward(x, level):
-    #pylint: disable=C0301
+def cdf97_2d_forward(x, level, axes=(-2, -1)):
     '''Forward 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
 
     Parameters
@@ -220,43 +219,50 @@ def cdf97_2d_forward(x, level):
         2D signal.
     level : int
         Decomposition level.
+    axes : tuple, optional
+        Axes to perform wavelet decomposition across.
 
     Returns
     -------
     wavelet_transform : array_like
         The stitched together elements wvlt (see combine_chunks).
     locations : list
-        Indices telling us how we stitched it together so we can take it back
-        apart.
+        Indices telling us how we stitched it together so we can take
+        it back apart.
 
     Notes
     -----
-    Returns transform, same shape as input, with locations.  Locations is a
-    list of indices instructing cdf97_2d_inverse where the coefficients for
-    each block are located.
+    Returns transform, same shape as input, with locations.
+    Locations is a list of indices instructing cdf97_2d_inverse where
+    the coefficients for each block are located.
 
-    Biorthogonal 4/4 is the same as CDF 9/7 according to wikipedia:
-    see https://en.wikipedia.org/wiki/Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
+    Biorthogonal 4/4 is the same as CDF 9/7 according to wikipedia
+    [1]_.
+
+    References
+    ----------
+    .. [1] https://en.wikipedia.org/wiki/
+           Cohen%E2%80%93Daubechies%E2%80%93Feauveau_wavelet#Numbering
     '''
-    #pylint: enable=C0301
 
     # Make sure we don't go too deep
-    max_level = pywt.dwtn_max_level(x.shape, 'bior4.4')
+    max_level = pywt.dwtn_max_level(x.shape, 'bior4.4', axes=axes)
     if level > max_level:
-        msg = 'Level %d cannot be achieved, using max level=%d!' \
-            % (level, max_level)
+        msg = ('Level %d cannot be achieved, using max level=%d!'
+               '' % (level, max_level))
         warnings.warn(msg)
         level = max_level
 
     # periodization seems to be the only way to get shapes to line up.
     cdf97 = pywt.wavedec2(
-        x, wavelet='bior4.4', mode='periodization', level=level)
+        x, wavelet='bior4.4', mode='periodization', level=level,
+        axes=axes)
 
-    # Now throw all the chuncks together
+    # Now throw all the chunks together
     return combine_chunks(cdf97, x.shape, x.dtype)
 
 
-def cdf97_2d_inverse(coeffs, locations):
+def cdf97_2d_inverse(coeffs, locations, axes=(-2, -1)):
     '''Inverse 2D Cohen–Daubechies–Feauveau 9/7 wavelet.
 
     Parameters
@@ -265,6 +271,8 @@ def cdf97_2d_inverse(coeffs, locations):
         Stitched together wavelet transform.
     locations : list
         Output of cdf97_2d_forward().
+    axes : tuple, optional
+        Axes to perform wavelet transform across.
 
     Returns
     -------
@@ -276,7 +284,8 @@ def cdf97_2d_inverse(coeffs, locations):
     coeff_list = split_chunks(coeffs, locations)
 
     return pywt.waverec2(
-        coeff_list, wavelet='bior4.4', mode='periodization')
+        coeff_list, wavelet='bior4.4', mode='periodization',
+        axes=axes)
 
 if __name__ == '__main__':
     pass

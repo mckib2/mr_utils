@@ -26,10 +26,12 @@ def proximal_GD(
         reorder_fun=None,
         mode='soft',
         alpha=.5,
+        alpha_start=.5,
         thresh_sep=True,
         selective=None,
         x=None,
         ignore_residual=False,
+        ignore_mse=True,
         disp=False,
         maxiter=200):
     r'''Proximal gradient descent for generic encoding/sparsity model.
@@ -52,8 +54,10 @@ def proximal_GD(
         Inverse reordering function.
     mode : {'soft', 'hard', 'garotte', 'greater', 'less'}, optional
         Thresholding mode.
-    alpha : float, optional
+    alpha : float or callable, optional
         Step size, used for thresholding.
+    alpha_start : float, optional
+        Initial alpha to start with if alpha is callable.
     thresh_sep : bool, optional
         Whether or not to threshold real/imag individually.
     selective : bool, optional
@@ -62,6 +66,8 @@ def proximal_GD(
         The true image we are trying to reconstruct.
     ignore_residual : bool, optional
         Whether or not to break out of loop if resid increases.
+    ignore_mse : bool, optional
+        Whether or not to break out of loop if MSE increases.
     disp : bool, optional
         Whether or not to display iteration info.
     maxiter : int, optional
@@ -94,7 +100,6 @@ def proximal_GD(
         from skimage.measure import compare_mse, compare_ssim
         # Precompute absolute value of true image
         xabs = np.abs(x.astype(y.dtype))
-        # xabs /= np.linalg.norm(xabs)
 
     # Get some display stuff happening
     if disp:
@@ -119,7 +124,12 @@ def proximal_GD(
     x_hat = np.zeros(y.shape, dtype=y.dtype)
     r = -y.copy()
     prev_stop_criteria = np.inf
+    prev_mse = compare_mse(xabs, np.abs(inverse_fun(y)))
     norm_y = np.linalg.norm(y)
+    if isinstance(alpha, float):
+        alpha0 = alpha
+    else:
+        alpha0 = alpha_start
 
     # Do the thing
     for ii in range_fun(int(maxiter)):
@@ -166,13 +176,13 @@ def proximal_GD(
         if thresh_sep:
             tmp = sparsify(grad_step)
             # Take a half step in each real/imag after talk with Ed
-            tmp_r = threshold(tmp.real, value=alpha/2, mode=mode)
-            tmp_i = threshold(tmp.imag, value=alpha/2, mode=mode)
+            tmp_r = threshold(tmp.real, value=alpha0/2, mode=mode)
+            tmp_i = threshold(tmp.imag, value=alpha0/2, mode=mode)
             update = unsparsify(tmp_r + 1j*tmp_i)
         else:
             update = unsparsify(
                 threshold(
-                    sparsify(grad_step), value=alpha, mode=mode))
+                    sparsify(grad_step), value=alpha0, mode=mode))
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
@@ -203,13 +213,27 @@ def proximal_GD(
         # Tell the user what happened
         if disp:
             curxabs = np.abs(x_hat)
-            # curxabs /= np.linalg.norm(curxabs)
+            cur_mse = compare_mse(curxabs, xabs)
             logging.info(
                 table.row(
-                    [ii, stop_criteria, compare_mse(curxabs, xabs),
+                    [ii, stop_criteria, cur_mse,
                      compare_ssim(curxabs, xabs)]))
+
+        if not ignore_mse and cur_mse > prev_mse:
+            msg = ('Breaking out of loop after %d iterations. '
+                   'MSE increased!' % ii)
+            if importlib.util.find_spec("tqdm") is None:
+                tqdm.write(msg)
+            else:
+                logging.warning(msg)
+            break
+        prev_mse = cur_mse
 
         # Compute residual
         r = forward_fun(x_hat) - y
+
+        # Get next step size
+        if callable(alpha):
+            alpha0 = alpha(alpha0, ii)
 
     return x_hat
