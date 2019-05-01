@@ -21,10 +21,10 @@ def gini(array, eps=1e-8):
     '''
 
     # All values are treated equally, arrays must be 1d:
-    array = array.flatten()
-    if np.amin(array) < 0:
-        # Values cannot be negative:
-        array -= np.amin(array)
+    array = np.abs(array).flatten()
+    # if np.amin(array) < 0:
+    #     # Values cannot be negative:
+    #     array -= np.amin(array)
 
     # Values cannot be 0:
     array += eps
