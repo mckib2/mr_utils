@@ -165,8 +165,8 @@ def pdf_metric_default(x, y):
     '''
     return np.linalg.norm(x - y, ord=2)
 
-def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
-                pdf_metric=None, forward=None, disp=False):
+def ordinator1d(prior, k, forward, inverse, chunksize=10, pdf=None,
+                pdf_metric=None, sparse_metric=None, disp=False):
     '''Find permutation that maximizes sparsity of 1d signal.
 
     Parameters
@@ -175,6 +175,8 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
         Prior signal estimate to base ordering.
     k : int
         Desired sparsity level.
+    forward : callable
+        Sparsifying transform.
     inverse : callable
         Inverse sparsifying transform.
     chunksize : int, optional
@@ -183,8 +185,8 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
         Function that estimates pixel intensity distribution.
     pdf_metric : callable, optional
         Function that returns the distance between pdfs.
-    forward : callable, optional
-        Sparsifying transform (only required if disp=True).
+    sparse_metric : callable, optional
+        Metric to use to measure sparsity.  Uses l1 norm by default.
     disp : bool, optional
         Whether or not to display coefficient plots at the end.
 
@@ -209,10 +211,14 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
     computing pdf or comparing.
     '''
 
-    # Make sure we have the forward transform if we want to display
-    if disp and forward is None:
-        raise ValueError(
-            'Must provide forward transform for display!')
+    # # Make sure we have the forward transform if we want to display
+    # if disp and forward is None:
+    #     raise ValueError(
+    #         'Must provide forward transform for display!')
+
+    # Make sure we have a sparsity metric
+    if sparse_metric is None:
+        sparse_metric = lambda x0: np.linalg.norm(x0, ord=1)
 
     # Make sure we do in fact have a 1d signal
     if prior.ndim > 1:
@@ -268,22 +274,7 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
         import matplotlib.pyplot as plt
 
     winner_sparse = np.inf
-    l1 = lambda x0: np.linalg.norm(x0, ord=1)
-    for pot in potentials:
-        # Choose the most sparse
-        c = np.zeros(N)
-        idx_proposed = pot[0]
-        c[idx_proposed] = pot[1]
-        xhat = inverse(c)
-        sparse = l1(forward(xhat))
-
-        if sparse < winner_sparse:
-            winner_sparse = sparse
-            curr_win = pot
-            print('New winner: %g' % winner_sparse)
-    potentials = [curr_win]
-
-
+    cur_win = None
     for potential in potentials:
         c = np.zeros(N)
         idx_proposed = potential[0]
@@ -292,6 +283,12 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
         xhat /= np.max(np.abs(xhat)) + np.finfo('float').eps
         C = cdist(xhat[:, None], prior[:, None])
         _rows, cols = lsa(C)
+
+        cur_sparse = sparse_metric(forward(prior[cols]))
+        if cur_sparse < winner_sparse:
+            winner_sparse = cur_sparse
+            print('New win: %g' % cur_sparse)
+            cur_win = cols
 
         if disp:
             tcoeffs = np.abs(forward(prior[cols]))
@@ -308,7 +305,7 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
         plt.title('Sorted, Normalized Transform Coefficients')
         plt.show()
 
-    return cols
+    return cur_win
 
 if __name__ == '__main__':
     pass

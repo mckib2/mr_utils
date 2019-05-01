@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from mr_utils.utils import Sparsify, gini
-from mr_utils.cs import relaxed_ordinator, ordinator1d
+from mr_utils.cs import ordinator1d
 
 if __name__ == '__main__':
 
@@ -22,10 +22,11 @@ if __name__ == '__main__':
     plt.title('x[n]')
 
     plt.subplot(*sh, 2)
-    k0 = 5
+    k0 = 4
     idx = ordinator1d(
-        x, k=k0, inverse=S.inverse_dct, chunksize=10, pdf=None,
-        pdf_metric=None, forward=S.forward_dct, disp=False)
+        x, k=k0, forward=S.forward_dct, inverse=S.inverse_dct,
+        chunksize=10, pdf=None, pdf_metric=None,
+        sparse_metric=lambda x0: 1/gini(x0), disp=False)
     # idx = relaxed_ordinator(
     #     x, lam=.3, k=k0, unsparsify=S.inverse_dct, norm=False,
     #     warm=False, transform_shape=None, disp=False)
