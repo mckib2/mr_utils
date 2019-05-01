@@ -22,7 +22,7 @@ if __name__ == '__main__':
     plt.title('x[n]')
 
     plt.subplot(*sh, 2)
-    k0 = 4
+    k0 = k
     idx = ordinator1d(
         x, k=k0, forward=S.forward_dct, inverse=S.inverse_dct,
         chunksize=10, pdf=None, pdf_metric=None,
@@ -45,6 +45,6 @@ if __name__ == '__main__':
     plt.title('Decay of sorted DCT coefficients')
     plt.legend()
 
-
-
-    plt.show()
+    np.savez('dct', x, dxs, dxs, k0, idx)
+    plt.savefig('dct.png')
+    # plt.show()
