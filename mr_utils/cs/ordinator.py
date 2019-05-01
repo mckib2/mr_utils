@@ -264,7 +264,26 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
     # Now solve the assignment problem, we only need one of the
     # potentials, so look at all of them and choose the one that is
     # most sparse
-    import matplotlib.pyplot as plt
+    if disp:
+        import matplotlib.pyplot as plt
+
+    winner_sparse = np.inf
+    l1 = lambda x0: np.linalg.norm(x0, ord=1)
+    for pot in potentials:
+        # Choose the most sparse
+        c = np.zeros(N)
+        idx_proposed = pot[0]
+        c[idx_proposed] = pot[1]
+        xhat = inverse(c)
+        sparse = l1(forward(xhat))
+
+        if sparse < winner_sparse:
+            winner_sparse = sparse
+            curr_win = pot
+            print('New winner: %g' % winner_sparse)
+    potentials = [curr_win]
+
+
     for potential in potentials:
         c = np.zeros(N)
         idx_proposed = potential[0]
