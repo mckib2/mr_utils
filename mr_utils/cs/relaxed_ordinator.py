@@ -20,10 +20,10 @@ def obj1(c0, x, lam, norm):
     '''Find the cost between current xhat and x using lsa.
 
     Notes
-    =====
-    This bakes the cost of linear sum assignment right into the objectve
-    function and adds a regularizing l1 term to encourage the solution to be
-    sparse.
+    -----
+    This bakes the cost of linear sum assignment right into the
+    objectve function and adds a regularizing l1 term to encourage
+    the solution to be sparse.
     '''
     xhat = make_xhat(c0, norm)
     C = cdist(xhat[:, None], x[:, None])
@@ -34,13 +34,16 @@ def obj(c0, x, lam, unsparsify, norm, transform_shape):
     '''Find cost between current xhat and x using sort.
 
     Notes
-    =====
-    This is a reduction of the histogram case to a bin-width of 1, also adding
-    an l1 term to encourage a sparse solution.
+    -----
+    This is a reduction of the histogram case to a bin-width of 1,
+    also adding an l1 term to encourage a sparse solution.
+
+    Might consider using Gini index instead?
     '''
     xhat = make_xhat(c0.reshape(transform_shape), unsparsify, norm)
-    return np.linalg.norm(np.sort(x.flatten()) - np.sort(xhat.flatten())) + \
-        lam*np.linalg.norm(c0, ord=1)
+    return np.linalg.norm(
+        np.sort(x.flatten()) - np.sort(
+            xhat.flatten())) + lam*np.linalg.norm(c0, ord=1)
 
 def save_intermediate(c, fval, saveit=False, disp=False):
     '''Save the intermediate solutions and print update message.'''
@@ -51,7 +54,7 @@ def save_intermediate(c, fval, saveit=False, disp=False):
         print('fval: %g' % fval)
 
 def load_intermediate():
-    '''Load any intermediate values that have saved to do warm start.'''
+    '''Load any saved intermediate values to do warm start.'''
     if os.path.isfile('c_intermediate.npy'):
         return np.load('c_intermediate.npy')
     return None
@@ -61,34 +64,36 @@ def relaxed_ordinator(x, lam, k, unsparsify, norm=False,
     '''Find ordering pi that makes x[pi] sparse.
 
     Parameters
-    ==========
+    ----------
     x : array_like
         Signal to find ordering of.
     lam : float
         Lagrangian weight on l1 term of objective function.
     k : int
-        Expected sparsity level (number of nonzero coefficients) of ordererd
-        signal, x[pi].
+        Expected sparsity level (number of nonzero coefficients) of
+        ordererd signal, x[pi].
     unsparsify : callable
         Function that computes inverse sparsifying transform.
     norm : bool, optional
         Normalize xhat at each step (probably don't do this.)
     warm : bool
-        Whether to look for warm start file and save intermedate results.
+        Whether to look for warm start file and save intermedate
+        results.
     transform_shape : int
-        Shape of transform coefficients (if different than x.shape). None will
-        use x.shape.
+        Shape of transform coefficients (if different than x.shape).
+        None will use x.shape.
     disp : bool
         Display progress messages.
 
     Returns
-    =======
+    -------
     pi : array_like
         Flattened ordering array (like is returned by numpy.argsort).
 
     Notes
-    =====
-    `size_transform` will be x.size - 1 for finite differences transform.
+    -----
+    `size_transform` will be x.size - 1 for finite differences
+    transform.
     '''
 
     # If size of coefficients is different than x.shape, make note
@@ -102,8 +107,9 @@ def relaxed_ordinator(x, lam, k, unsparsify, norm=False,
     else:
         print('WARM START')
 
-    pobj = partial(obj, x=x, lam=lam, unsparsify=unsparsify, norm=norm,
-                   transform_shape=transform_shape)
+    pobj = partial(
+        obj, x=x, lam=lam, unsparsify=unsparsify, norm=norm,
+        transform_shape=transform_shape)
     res = minimize(pobj, c0, callback=lambda x: save_intermediate(
         x, pobj(x), disp))
     # print(res)

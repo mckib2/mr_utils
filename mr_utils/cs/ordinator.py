@@ -1,4 +1,4 @@
-'''Performs combinatorial optimization to find permutation maximizing sparsity.
+'''Combinatorial optimization to find permutation maximizing sparsity.
 '''
 
 from functools import partial
@@ -22,14 +22,15 @@ def obj(ck, N, locs, inverse, pdf_ref, pdf, pdf_metric):
     return pdf_metric(pdf_ref, pdf(xhat))
 
 def get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
-    '''Compute xhat for given coefficient locations using basinhopping.
+    '''Compute xhat for given coefficient locs using basinhopping.
 
     Parameters
-    ==========
+    ----------
     locs : array_like
         Coefficient location indices.
     N : int
-        Length of the desired signal (also number of coefficients in total).
+        Length of the desired signal (also number of coefficients in
+        total).
     k : int
         Desired sparsity level.
     inverse : callable
@@ -42,7 +43,7 @@ def get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
         Function that returns the distance between pdfs.
 
     Returns
-    =======
+    -------
     xhat : array_like
         Inverse transform of coeffs.
     locs : array_like
@@ -55,7 +56,8 @@ def get_xhat(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
     ck = np.zeros(k)
     res = basinhopping(
         obj, ck,
-        minimizer_kwargs={'args':(N, locs, inverse, pdf_ref, pdf, pdf_metric)})
+        minimizer_kwargs={
+            'args': (N, locs, inverse, pdf_ref, pdf, pdf_metric)})
     c0[locs] = res['x']
     xhat = inverse(c0)
     xhat /= np.max(np.abs(xhat)) + np.finfo('float').eps
@@ -65,11 +67,12 @@ def search_fun(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
     '''Return function for parallel loop.
 
     Parameters
-    ==========
+    ----------
     locs : array_like
         Coefficient location indices.
     N : int
-        Length of the desired signal (also number of coefficients in total).
+        Length of the desired signal (also number of coefficients in
+        total).
     k : int
         Desired sparsity level.
     inverse : callable
@@ -82,7 +85,7 @@ def search_fun(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
         Function that returns the distance between pdfs.
 
     Returns
-    =======
+    -------
     locs : array_like
         Indices of non-zero coefficients.
     vals : array_like
@@ -95,10 +98,12 @@ def search_fun(locs, N, k, inverse, pdf_ref, pdf, pdf_metric):
     return(locs, vals, pdf_metric(pdf_ref, pdf(xhat)))
 
 class pdf_default(object):
-    '''Picklable object for computing pdfs.  Uses histogram to estimate pdf.
+    '''Picklable object for computing pdfs.
+
+    Uses histogram to estimate pdf.
 
     Attributes
-    ==========
+    ----------
     N : int
         Size of signal.
     lims : array_like or tuple
@@ -110,57 +115,62 @@ class pdf_default(object):
     '''
 
     def __init__(self, prior):
-        '''Note that prior should be normalized between lims=(-1, 1).'''
+        '''
+        Note that prior should be normalized between lims=(-1, 1).
+        '''
         N = prior.size
         self.lims = (-1, 1)
-        self.pdf_ref, self.bins = np.histogram(prior, bins=N, range=self.lims)
+        self.pdf_ref, self.bins = np.histogram(
+            prior, bins=N, range=self.lims)
 
     def pdf(self, x):
         '''Estimate the pdf of x.
 
         Parameters
-        ==========
+        ----------
         x : array_like
             Signal to get pdf estimate of.
 
         Returns
-        =======
+        -------
         array_like
             Histogram of x.
 
         Notes
-        =====
+        -----
         Will report when xhat has a value outside of range of pdf_ref.
         '''
         if np.min(x) < self.lims[0]:
-            tqdm.write('XHAT MIN WAS LOWER THAN X MIN: %g' % np.min(x))
+            tqdm.write(
+                'XHAT MIN WAS LOWER THAN X MIN: %g' % np.min(x))
         if np.max(x) > self.lims[1]:
-            tqdm.write('XHAT MAX WAS HIGHER THAN X MAX: %g' % np.max(x))
+            tqdm.write(
+                'XHAT MAX WAS HIGHER THAN X MAX: %g' % np.max(x))
         return np.histogram(x, self.bins, self.lims)[0]
 
 def pdf_metric_default(x, y):
     '''Default pdf metric, l2 norm.
 
     Parameters
-    ==========
+    ----------
     x : array_like
         First pdf.
     y : array_like
         Second pdf.
 
     Returns
-    =======
+    -------
     float
         l2 norm between x and y.
     '''
     return np.linalg.norm(x - y, ord=2)
 
-def ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None,
-                forward=None, disp=False):
+def ordinator1d(prior, k, inverse, chunksize=10, pdf=None,
+                pdf_metric=None, forward=None, disp=False):
     '''Find permutation that maximizes sparsity of 1d signal.
 
     Parameters
-    ==========
+    ----------
     prior : array_like
         Prior signal estimate to base ordering.
     k : int
@@ -179,28 +189,30 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None,
         Whether or not to display coefficient plots at the end.
 
     Returns
-    =======
+    -------
     array_like
         Reordering indices.
 
     Raises
-    ======
+    ------
     ValueError
         If disp=True and forward function is not provided.
 
     Notes
-    =====
-    pdf_method=None uses histogram.  pdf_metric=None uses l2 norm. If disp=True
-    then forward transform function must be provided.  Otherwise, forward is
-    not required, only inverse.
+    -----
+    pdf_method=None uses histogram.  pdf_metric=None uses l2 norm. If
+    disp=True then forward transform function must be provided.
+    Otherwise, forward is not required, only inverse.
 
-    pdf_method should assume the signal will be bounded between (-1, 1).  We do
-    this by always normalizing a signal before computing pdf or comparing.
+    pdf_method should assume the signal will be bounded between
+    (-1, 1).  We do this by always normalizing a signal before
+    computing pdf or comparing.
     '''
 
     # Make sure we have the forward transform if we want to display
     if disp and forward is None:
-        raise ValueError('Must provide forward transform for display!')
+        raise ValueError(
+            'Must provide forward transform for display!')
 
     # Make sure we do in fact have a 1d signal
     if prior.ndim > 1:
@@ -208,8 +220,9 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None,
         prior = prior.flatten()
     N = prior.size
 
-    # Go ahead and normalize the signal so we don't have to keep track of the
-    # limits of the pdfs we want to compare, always between (-1, 1).
+    # Go ahead and normalize the signal so we don't have to keep
+    # track of the limits of the pdfs we want to compare, always
+    # between (-1, 1).
     prior /= np.max(np.abs(prior)) + np.finfo('float').eps
 
     # Default to histogram
@@ -244,11 +257,13 @@ def ordinator1d(prior, k, inverse, chunksize=10, pdf=None, pdf_metric=None,
         potentials.append(res[idx0, :])
         print('potential:', potentials[-1][0])
     print('Found %d out of %d (%%%g) potentials in %d seconds!' % (
-        len(potentials), res.shape[0], len(potentials)/res.shape[0]*100,
+        len(potentials), res.shape[0],
+        len(potentials)/res.shape[0]*100,
         time() - t0))
 
-    # Now solve the assignment problem, we only need one of the potentials, so
-    # look at all of them and choose the one that is most sparse
+    # Now solve the assignment problem, we only need one of the
+    # potentials, so look at all of them and choose the one that is
+    # most sparse
     import matplotlib.pyplot as plt
     for potential in potentials:
         c = np.zeros(N)

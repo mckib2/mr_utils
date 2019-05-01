@@ -12,7 +12,7 @@ import importlib
 import numpy as np
 from pywt import threshold
 
-from mr_utils.utils.orderings import inverse_permutation
+# from mr_utils.utils.orderings import inverse_permutation
 
 logging.basicConfig(format='%(levelname)s: %(message)s',
                     level=logging.DEBUG)
@@ -124,6 +124,7 @@ def proximal_GD(
     x_hat = np.zeros(y.shape, dtype=y.dtype)
     r = -y.copy()
     prev_stop_criteria = np.inf
+    cur_mse = 0
     prev_mse = compare_mse(xabs, np.abs(inverse_fun(y)))
     norm_y = np.linalg.norm(y)
     if isinstance(alpha, float):
@@ -218,6 +219,7 @@ def proximal_GD(
                 table.row(
                     [ii, stop_criteria, cur_mse,
                      compare_ssim(curxabs, xabs)]))
+        prev_mse = cur_mse
 
         if not ignore_mse and cur_mse > prev_mse:
             msg = ('Breaking out of loop after %d iterations. '
@@ -227,7 +229,6 @@ def proximal_GD(
             else:
                 logging.warning(msg)
             break
-        prev_mse = cur_mse
 
         # Compute residual
         r = forward_fun(x_hat) - y

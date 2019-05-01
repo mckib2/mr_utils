@@ -14,6 +14,32 @@ from pywt import threshold
 
 from mr_utils.utils import find_nearest
 
+def get_gini_sort(vals):
+    '''Sort groups so that we get largest possible coefficients.'''
+
+    M = int(vals.size/2)
+    tmp = np.argsort(vals)
+    idx = np.zeros(vals.size, dtype=int)
+    idx[::2] = tmp[:M]
+    idx[1::2] = tmp[M:][::-1]
+    return idx
+
+def get_gini_sort2(vals):
+    '''Sort groups to get highest possible single coefficient.
+
+    Notes
+    -----
+    Get the largest coefficient we can and then minimize the others.
+    '''
+
+    tmp = np.argsort(vals)
+    idx = np.zeros(vals.size, dtype=int)
+    idx[0] = tmp[0]
+    idx[1] = tmp[-1]
+    idx[2:] = tmp[1:-1][::-1]
+    return idx
+
+
 def col_stacked_order(x):
     '''Find ordering of monotonically varying flattened array, x.
 

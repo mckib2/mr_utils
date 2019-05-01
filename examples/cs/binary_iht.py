@@ -1,7 +1,7 @@
 '''Simple binary CS reconstruction using iterative hard thresholding.
 
-Encoding matrix, A, is random (normal distribution) and the signal is of
-course sparse in the signal domain.
+Encoding matrix, A, is random (normal distribution) and the signal is
+ of course sparse in the signal domain.
 '''
 
 import logging
@@ -12,7 +12,8 @@ from skimage.measure import compare_mse
 
 from mr_utils.cs import IHT
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(
+    format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 if __name__ == '__main__':
     N = 2000  # signal length
@@ -34,9 +35,11 @@ if __name__ == '__main__':
     # Reconstruct using IHT
     x_iht = IHT(A, y, k, x=x, disp=True)
 
-    # We fail sometimes if we don't get a random matrix that satisfies RIP
+    # We fail sometimes if we don't get a random matrix that
+    # satisfies RIP
     if not np.allclose(x_iht, x):
-        logging.warning('x_iht might not be a good approximation to x!')
+        logging.warning(
+            'x_iht might not be a good approximation to x!')
 
     # Look at it!
     plt.plot(x, label='True x[n]')

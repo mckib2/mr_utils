@@ -4,52 +4,8 @@
 import numpy as np
 from tqdm import trange
 
-from mr_utils.utils import gini
-
-def make_signal(n, vals, idx=None):
-    '''Make piecewise constant signal.
-
-    Parameters
-    ----------
-    idx : array_like, optional
-        Order of vals (groups).
-    '''
-
-    N = np.sum(n) # length of signal
-    if idx is None:
-        idx = np.arange(N).astype(int)
-
-    x = np.zeros(int(N))
-    for ii, _nn in enumerate(n):
-        begin = np.sum(n[idx[:ii]])
-        end = begin + n[idx[ii]]
-        x[begin:end] = vals[idx[ii]]
-    return x
-
-def get_gini_sort(vals):
-    '''Sort groups so that we get largest possible coefficients.'''
-
-    M = int(vals.size/2)
-    tmp = np.argsort(vals)
-    idx = np.zeros(vals.size, dtype=int)
-    idx[::2] = tmp[:M]
-    idx[1::2] = tmp[M:][::-1]
-    return idx
-
-def get_gini_sort2(vals):
-    '''Sort groups to get highest possible single coefficient.
-
-    Notes
-    -----
-    Get the largest coefficient we can and then minimize the others.
-    '''
-
-    tmp = np.argsort(vals)
-    idx = np.zeros(vals.size, dtype=int)
-    idx[0] = tmp[0]
-    idx[1] = tmp[-1]
-    idx[2:] = tmp[1:-1][::-1]
-    return idx
+from mr_utils.utils import gini, piecewise as make_signal
+from mr_utils.utils.orderings import get_gini_sort, get_gini_sort2
 
 if __name__ == '__main__':
 

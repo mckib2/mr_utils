@@ -10,3 +10,4 @@ from .ellipse import *
 from .permutation_rank import rank2pi, pi2rank
 from .sparsify import Sparsify
 from .gini import gini
+from .piecewise_constant import piecewise
