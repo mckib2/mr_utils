@@ -32,8 +32,10 @@ def proximal_GD(
         x=None,
         ignore_residual=False,
         ignore_mse=True,
+        ignore_ssim=True,
         disp=False,
-        maxiter=200):
+        maxiter=200,
+        strikes=0):
     r'''Proximal gradient descent for generic encoding/sparsity model.
 
     Parameters
@@ -68,10 +70,14 @@ def proximal_GD(
         Whether or not to break out of loop if resid increases.
     ignore_mse : bool, optional
         Whether or not to break out of loop if MSE increases.
+    ignore_ssim : bool, optional
+        Whether or not to break out of loop if SSIM increases.
     disp : bool, optional
         Whether or not to display iteration info.
     maxiter : int, optional
         Maximum number of iterations.
+    strikes : int, optional
+        Number of ending conditions tolerated before giving up.
 
     Returns
     -------
@@ -94,6 +100,8 @@ def proximal_GD(
     # Make sure compare_mse, compare_ssim is defined
     if x is None:
         compare_mse = lambda xx, yy: 0
+        compare_ssim = lambda xx, yy: 0
+        xabs = 0
         logging.info(
             'No true x provided, MSE/SSIM will not be calculated.')
     else:
@@ -124,6 +132,8 @@ def proximal_GD(
     x_hat = np.zeros(y.shape, dtype=y.dtype)
     r = -y.copy()
     prev_stop_criteria = np.inf
+    cur_ssim = 0
+    prev_ssim = compare_ssim(xabs, np.abs(inverse_fun(y)))
     cur_mse = 0
     prev_mse = compare_mse(xabs, np.abs(inverse_fun(y)))
     norm_y = np.linalg.norm(y)
@@ -133,18 +143,22 @@ def proximal_GD(
         alpha0 = alpha_start
 
     # Do the thing
+    strike_count = 0
     for ii in range_fun(int(maxiter)):
 
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
         if not ignore_residual and stop_criteria > prev_stop_criteria:
-            msg = ('Breaking out of loop after %d iterations. '
-                   'Norm of residual increased!' % ii)
-            if importlib.util.find_spec("tqdm") is None:
-                tqdm.write(msg)
+            if strike_count > strikes:
+                msg = ('Breaking out of loop after %d iterations. '
+                       'Norm of residual increased!' % ii)
+                if importlib.util.find_spec("tqdm") is None:
+                    tqdm.write(msg)
+                else:
+                    logging.warning(msg)
+                break
             else:
-                logging.warning(msg)
-            break
+                strike_count += 1
         prev_stop_criteria = stop_criteria
 
         # Compute gradient descent step in prep for reordering
@@ -215,20 +229,36 @@ def proximal_GD(
         if disp:
             curxabs = np.abs(x_hat)
             cur_mse = compare_mse(curxabs, xabs)
+            cur_ssim = compare_ssim(curxabs, xabs)
             logging.info(
                 table.row(
-                    [ii, stop_criteria, cur_mse,
-                     compare_ssim(curxabs, xabs)]))
-        prev_mse = cur_mse
+                    [ii, stop_criteria, cur_mse, cur_ssim]))
 
         if not ignore_mse and cur_mse > prev_mse:
-            msg = ('Breaking out of loop after %d iterations. '
-                   'MSE increased!' % ii)
-            if importlib.util.find_spec("tqdm") is None:
-                tqdm.write(msg)
+            if strike_count > strikes:
+                msg = ('Breaking out of loop after %d iterations. '
+                       'MSE increased!' % ii)
+                if importlib.util.find_spec("tqdm") is None:
+                    tqdm.write(msg)
+                else:
+                    logging.warning(msg)
+                break
             else:
-                logging.warning(msg)
-            break
+                strike_count += 1
+        prev_mse = cur_mse
+
+        if not ignore_ssim and cur_ssim > prev_ssim:
+            if strike_count > strikes:
+                msg = ('Breaking out of loop after %d iterations. '
+                       'SSIM increased!' % ii)
+                if importlib.util.find_spec("tqdm") is None:
+                    tqdm.write(msg)
+                else:
+                    logging.warning(msg)
+                break
+            else:
+                strike_count += 1
+        prev_ssim = cur_ssim
 
         # Compute residual
         r = forward_fun(x_hat) - y

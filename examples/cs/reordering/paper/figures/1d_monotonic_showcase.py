@@ -95,28 +95,3 @@ if __name__ == '__main__':
         fix_axis()
 
     plt.show()
-
-    # plt.plot(x)
-    # plt.show()
-
-    # plt.plot(S.forward_dct(x))
-    # plt.plot(S.forward_dct(np.sort(x)[::-1]))
-    # plt.show()
-    #
-    # plt.plot(S.forward_fd(x))
-    # plt.plot(S.forward_fd(np.sort(x)))
-    # plt.show()
-
-    # k0 = 5
-    # idx0 = relaxed_ordinator(
-    #     x, lam=.05, k=k0, unsparsify=S.inverse_dct, norm=False,
-    #     warm=False, transform_shape=None, disp=False)
-    #
-    # idx1 = ordinator1d(
-    #     x, k=k0, inverse=S.inverse_dct, chunksize=10, pdf=None,
-    #     pdf_metric=None, forward=None, disp=False)
-    #
-    # plt.plot(-np.sort(-np.abs(S.forward_dct(np.sort(x)[::-1]))))
-    # plt.plot(-np.sort(-np.abs(S.forward_dct(x[idx0]))))
-    # plt.plot(-np.sort(-np.abs(S.forward_dct(x[idx1]))))
-    # plt.show()

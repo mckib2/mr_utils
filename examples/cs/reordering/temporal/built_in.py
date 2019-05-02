@@ -7,7 +7,6 @@ import prox_tv as ptv # tv2_1d, tv1_1d
 from mr_utils.test_data import load_test_data
 from mr_utils.sim.traj import radial
 from mr_utils.cs.models import UFT
-from mr_utils.cs import SpatioTemporalTVSB
 from mr_utils import view
 
 if __name__ == '__main__':
@@ -27,7 +26,7 @@ if __name__ == '__main__':
     for ii in trange(st, leave=False, desc=desc):
         samp0[..., ii] = radial(
             (sx, sy), num_spokes, offset=offsets[ii],
-            extend=False, skinny=False)
+            extend=True, skinny=False)
     # view(samp0)
 
     # Set up the recon
@@ -37,12 +36,14 @@ if __name__ == '__main__':
     forward = uft.forward_ortho
     inverse = uft.inverse_ortho
     y = forward(x)
+    # view(y, log=True)
     imspace_u = inverse(y)
 
-    recon, err = SpatioTemporalTVSB(
-        samp0, y, betaxy=1/4, betat=1, mu=1, lam=1, gamma=1/2,
-        nInner=1, niter=3, x=x)
-    view(recon)
+    # from mr_utils.cs import SpatioTemporalTVSB
+    # recon, err = SpatioTemporalTVSB(
+    #     samp0, y, betaxy=1/4, betat=1, mu=1, lam=1, gamma=1/2,
+    #     nInner=1, niter=3, x=x)
+    # view(recon)
 
 
     w = 50
@@ -54,14 +55,19 @@ if __name__ == '__main__':
     recon_sort = np.zeros_like(imspace_u)
     for idx in tqdm(np.ndindex((sx, sy)), total=sx*sy, leave=False):
         ii, jj = idx[:]
+
+        # TODO:
+        # Mask out small ROIs to do run ordinator in
+
         # Sorting doesn't suppress motion!
         sord = np.argsort(np.abs(imspace_true[ii, jj, :]))
-        recon_sort[ii, jj, sord] = ptv.tv1_1d(
+        recon_sort[ii, jj, sord] = ptv.tv1_1d( #pylint: disable=E1137
             np.abs(imspace_u[ii, jj, sord]), w)
 
     # Take a look
     ims = [
         imspace_u,
+        # recon,
         recon_l1,
         recon_l2,
         recon_sort,
