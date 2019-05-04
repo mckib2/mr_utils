@@ -3,22 +3,24 @@
 This may or may not make sense to do...
 
 Notes
-=====
-Using norm=None in concaluting xhat seems to do better.  It seems like we can
-consistently beat the sort case with either obj1 or obj2, with obj2 performing
-better (with same lambda weight, might need to tweak a bit to get a better
-comparison).  In general, obj2 goes much faster, as lsa is not performed each
-iteration, just a simple sorting operation.  We can't get Jacobian expressions
-for either, unfortunately: 1) because of LSA operation, 2) because of sorting
+-----
+Using norm=None in concaluting xhat seems to do better.  It seems
+like we can consistently beat the sort case with either obj1 or obj2,
+with obj2 performing better (with same lambda weight, might need to
+tweak a bit to get a better comparison).  In general, obj2 goes much
+faster, as lsa is not performed each iteration, just a simple sorting
+operation.  We can't get Jacobian expressions for either,
+unfortunately: 1) because of LSA operation, 2) because of sorting
 operation.
 
-This also appears to have the advantage of working under a wide variety of k --
-small, large, consistently outperforming the sort(x) heuristic.
+This also appears to have the advantage of working under a wide
+variety of k -- small, large, consistently outperforming the sort(x)
+heuristic.
 '''
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.fftpack import idct
+from scipy.fftpack import dct, idct
 
 from mr_utils.cs import relaxed_ordinator
 
@@ -55,12 +57,45 @@ if __name__ == '__main__':
     # plt.show()
 
     # Find the ordering!
-    pi = relaxed_ordinator(x, lam, k, lambda c0: idct(c0, norm='ortho'))
+    pi = relaxed_ordinator(
+        x, lam, k, lambda c0: idct(c0, norm='ortho'))
+
+
+    sh = (1, 3)
+    plt.subplot(*sh, 1)
+    plt.plot(x)
+    plt.title('x[n]')
+
+    plt.subplot(*sh, 2)
+    plt.plot(dct(x, norm='ortho'), label='DCT(x[n])')
+    plt.plot(dct(x[pi], norm='ortho'), label='DCT(x[pi])')
+    plt.plot(dct(np.sort(x), norm='ortho'), label='DCT(sort(x[n]))')
+    plt.legend()
+
+    plt.subplot(*sh, 3)
+    plt.plot(
+        -np.sort(-np.abs(dct(x, norm='ortho'))),
+        label='DCT(x[n])')
+    plt.plot(
+        -np.sort(-np.abs(dct(x[pi], norm='ortho'))),
+        label='DCT(x[pi])')
+    plt.plot(
+        -np.sort(-np.abs(dct(np.sort(x), norm='ortho'))),
+        label='DCT(sort(x[n]))')
+    plt.legend()
+
+    plt.show()
+
+    # plt.subplot()
+
 
     # Let's take a look...
-    plt.plot(-np.sort(-np.abs(idct(x, norm='ortho'))), label='x')
-    plt.plot(-np.sort(-np.abs(idct(x[pi], norm='ortho'))), label='xpi')
     plt.plot(
-        -np.sort(-np.abs(idct(np.sort(x), norm='ortho'))), label='sort(x)')
+        -np.sort(-np.abs(idct(x, norm='ortho'))), label='x')
+    plt.plot(
+        -np.sort(-np.abs(idct(x[pi], norm='ortho'))), label='xpi')
+    plt.plot(
+        -np.sort(-np.abs(idct(np.sort(x), norm='ortho'))),
+        label='sort(x)')
     plt.legend()
     plt.show()

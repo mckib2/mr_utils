@@ -6,14 +6,14 @@ def sos(im, axes=0):
     '''Root sum of squares combination along given axes.
 
     Parameters
-    ==========
+    ----------
     im : array_like
         Input image.
     axes : tuple
         Dimensions to sum across.
 
     Returns
-    =======
+    -------
     array_like
         SOS combination of image.
     '''

@@ -12,6 +12,20 @@ from mr_utils.cs import proximal_GD
 from mr_utils.utils.wavelet import cdf97_2d_forward, cdf97_2d_inverse
 from mr_utils.utils.sort2d import sort2d
 
+def laplace_sample_var(x):
+    '''Sample variance of Laplacian random variable.'''
+
+    # Sample mean is median
+    N = x.size
+    mu = np.median(x)
+    b = 1/N*np.sum(np.abs(x - mu))
+    return 2*b**2
+
+def exp_sample_var(x):
+    '''Sample variance of exponential random variable.'''
+    N = x.size
+    return (1/(N/np.sum(x)))**2
+
 if __name__ == '__main__':
 
     # Load in brain
@@ -22,17 +36,17 @@ if __name__ == '__main__':
     plt.subplot(1, 3, 1)
     plt.hist(im.real.flatten(), density=True)
     plt.title('Distribution of Real')
-    plt.xlabel('Variance: %g' % np.var(im.real.flatten()))
+    plt.xlabel('Variance: %g' % laplace_sample_var(im.real.flatten()))
 
     plt.subplot(1, 3, 2)
     plt.hist(im.imag.flatten(), density=True)
     plt.title('Distribution of Imag')
-    plt.xlabel('Variance: %g' % np.var(im.imag.flatten()))
+    plt.xlabel('Variance: %g' % laplace_sample_var(im.imag.flatten()))
 
     plt.subplot(1, 3, 3)
     plt.hist(np.abs(im.flatten()), density=True)
     plt.title('Distribution of Mag')
-    plt.xlabel('Variance: %g' % np.var(np.abs(im).flatten()))
+    plt.xlabel('Variance: %g' % exp_sample_var(np.abs(im).flatten()))
 
     plt.show()
 
