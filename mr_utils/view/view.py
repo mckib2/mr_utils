@@ -139,6 +139,8 @@ def view(
 
     Returns
     -------
+    data : array_like
+        Image data shown in plot.
     dict, optional
         All local variables when test_run=True.
 
@@ -481,7 +483,7 @@ def view(
             plt.plot(data)
         elif data.ndim == 2:
             # Just a regular old 2d image...
-            plt.imshow(data, **imshow_opts)
+            plt.imshow(np.nan_to_num(data), **imshow_opts)
         else:
             raise ValueError('%d is too many dimensions!' % data.ndim)
 
@@ -499,7 +501,7 @@ def view(
     # If we're testing, return all the local vars
     if test_run:
         return locals()
-    return None
+    return data
 
 if __name__ == '__main__':
 

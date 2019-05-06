@@ -20,8 +20,8 @@ if __name__ == '__main__':
 
     # Simple numerical phantom
     X, Y = 512, 256
-    num_coils = [2, 4, 8, 12, 16]
-    # num_coils = [4]
+    # num_coils = [2, 4, 8, 12, 16]
+    num_coils = [4]
     see_coil_images = [4]
     N = np.max([X, Y])
     M = np.min([X, Y])
@@ -53,6 +53,25 @@ if __name__ == '__main__':
             trim = int((X - Y)/2)
             coil_ims[nc] = coil_ims[nc][:, :, trim:-trim, ...]
         # view(coil_ims[nc])
+
+    # # See coil images for ESM block diagram
+    # demo_cc_then_gs = True
+    # recon = np.zeros((4, M, M), dtype='complex')
+    # for ii in range(4):
+    #     if demo_cc_then_gs:
+    #         recon[ii, ...] = view(
+    #             coil_ims[4][:, trim:-trim, :, ii], fft_axes=(1, 2),
+    #             is_imspace=True, coil_combine_axis=0)
+    #     else:
+    #         view(coil_ims[4][ii, trim:-trim, ...])
+    #         recon[ii, ...] = gs_recon(
+    #             coil_ims[4][ii, trim:-trim, ...], pc_axis=-1)
+    # if not demo_cc_then_gs:
+    #     view(recon, fft_axes=(1, 2), is_imspace=True,
+    #          coil_combine_axis=0)
+    # else:
+    #     view(recon)
+    #     view(gs_recon(recon, pc_axis=0))
 
     # Get truth image
     pcs_true = np.linspace(0, 2*np.pi, 16, endpoint=False)
