@@ -20,6 +20,7 @@ if __name__ == '__main__':
 
     # Simple numerical phantom
     X, Y = 512, 256
+    # X, Y = 64, 32
     # num_coils = [2, 4, 8, 12, 16]
     num_coils = [4]
     see_coil_images = [4]
@@ -119,7 +120,9 @@ if __name__ == '__main__':
                 np.abs(np.nan_to_num(res[coil, fun, ...])))
 
         if nc in see_coil_images:
-            view(res[coil, :, trim:-trim, ...])
+            view(np.concatenate((
+                res[coil, :, trim:-trim, ...],
+                im_true[None, trim:-trim, :]), axis=0))
 
     # error plot
     for fun, cc in enumerate(ccs):
@@ -154,7 +157,9 @@ if __name__ == '__main__':
                 np.abs(np.nan_to_num(res[coil, fun, ...])))
 
         if nc in see_coil_images:
-            view(res[coil, :, trim:-trim, ...])
+            view(np.concatenate((
+                res[coil, :, trim:-trim, ...],
+                im_true[None, trim:-trim, :]), axis=0))
 
     # error plot
     for fun, cc in enumerate(ccs):

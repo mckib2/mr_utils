@@ -11,14 +11,14 @@ def python_pca(X, n_components=False):
     To verify I know what sklearn's PCA is doing.
 
     Parameters
-    ==========
+    ----------
     X : array_like
         Matrix to perform PCA on.
     n_components : int, optional
         Number of components to keep.
 
     Returns
-    =======
+    -------
     P : array_like
         n_component principal components of X.
     '''
@@ -36,11 +36,12 @@ def coil_pca(
         coil_dim=-1,
         n_components=4,
         give_explained_var=False,
+        real_imag=True,
         debug_level=logging.WARNING):
     '''Reduce the dimensionality of the coil dimension using PCA.
 
     Parameters
-    ==========
+    ----------
     coil_ims : array_like
         Coil images.
     coil_dim : int, optional
@@ -49,21 +50,26 @@ def coil_pca(
         How many principal components to keep.
     give_explained_var : bool, optional
         Return explained variance for real,imag decomposition
+    real_imag : bool, optional
+        Perform PCA on real/imag parts separately or mag/phase.
     debug_level : logging_level, optional
         Verbosity level to set logging module.
 
     Returns
-    =======
+    -------
     coil_ims_pca : array_like
-        Compressed coil images representing n_components principal components.
+        Compressed coil images representing n_components principal
+        components.
     expl_var : array_like, optional
-        complex valued 1D vector representing  explained variance.  Is returned
-        if `give_explained_var=True`
+        complex valued 1D vector representing explained variance.  Is
+        returned if `give_explained_var=True`
     '''
 
     # Every day I'm logging...
-    logging.basicConfig(format='%(levelname)s: %(message)s', level=debug_level)
-    logging.info('Starting coil_pca: initial size: %s', str(coil_ims.shape))
+    logging.basicConfig(
+        format='%(levelname)s: %(message)s', level=debug_level)
+    logging.info(
+        'Starting coil_pca: initial size: %s', str(coil_ims.shape))
 
     # Get data in form (n_samples,n_features)
     coil_ims = np.moveaxis(coil_ims, coil_dim, -1)
@@ -73,14 +79,26 @@ def coil_pca(
     logging.info('Number of features: %d', n_features)
 
     # Do PCA on both real/imag parts
-    logging.info('Performing PCA on real/imag parts...')
-    pca_real = PCA(n_components=n_components)
-    pca_imag = PCA(n_components=n_components)
-    coil_ims_real = pca_real.fit_transform(coil_ims.real)
-    coil_ims_imag = pca_imag.fit_transform(coil_ims.imag)
+    if real_imag:
+        logging.info('Performing PCA on real/imag parts...')
+        pca_real = PCA(n_components=n_components)
+        pca_imag = PCA(n_components=n_components)
+        coil_ims_real = pca_real.fit_transform(coil_ims.real)
+        coil_ims_imag = pca_imag.fit_transform(coil_ims.imag)
 
-    coil_ims_pca = (coil_ims_real + 1j*coil_ims_imag).reshape(
-        (*im_shape, n_components))
+        coil_ims_pca = (coil_ims_real + 1j*coil_ims_imag).reshape(
+            (*im_shape, n_components))
+    else:
+        # Do PCA on magnitude and phase
+        logging.info('Performing PCA on mag/phase...')
+        pca_mag = PCA(n_components=n_components)
+        pca_phase = PCA(n_components=n_components)
+        coil_ims_mag = pca_mag.fit_transform(np.abs(coil_ims))
+        coil_ims_phase = pca_phase.fit_transform(np.angle(coil_ims))
+
+        coil_ims_pca = (
+            coil_ims_mag*np.exp(1j*coil_ims_phase)).reshape(
+                (*im_shape, n_components))
 
     # Move coil dim back to where it was
     coil_ims_pca = np.moveaxis(coil_ims_pca, -1, coil_dim)
