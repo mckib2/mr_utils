@@ -4,7 +4,9 @@ Notes
 -----
 If the field is strong, the banding frequency is increased.  If the
 resolution is too low, multiple bands will be contained in a single
-voxel leading to bad artifacts in the GS recon or other SSFP models.
+voxel leading to bad artifacts in the linearized GS recon.  Curiously,
+omitting the second pass solution (only regularized by complex sum)
+does not suffer from the same artifacts.
 '''
 
 import numpy as np
@@ -41,7 +43,8 @@ if __name__ == '__main__':
 
 
     recon = gs_recon(I, pc_axis=0)
-    print(I.shape)
+    recon_no_second = gs_recon(I, pc_axis=0, second_pass=False)
 
-    I0 = np.concatenate((I, recon[None, ...]), axis=0)
+    I0 = np.concatenate((
+        I, recon[None, ...], recon_no_second[None, ...]), axis=0)
     view(I0, montage_axis=0)
