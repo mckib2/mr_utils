@@ -7,13 +7,14 @@ import numpy as np
 
 from mr_utils.utils.printtable import Table
 
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
+logging.basicConfig(
+    format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 def IHT(A, y, k, mu=1, maxiter=500, tol=1e-8, x=None, disp=False):
     r'''Iterative hard thresholding algorithm (IHT).
 
     Parameters
-    ==========
+    ----------
     A : array_like
         Measurement matrix.
     y : array_like
@@ -32,28 +33,29 @@ def IHT(A, y, k, mu=1, maxiter=500, tol=1e-8, x=None, disp=False):
         Whether or not to display iterations.
 
     Returns
-    =======
+    -------
     x_hat : array_like
         Estimate of x.
 
     Notes
-    =====
+    -----
     Solves the problem:
 
     .. math::
 
         \min_x || y - Ax ||^2_2 \text{ s.t. } ||x||_0 \leq k
 
-    If `disp=True`, then MSE will be calculated using provided x. `mu=1` seems
-    to satisfy Theorem 8.4 often, but might need to be adjusted (usually < 1).
-    See normalized IHT for adaptive step size.
+    If `disp=True`, then MSE will be calculated using provided x.
+    `mu=1` seems to satisfy Theorem 8.4 often, but might need to be
+    adjusted (usually < 1). See normalized IHT for adaptive step size.
 
     Implements Algorithm 8.5 from [1]_.
 
     References
-    ==========
-    .. [1] Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed sensing:
-           theory and applications. Cambridge University Press, 2012.
+    ----------
+    .. [1] Eldar, Yonina C., and Gitta Kutyniok, eds. Compressed
+           sensing: theory and applications. Cambridge University
+           Press, 2012.
     '''
 
     # length of measurement vector and original signal
@@ -66,8 +68,9 @@ def IHT(A, y, k, mu=1, maxiter=500, tol=1e-8, x=None, disp=False):
 
     # Some fancy, asthetic touches...
     if disp:
-        table = Table(['iter', 'norm', 'MSE'], [len(repr(maxiter)), 8, 8],
-                      ['d', 'e', 'e'])
+        table = Table(
+            ['iter', 'norm', 'MSE'], [len(repr(maxiter)), 8, 8],
+            ['d', 'e', 'e'])
         range_fun = range
     else:
         from tqdm import trange
@@ -110,8 +113,8 @@ def IHT(A, y, k, mu=1, maxiter=500, tol=1e-8, x=None, disp=False):
 
     # Regroup and debrief...
     if tt == (maxiter-1):
-        logging.warning(
-            'Hit maximum iteration count, estimate may not be accurate!')
+        logging.warning(('Hit maximum iteration count, estimate '
+                         'may not be accurate!'))
     else:
         if disp:
             logging.info(

@@ -18,12 +18,12 @@ def get_numerical_phantom_params(SNR=None):
     '''Preset parameters for a numerical cylindrical phantom.
 
     Parameters
-    ==========
+    ----------
     SNR : float
         Signal to noise ratio, calculated: std = avg_signal/SNR.
 
     Returns
-    =======
+    -------
     params : dictionary
         Parameter dictionary including `noise_std`, `dim`, `pc_vals`, and
         `coil_nums` fields.
@@ -54,7 +54,7 @@ def get_true_im_numerical_phantom():
     comparable to the banded phantoms.
 
     Returns
-    =======
+    -------
     true_im : array_like
         Banding free reference image with true bSSFP contrast.
     '''
@@ -85,7 +85,7 @@ def get_coil_sensitivity_maps():
     '''Simulate coil sensitivity maps.
 
     Returns
-    =======
+    -------
     csms : list
         List of coil sensitivity maps (arrays), one for each coil.
     '''
@@ -106,12 +106,12 @@ def ripple(im0):
     '''Calculate % ripple metric using local patches of line.
 
     Parameters
-    ==========
+    ----------
     im0 : array_like
         Image to calculate ripple of.
 
     Returns
-    =======
+    -------
     float
         Percent ripple calculated by using local patches along a line through
         the center of `im0`
@@ -138,17 +138,17 @@ def ripple_normal(im):
     '''Calculate % ripple metric.
 
     Parameters
-    ==========
+    ----------
     im : array_like
         Image to calculate ripple of.
 
     Returns
-    =======
+    -------
     float
         Percent ripple.
 
     Notes
-    =====
+    -----
     A horizontal line is drawn through the center of the image.  The percent
     ripple is calculated along this line.
     '''

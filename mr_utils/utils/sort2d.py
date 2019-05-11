@@ -55,40 +55,42 @@ def sort2d(A):
     '''Sorting algorithm for two-dimensional arrays.
 
     Parameters
-    ==========
+    ----------
     A : array_like
         2d array to be sorted.
 
     Returns
-    =======
+    -------
     array_like
         sorted A
     array_like
         flattened indices giving the sort order.
 
     Notes
-    =====
+    -----
     Note: if A is complex, you may want to provide abs(A).
 
     Numpy implementation of algorithm from [2]_.
 
     References
-    ==========
-    .. [2] Zhou, M., & Wang, H. (2010, December). An efficient selection
-           sorting algorithm for two-dimensional arrays. In Genetic and
-           Evolutionary Computing (ICGEC), 2010 Fourth International Conference
-           on (pp. 853-855). IEEE.
+    ----------
+    .. [2] Zhou, M., & Wang, H. (2010, December). An efficient
+           selection sorting algorithm for two-dimensional arrays. In
+           Genetic and Evolutionary Computing (ICGEC), 2010 Fourth
+           International Conference on (pp. 853-855). IEEE.
     '''
 
     # Get the indices -- tread carefully...
     idx0 = np.arange(A.size).reshape(A.shape)
-    idx1 = idx0[np.arange(A.shape[0])[:, None], np.argsort(-A, axis=1)]
+    idx1 = idx0[np.arange(A.shape[0])[:, None], np.argsort(
+        -A, axis=1)]
     idx2 = idx1.flatten('F')
-    idx3 = idx2.take(np.argsort(np.sort(-A, axis=1).flatten('F')), axis=0)
+    idx3 = idx2.take(
+        np.argsort(np.sort(-A, axis=1).flatten('F')), axis=0)
     idx4 = idx3
 
-    val = np.reshape(
-        -np.sort(np.sort(-A, axis=1).flatten('F'), axis=0), A.shape, order='C')
+    val = np.reshape(-np.sort(np.sort(
+        -A, axis=1).flatten('F'), axis=0), A.shape, order='C')
     return(val, idx4)
 
 if __name__ == '__main__':

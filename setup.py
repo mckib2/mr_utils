@@ -41,7 +41,8 @@ setup(
         "ismrmrd>=1.4.0",
         "xmltodict>=0.12.0",
         "nibabel>=2.3.3",
-        "PyWavelets>=1.0.2"
+        "PyWavelets>=1.0.2",
+        "prox-tv>=3.3.0"
     ],
     python_requires='>=3.6',
 )

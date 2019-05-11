@@ -12,7 +12,7 @@ import importlib
 import numpy as np
 from pywt import threshold
 
-from mr_utils.utils.orderings import inverse_permutation
+# from mr_utils.utils.orderings import inverse_permutation
 
 logging.basicConfig(format='%(levelname)s: %(message)s',
                     level=logging.DEBUG)
@@ -26,12 +26,16 @@ def proximal_GD(
         reorder_fun=None,
         mode='soft',
         alpha=.5,
+        alpha_start=.5,
         thresh_sep=True,
         selective=None,
         x=None,
         ignore_residual=False,
+        ignore_mse=True,
+        ignore_ssim=True,
         disp=False,
-        maxiter=200):
+        maxiter=200,
+        strikes=0):
     r'''Proximal gradient descent for generic encoding/sparsity model.
 
     Parameters
@@ -52,8 +56,10 @@ def proximal_GD(
         Inverse reordering function.
     mode : {'soft', 'hard', 'garotte', 'greater', 'less'}, optional
         Thresholding mode.
-    alpha : float, optional
+    alpha : float or callable, optional
         Step size, used for thresholding.
+    alpha_start : float, optional
+        Initial alpha to start with if alpha is callable.
     thresh_sep : bool, optional
         Whether or not to threshold real/imag individually.
     selective : bool, optional
@@ -62,10 +68,16 @@ def proximal_GD(
         The true image we are trying to reconstruct.
     ignore_residual : bool, optional
         Whether or not to break out of loop if resid increases.
+    ignore_mse : bool, optional
+        Whether or not to break out of loop if MSE increases.
+    ignore_ssim : bool, optional
+        Whether or not to break out of loop if SSIM increases.
     disp : bool, optional
         Whether or not to display iteration info.
     maxiter : int, optional
         Maximum number of iterations.
+    strikes : int, optional
+        Number of ending conditions tolerated before giving up.
 
     Returns
     -------
@@ -88,11 +100,14 @@ def proximal_GD(
     # Make sure compare_mse, compare_ssim is defined
     if x is None:
         compare_mse = lambda xx, yy: 0
+        compare_ssim = lambda xx, yy: 0
+        xabs = 0
         logging.info(
             'No true x provided, MSE/SSIM will not be calculated.')
     else:
         from skimage.measure import compare_mse, compare_ssim
-        xabs = np.abs(x) # Precompute absolute value of true image
+        # Precompute absolute value of true image
+        xabs = np.abs(x.astype(y.dtype))
 
     # Get some display stuff happening
     if disp:
@@ -117,21 +132,33 @@ def proximal_GD(
     x_hat = np.zeros(y.shape, dtype=y.dtype)
     r = -y.copy()
     prev_stop_criteria = np.inf
+    cur_ssim = 0
+    prev_ssim = compare_ssim(xabs, np.abs(inverse_fun(y)))
+    cur_mse = 0
+    prev_mse = compare_mse(xabs, np.abs(inverse_fun(y)))
     norm_y = np.linalg.norm(y)
+    if isinstance(alpha, float):
+        alpha0 = alpha
+    else:
+        alpha0 = alpha_start
 
     # Do the thing
+    strike_count = 0
     for ii in range_fun(int(maxiter)):
 
         # Compute stop criteria
         stop_criteria = np.linalg.norm(r)/norm_y
         if not ignore_residual and stop_criteria > prev_stop_criteria:
-            msg = ('Breaking out of loop after %d iterations. '
-                   'Norm of residual increased!' % ii)
-            if importlib.util.find_spec("tqdm") is None:
-                tqdm.write(msg)
+            if strike_count > strikes:
+                msg = ('Breaking out of loop after %d iterations. '
+                       'Norm of residual increased!' % ii)
+                if importlib.util.find_spec("tqdm") is None:
+                    tqdm.write(msg)
+                else:
+                    logging.warning(msg)
+                break
             else:
-                logging.warning(msg)
-            break
+                strike_count += 1
         prev_stop_criteria = stop_criteria
 
         # Compute gradient descent step in prep for reordering
@@ -143,8 +170,8 @@ def proximal_GD(
             reorder_idx_r = reorder_idx.real.astype(int)
             reorder_idx_i = reorder_idx.imag.astype(int)
 
-            unreorder_idx_r = inverse_permutation(reorder_idx_r)
-            unreorder_idx_i = inverse_permutation(reorder_idx_i)
+            # unreorder_idx_r = inverse_permutation(reorder_idx_r)
+            # unreorder_idx_i = inverse_permutation(reorder_idx_i)
             # unreorder_idx_r = np.arange(
             #     reorder_idx_r.size).astype(int)
             # unreorder_idx_r[reorder_idx_r] = reorder_idx_r
@@ -155,7 +182,7 @@ def proximal_GD(
             grad_step = (
                 grad_step.real[np.unravel_index(
                     reorder_idx_r, y.shape)] \
-                +1j*grad_step.imag[np.unravel_index(
+                + 1j*grad_step.imag[np.unravel_index(
                     reorder_idx_i, y.shape)]).reshape(y.shape)
 
         # Take the step, we would normally assign x_hat directly, but
@@ -164,25 +191,33 @@ def proximal_GD(
         if thresh_sep:
             tmp = sparsify(grad_step)
             # Take a half step in each real/imag after talk with Ed
-            tmp_r = threshold(tmp.real, value=alpha/2, mode=mode)
-            tmp_i = threshold(tmp.imag, value=alpha/2, mode=mode)
+            tmp_r = threshold(tmp.real, value=alpha0/2, mode=mode)
+            tmp_i = threshold(tmp.imag, value=alpha0/2, mode=mode)
             update = unsparsify(tmp_r + 1j*tmp_i)
         else:
             update = unsparsify(
                 threshold(
-                    sparsify(grad_step), value=alpha, mode=mode))
+                    sparsify(grad_step), value=alpha0, mode=mode))
 
         # Undo the reordering if we did it
         if reorder_fun is not None:
-            update = (
-                update.real[np.unravel_index(
-                    unreorder_idx_r, y.shape)] \
-                + 1j*update.imag[np.unravel_index(
-                    unreorder_idx_i, y.shape)]).reshape(y.shape)
+            # update = (
+            #     update.real[np.unravel_index(
+            #         unreorder_idx_r, y.shape)] \
+            #     + 1j*update.imag[np.unravel_index(
+            #         unreorder_idx_i, y.shape)]).reshape(y.shape)
+
+            update_r = np.zeros(y.shape)
+            update_r[np.unravel_index(
+                reorder_idx_r, y.shape)] = update.real.flatten()
+            update_i = np.zeros(y.shape)
+            update_i[np.unravel_index(
+                reorder_idx_i, y.shape)] = update.imag.flatten()
+            update = update_r + 1j*update_i
 
         # Look at where we want to take the step - tread carefully...
         if selective is not None:
-            selective_idx = selective(x_hat, update)
+            selective_idx = selective(x_hat, update, ii)
 
         # Update image estimae
         if selective is not None:
@@ -193,12 +228,43 @@ def proximal_GD(
         # Tell the user what happened
         if disp:
             curxabs = np.abs(x_hat)
+            cur_mse = compare_mse(curxabs, xabs)
+            cur_ssim = compare_ssim(curxabs, xabs)
             logging.info(
                 table.row(
-                    [ii, stop_criteria, compare_mse(curxabs, xabs),
-                     compare_ssim(curxabs, xabs)]))
+                    [ii, stop_criteria, cur_mse, cur_ssim]))
+
+        if not ignore_mse and cur_mse > prev_mse:
+            if strike_count > strikes:
+                msg = ('Breaking out of loop after %d iterations. '
+                       'MSE increased!' % ii)
+                if importlib.util.find_spec("tqdm") is None:
+                    tqdm.write(msg)
+                else:
+                    logging.warning(msg)
+                break
+            else:
+                strike_count += 1
+        prev_mse = cur_mse
+
+        if not ignore_ssim and cur_ssim > prev_ssim:
+            if strike_count > strikes:
+                msg = ('Breaking out of loop after %d iterations. '
+                       'SSIM increased!' % ii)
+                if importlib.util.find_spec("tqdm") is None:
+                    tqdm.write(msg)
+                else:
+                    logging.warning(msg)
+                break
+            else:
+                strike_count += 1
+        prev_ssim = cur_ssim
 
         # Compute residual
         r = forward_fun(x_hat) - y
+
+        # Get next step size
+        if callable(alpha):
+            alpha0 = alpha(alpha0, ii)
 
     return x_hat

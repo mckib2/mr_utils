@@ -9,7 +9,7 @@ def cylinder_2d_params():
     '''Returns properties of numerical phantom used in cylinder_2d.
 
     Returns
-    =======
+    -------
     params : dict
         Dictionary of example T1, T2, and M0 values.
     '''
@@ -26,7 +26,7 @@ def cylinder_2d(dims=(64, 64), FOV=((-1, 1), (-1, 1)), radius=0.5,
     '''Base 2d cylinder maps to feed to contrast simulations.
 
     Parameters
-    ==========
+    ----------
     dims : tuple of ints, optional
         Size of 2d cylinder.
     FOV : tuple of tuples, optional
@@ -37,7 +37,7 @@ def cylinder_2d(dims=(64, 64), FOV=((-1, 1), (-1, 1)), radius=0.5,
         Dictionary of tissue properties, as in cylinder_2d_params.
 
     Returns
-    =======
+    -------
     PD : array_like
         Proton density map.
     T1s : array_like
@@ -68,12 +68,12 @@ def cylinder_2d(dims=(64, 64), FOV=((-1, 1), (-1, 1)), radius=0.5,
 
 
 def bssfp_2d_cylinder(TR=6e-3, alpha=np.pi/3, dims=(64, 64),
-                      FOV=((-1, 1), (-1, 1)), radius=.5, field_map=None,
-                      phase_cyc=0, kspace=False):
+                      FOV=((-1, 1), (-1, 1)), radius=.5,
+                      field_map=None, phase_cyc=0, kspace=False):
     '''Simulates axial bSSFP scan of cylindrical phantom.
 
     Parameters
-    ==========
+    ----------
     TR : float, optional
         Repetition time.
     alpha : float, optional
@@ -81,7 +81,8 @@ def bssfp_2d_cylinder(TR=6e-3, alpha=np.pi/3, dims=(64, 64),
     dims : tuple of ints, optional
         Matrix size, (dim_x,dim_y)
     FOV : tuple of tuples, optional
-        Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
+        Field of view in arbitrary units:
+        ( (x_min,x_max), (y_min,y_max) )
     radius : float, optional
         Radius of cylinder in arbitrary units.
     field_map : array_like, optional
@@ -92,7 +93,7 @@ def bssfp_2d_cylinder(TR=6e-3, alpha=np.pi/3, dims=(64, 64),
         Whether or not to return data in kspace or imspace.
 
     Returns
-    =======
+    -------
     im : array_like
         Complex simulated image with bSSFP contrast.
     '''
@@ -106,7 +107,8 @@ def bssfp_2d_cylinder(TR=6e-3, alpha=np.pi/3, dims=(64, 64),
         fy = np.zeros(dims[1])
         field_map, _ = np.meshgrid(fx, fy)
 
-    im = ssfp(T1s, T2s, TR, alpha, field_map, phase_cyc=phase_cyc, M0=PD).T
+    im = ssfp(
+        T1s, T2s, TR, alpha, field_map, phase_cyc=phase_cyc, M0=PD).T
     # im = gre_sim(T1s,T2s,TR,TR/2,alpha,field_map,phi=phase_cyc,
     #              dphi=phase_cyc,M0=PD,spoil=False,iter=200)
     # im[np.isnan(im)] = 0
@@ -125,7 +127,7 @@ def spgr_2d_cylinder(TR=0.3, TE=0.003, alpha=np.pi/3, dims=(64, 64),
     '''Simulates axial spoiled GRE scan of cylindrical phantom.
 
     Parameters
-    ==========
+    ----------
     TR : float, optional
         Repetition time.
     TE : float, optional
@@ -144,7 +146,7 @@ def spgr_2d_cylinder(TR=0.3, TE=0.003, alpha=np.pi/3, dims=(64, 64),
         Whether or not to return data in kspace or imspace.
 
     Returns
-    =======
+    -------
     im : array_like
         Complex simulated image with spoiled GRE contrast.
     '''

@@ -1,6 +1,9 @@
+'''Handle loading in and converting Siemens raw data format.'''
+
 import numpy as np
 
-from mr_utils.definitions import BART_PATH, SIEMENS_TO_ISMRMRD_INSTALLED
+from mr_utils.definitions import (
+    BART_PATH, SIEMENS_TO_ISMRMRD_INSTALLED)
 
 def load_raw(
         filename,
@@ -11,7 +14,7 @@ def load_raw(
     '''Load Siemens raw data into numpy array.
 
     Parameters
-    ==========
+    ----------
     filename : str
         File path and filename of raw data file.
     use : {'bart', 's2i', 'rdi'}, optional
@@ -24,23 +27,24 @@ def load_raw(
         Leave as ismrmrd data type.
 
     Returns
-    =======
+    -------
     data : array_like
         Data from raw data file.
     ismrmrd_dataset : optional
         Returned if use='s2i' and as_ismrmrd=True.
 
     Raises
-    ======
+    ------
     SystemError
-        If BART is requested but not installed or if siemens_to_ismrmrd is
-        requested but not installed
+        If BART is requested but not installed or if
+        siemens_to_ismrmrd is requested but not installed
     Exception
-        If BART encounters an error while running or if siemens_to_ismrmrd is
-        encounters an error while running, or a valid use option is not
-        specified.
+        If BART encounters an error while running or if
+        siemens_to_ismrmrd is encounters an error while running, or a
+        valid use option is not specified.
 
-    Notes:
+    Notes
+    -----
     use:
     - bart -- BART twix raw data reader
     - s2i -- siemens_to_ismrmrd
@@ -57,10 +61,11 @@ def load_raw(
         from subprocess import Popen, PIPE
         from os import remove
 
-        # I can't figure out how to use the prebaked bart interface to get
-        # twixread to work, so I'll just do this...
+        # I can't figure out how to use the prebaked bart interface
+        # to get twixread to work, so I'll just do this...
         tmp_name = NamedTemporaryFile().name
-        cmd = 'bart twixread %s %s %s' % (bart_args, filename, tmp_name)
+        cmd = 'bart twixread %s %s %s' % (
+            bart_args, filename, tmp_name)
         # print(cmd)
         # data = bart(1,'twixread %s %s' % (bart_args,filename))
         process = Popen(cmd.split(), stdout=PIPE)
@@ -88,7 +93,8 @@ def load_raw(
 
         # Check to make sure siemens_to_ismrmrd is installed
         if SIEMENS_TO_ISMRMRD_INSTALLED:
-            cmd = 'siemens_to_ismrmrd -f %s -o %s' % (filename, tmp_name)
+            cmd = 'siemens_to_ismrmrd -f %s -o %s' % (
+                filename, tmp_name)
             process = Popen(cmd.split(), stdout=PIPE)
             output, error = process.communicate()
         else:
@@ -98,17 +104,20 @@ def load_raw(
             print(output.decode('utf-8'))
 
             # Load in the file and start getting to work...
-            # See https://github.com/ismrmrd/ismrmrd-python-tools/blob/
+            # See:
+            # https://github.com/ismrmrd/ismrmrd-python-tools/blob/
             # master/recon_ismrmrd_dataset.py
             dset = ismrmrd.Dataset(tmp_name, '/dataset', False)
 
-            # If the user asked for the ismrmrd format, stop here and give it
-            # back
+            # If the user asked for the ismrmrd format, stop here and
+            # give it back
             if as_ismrmrd:
-                print('Skipping everything else - returning ismrmrd.Dataset!')
+                print(('Skipping everything else - '
+                       'returning ismrmrd.Dataset!'))
                 return dset
 
-            header = ismrmrd.xsd.CreateFromDocument(dset.read_xml_header())
+            header = ismrmrd.xsd.CreateFromDocument(
+                dset.read_xml_header())
             enc = header.encoding[0]
             # print(dset.read_xml_header().decode('utf-8'))
 
@@ -132,8 +141,8 @@ def load_raw(
             #acc_factor = enc.parallelImaging.accelerationFactor
             #.kspace_encoding_step_1
 
-            # Number of Slices, Avgs, Contrasts, etc. - Note we Reps are not
-            # counted here
+            # Number of Slices, Avgs, Contrasts, etc. - Note we Reps
+            # are not counted here
             ncoils = header.acquisitionSystemInformation.receiverChannels
             if enc.encodingLimits.slice is not None:
                 nslices = enc.encodingLimits.slice.maximum + 1
@@ -150,8 +159,8 @@ def load_raw(
             else:
                 ncontrasts = 1
 
-            # In case there are noise scans in the actual dataset, we will
-            # skip them.
+            # In case there are noise scans in the actual dataset,
+            # we will skip them.
             firstacq = 0
             for acqnum in range(dset.number_of_acquisitions()):
                 acq = dset.read_acquisition(acqnum)
@@ -169,15 +178,18 @@ def load_raw(
             #data_dwell_time = a.sample_time_us
             #noise_receiver_bw_ratio = 0.79
             # dmtx = coils.calculate_prewhitening(noise,scale_factor=(
-            #    data_dwell_time/noise_dwell_time)*noise_receiver_bw_ratio)
+            #    data_dwell_time/noise_dwell_time)*
+            # noise_receiver_bw_ratio)
 
             # Process the actual data
-            all_data = np.zeros((navgs, ncontrasts, nslices, ncoils, eNz, eNy,
-                                 rNx), dtype=np.complex64)
+            all_data = np.zeros(
+                (navgs, ncontrasts, nslices, ncoils, eNz, eNy, rNx),
+                dtype=np.complex64)
 
             # Loop through the rest of the acquisitions and stuff
-            for acqnum in trange(firstacq, dset.number_of_acquisitions(),
-                                 leave=False, desc='Acqs'):
+            for acqnum in trange(
+                    firstacq, dset.number_of_acquisitions(),
+                    leave=False, desc='Acqs'):
                 acq = dset.read_acquisition(acqnum)
 
                 #coils.apply_prewhitening(acq.data,dmtx)
@@ -185,17 +197,21 @@ def load_raw(
 
                 # Remove oversampling if needed
                 if s2i_ROS and (eNx != rNx):
-                    xline = np.fft.fftshift(np.fft.ifft(np.fft.ifftshift(
-                        acq_data_prw, axes=(1)), axis=(1)), axes=(1))
-                    xline *= np.sqrt(np.prod(np.take(xline.shape, (1))))
+                    xline = np.fft.fftshift(np.fft.ifft(
+                        np.fft.ifftshift(acq_data_prw, axes=(1)),
+                        axis=(1)), axes=(1))
+                    xline *= np.sqrt(
+                        np.prod(np.take(xline.shape, (1))))
 
                     x0 = int((eNx - rNx) / 2)
                     x1 = int((eNx - rNx) / 2 + rNx)
                     xline = xline[:, x0:x1]
                     acq.resize(
-                        rNx, acq.active_channels, acq.trajectory_dimensions)
+                        rNx, acq.active_channels,
+                        acq.trajectory_dimensions)
                     acq.center_sample = int(rNx/2)
-                    # need to use the [:] notation here to fill the data
+                    # need to use the [:] notation here to fill the
+                    # data
                     k = np.fft.fftshift(np.fft.fft(np.fft.ifftshift(
                         xline, axes=(1)), axis=(1)), axes=(1))
                     k /= np.sqrt(np.prod(np.take(k.shape, (1))))
@@ -209,7 +225,8 @@ def load_raw(
                 z = acq.idx.kspace_encode_step_2
 
                 try:
-                    all_data[avg, contrast, slise, :, z, y, :] = acq.data
+                    all_data[
+                        avg, contrast, slise, :, z, y, :] = acq.data
                 except:
                     all_data = None
                     all_data = acq.data
@@ -224,7 +241,8 @@ def load_raw(
 
         if error is not None:
             print(error)
-            raise Exception("siemens_to_ismrmrd exited with an error.")
+            raise Exception(
+                "siemens_to_ismrmrd exited with an error.")
 
     elif use == 'rdi':
         from rawdatarinator.raw import raw
@@ -234,7 +252,8 @@ def load_raw(
         except:
             pass
     else:
-        raise Exception('You must specify a method to read raw data in!')
+        raise Exception(
+            'You must specify a method to read raw data in!')
 
 
     print('Dimensions are (x,y,coils,avg)')
@@ -252,6 +271,6 @@ if __name__ == '__main__':
 
     for ii in range(4):
         plt.subplot(4, 1, ii+1)
-        plt.imshow(np.abs(np.fft.ifftshift(np.fft.ifft2(data[:, :, ii, 0].T))),
-                   cmap='gray')
+        plt.imshow(np.abs(np.fft.ifftshift(np.fft.ifft2(
+            data[:, :, ii, 0].T))), cmap='gray')
     plt.show()

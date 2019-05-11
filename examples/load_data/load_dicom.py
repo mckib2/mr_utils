@@ -1,7 +1,7 @@
 '''Example of how to load dicom files.
 
 Requirements
-============
+------------
 - python3 (I haven't tested python2.7)
 - numpy
 - matplotlib
@@ -11,17 +11,17 @@ Requirements
 - Internet connection
 
 Notes
-=====
+-----
 This example uses two methods from two different libraries:
 - pydicom
 - nibabel
 
-These are the easiest ways I know of, could be better ways.  Docs for both of
-these libraries are easy use, go take a look!
+These are the easiest ways I know of, could be better ways.  Docs for
+both of these libraries are easy use, go take a look!
 
-I will mention the warning on nibabel's dicom reader utilities -- they say they
-are still "highly experimental" -- so probably stick with pydicom unless you
-need nifti for any pre-/postprocessing.
+I will mention the warning on nibabel's dicom reader utilities --
+they say they are still "highly experimental" -- so probably stick
+with pydicom unless you need nifti for any pre-/postprocessing.
 '''
 
 import shutil
@@ -84,4 +84,5 @@ if __name__ == '__main__':
     plt.show()
 
     # Prove that we get the same data either way:
-    assert np.all(im0 == im1), 'I should have loaded the same data both times!'
+    assert np.all(im0 == im1), (
+        'I should have loaded the same data both times!')
