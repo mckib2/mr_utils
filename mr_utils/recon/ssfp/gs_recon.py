@@ -269,13 +269,13 @@ def gs_recon(Is, pc_axis=0, isophase=np.pi, second_pass=True,
     Is = np.moveaxis(Is, pc_axis, 0)
 
     # Get direct geometric solution for demoduled M for all pixels
-    Id = get_complex_cross_point(Is)
+    Id = np.atleast_1d(get_complex_cross_point(Is))
 
     # Get maximum pixel magnitudes for all input images
-    I_max_mag = np.max(np.abs(Is), axis=0)
+    I_max_mag = np.atleast_1d(np.max(np.abs(Is), axis=0))
 
     # Compute complex sum
-    CS = np.mean(Is, axis=0)
+    CS = np.atleast_1d(np.mean(Is, axis=0))
 
     # For each pixel, if the magnitude if greater than the maximum
     # magnitude of all four input images, then replace the pixel with
