@@ -41,19 +41,20 @@ Original Author: Nicolas Barbey
 
 import numpy as np
 
-__all__ = ['phantom', 'shepp_logan', 'modified_shepp_logan', 'yu_ye_wang',
-           'ellipsoid']
+__all__ = [
+    'phantom', 'shepp_logan', 'modified_shepp_logan', 'yu_ye_wang',
+    'ellipsoid']
 
 def phantom(shape, parameters_list, dtype=np.float64):
-    '''Generate a cube of given shape using a list of ellipsoid parameters.
+    '''Generate cube of given shape using a list of ellipsoid params.
 
     Parameters
     ----------
     shape: tuple of ints
         Shape of the output cube.
     parameters_list: list of dictionaries
-        List of dictionaries with the parameters defining the ellipsoids to
-        include in the cube.
+        List of dictionaries with the parameters defining the
+        ellipsoids to include in the cube.
     dtype: data-type, optional
         Data type of the output ndarray.
 
@@ -67,7 +68,8 @@ def phantom(shape, parameters_list, dtype=np.float64):
     shepp_logan : Generates the Shepp Logan phantom in any shape.
     modified_shepp_logan : Modified Shepp Logan phantom in any shape.
     yu_ye_wang : The Yu Ye Wang phantom in any shape.
-    ellipsoid : Generates a cube filled with an ellipsoid of any shape.
+    ellipsoid : Generates a cube filled with an ellipsoid of any
+                shape.
 
     Notes
     -----
@@ -86,10 +88,10 @@ def ellipsoid(parameters, shape=None, out=None, coordinates=None):
     '''Generates a cube filled with an ellipsoid of any shape.
 
     Parameters
-    ==========
+    ----------
     parameters: list of dictionaries
-        List of dictionaries with the parameters defining the ellipsoids to
-        include in the cube.
+        List of dictionaries with the parameters defining the
+        ellipsoids to include in the cube.
     shape : tuple of ints, optional
         Shape of the output cube.
     out : array_like
@@ -98,12 +100,12 @@ def ellipsoid(parameters, shape=None, out=None, coordinates=None):
         List of coordinates
 
     Returns
-    =======
+    -------
     out : array_like
         The ellipsoid.
 
     Notes
-    =====
+    -----
     If out is given, fills the given cube instead of creating a new
     one.
     '''
@@ -136,15 +138,15 @@ def ellipsoid(parameters, shape=None, out=None, coordinates=None):
     return out
 
 def rotation_matrix(p):
-    '''Defines an Euler rotation matrix from angles phi, theta and psi.
+    '''Defines an Euler rotation matrix from angles phi, theta, psi.
 
     Parameters
-    ==========
+    ----------
     p : dict
         Dictionary of rotation angles (in degrees).
 
     Returns
-    =======
+    -------
     array_like
         Rotation matrix.
 
@@ -173,12 +175,12 @@ def define_coordinates(shape):
     '''Generate a tuple of coordinates in 3d with a given shape
 
     Parameters
-    ==========
+    ----------
     shape : tuple of ints
         Desired shape.
 
     Returns
-    =======
+    -------
     x : array_like
         Coordinates in x
     y : array_like
@@ -192,17 +194,17 @@ def define_coordinates(shape):
     return x, y, z
 
 def transform(coordinates, p):
-    '''Apply rotation, translation and rescaling to a 3-tuple of coordinates.
+    '''Rotate, translate, rescale to a 3-tuple of coordinates
 
     Parameters
-    ==========
+    ----------
     coordinates : list
         List of coordinates.
     p : dict
         Dictionary of rotation angles (in degrees)
 
     Returns
-    =======
+    -------
     out_coords : list
         Transformed/rotated coordinates.
     '''
