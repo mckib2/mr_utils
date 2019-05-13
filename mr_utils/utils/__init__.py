@@ -12,3 +12,4 @@ from .sparsify import Sparsify
 from .gini import gini
 from .piecewise_constant import piecewise
 from .patch import *
+from .neural_sort import neural_sort
