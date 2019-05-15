@@ -6,31 +6,32 @@ def dTV(A, eps=1e-8):
     '''Compute derivative of the TV with respect to the matrix A.
 
     Parameters
-    ==========
+    ----------
     A : array_like
         2d matrix (can be complex).
     eps : float, optional
         small positive constant used to avoid a divide by zero.
 
     Returns
-    =======
+    -------
     array_like
         Derivative of TV w.r.t. A.
 
     Notes
-    =====
+    -----
     Implements Equation [13] from [1]_.
 
     References
-    ==========
-    .. [1] Zhang, Yan, Yuanyuan Wang, and Chen Zhang. "Total variation based
-           gradient descent algorithm for sparse-view photoacoustic image
-           reconstruction." Ultrasonics 52.8 (2012): 1046-1055.
+    ----------
+    .. [1] Zhang, Yan, Yuanyuan Wang, and Chen Zhang. "Total
+           variation based gradient descent algorithm for sparse-view
+           photoacoustic image reconstruction." Ultrasonics 52.8
+           (2012): 1046-1055.
     '''
 
-    # Note: I'm not sure np.roll is the thing to do as it's ambiguous what
-    # happens on the edges of the update. Calling it good for now though, as
-    # seems to be doing alright regardless.
+    # Note: I'm not sure np.roll is the thing to do as it's ambiguous
+    # what happens on the edges of the update. Calling it good for
+    # now though, as seems to be doing alright regardless.
 
     num1 = 2*A - np.roll(A, -1, axis=0) - np.roll(A, -1, axis=1)
     den1 = np.sqrt(np.abs(A - np.roll(A, -1, axis=0))**2 + \

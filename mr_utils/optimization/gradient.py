@@ -6,7 +6,7 @@ def fd_complex_step(f, x0, h=np.finfo(float).eps):
     '''Compute forward difference complex step of function f.
 
     Parameters
-    ==========
+    ----------
     f : callable
         Function to compute derivative of.
     x0 : array_like
@@ -15,7 +15,7 @@ def fd_complex_step(f, x0, h=np.finfo(float).eps):
         Perturbation size.
 
     Returns
-    =======
+    -------
     g : array_like
         Gradient of f at x0
     '''
@@ -28,10 +28,10 @@ def fd_complex_step(f, x0, h=np.finfo(float).eps):
     return g
 
 def fd_gen_complex_step(f, x0, h=0, v=np.finfo(float).eps):
-    '''Compute generalized forward difference complex step derivative of f.
+    '''Compute generalized forward difference complex step derivative.
 
     Parameters
-    ==========
+    ----------
     f : callable
         Function to compute derivative of at x0.
     x0 : array_like
@@ -42,19 +42,19 @@ def fd_gen_complex_step(f, x0, h=0, v=np.finfo(float).eps):
         Imaginary part of forward perturbation.
 
     Returns
-    =======
+    -------
     g : array_like
         Gradient of f at x0
 
     Notes
-    =====
+    -----
     Implements Equation 4 from [1]_.
 
     References
-    ==========
+    ----------
     .. [1] Abreu, Rafael, et al. "On the accuracy of the
-           Complex-Step-Finite-Difference method." Journal of Computational and
-           Applied Mathematics 340 (2018): 390-403.
+           Complex-Step-Finite-Difference method." Journal of
+           Computational and Applied Mathematics 340 (2018): 390-403.
     '''
 
     g = np.zeros(x0.shape)
@@ -65,10 +65,10 @@ def fd_gen_complex_step(f, x0, h=0, v=np.finfo(float).eps):
     return g
 
 def cd_gen_complex_step(f, x0, h=None, v=None):
-    '''Compute generalized central difference complex step derivative of f.
+    '''Compute generalized central difference complex step derivative.
 
     Parameters
-    ==========
+    ----------
     f : callable
         Function to compute derivative of at x0.
     x0 : array_like
@@ -79,25 +79,19 @@ def cd_gen_complex_step(f, x0, h=None, v=None):
         Imaginary part of forward and backwards derivatives.
 
     Returns
-    =======
+    -------
     g : array_like
         Gradient of f at x0
 
     Notes
-    =====
-    If you choose h, v such that 3*h**2 =/= v**2, there will be an additional
-    error term proportional to 3rd order derivative (not implemented).  So
-    it's in your best interest to choose h, v so this error is minimized. If
-    h=None and v=None these values will be computed for you to satisfy this
-    condition.
+    -----
+    If you choose h, v such that 3*h**2 =/= v**2, there will be an
+    additional error term proportional to 3rd order derivative (not
+    implemented).  So it's in your best interest to choose h, v so
+    this error is minimized. If h=None and v=None these values will
+    be computed for you to satisfy this condition.
 
-    Implements Equation 5 from [2]_.
-
-    References
-    ==========
-    .. [2] Abreu, Rafael, et al. "On the accuracy of the
-           Complex-Step-Finite-Difference method." Journal of Computational and
-           Applied Mathematics 340 (2018): 390-403.
+    Implements Equation 5 from [1]_.
     '''
 
     # Choose 3h**2 -v**2 = 0 to get fourth-order error term
@@ -125,7 +119,7 @@ def complex_step_6th_order(f, x0, h=None, v=None):
     '''6th order accurate complex step difference method.
 
     Parameters
-    ==========
+    ----------
     f : callable
         Function to compute derivative of at x0.
     x0 : array_like
@@ -136,7 +130,7 @@ def complex_step_6th_order(f, x0, h=None, v=None):
         Imaginary part of forward and backwards derivatives.
 
     Returns
-    =======
+    -------
     g : array_like
         Gradient of f at x0
     '''
