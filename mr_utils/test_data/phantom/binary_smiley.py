@@ -1,4 +1,7 @@
-'''Simple numerical phantom shaped like a smiley face.  Value either 1 or 0.'''
+'''Simple numerical phantom shaped like a smiley face.
+
+Value either 1 or 0.
+'''
 
 import numpy as np
 
@@ -6,14 +9,14 @@ def binary_smiley(N, radius=.75):
     '''Binary smiley face numerical phantom.
 
     Parameters
-    ==========
+    ----------
     N : int
         Height and width in pixels.
     radius : float, optional
         Radius of circle used for head.
 
     Returns
-    =======
+    -------
     smiley : array_like
         Binary image of a smiley face.
     '''

@@ -34,12 +34,15 @@ def gd(shape, updates, x0=None, alphas=None, costs=None, maxiter=200,
     -------
     x : array_like
         Final image estimate.
+    costs : values of the cost function
 
     Notes
     -----
     Use this function if you know the gradients of the cost terms.
     If note, proximal gradient descent may be used without knowledge
     of gradients.
+
+    For image reconstruction, fixed alpha is probably the way to go.
     '''
 
     # Initializations
@@ -55,7 +58,7 @@ def gd(shape, updates, x0=None, alphas=None, costs=None, maxiter=200,
 
     for ii in trange(maxiter, leave=False):
 
-        # Get weights
+        # Do linesearch if alphas are not specified
         if alphas is None:
             def obj(a0):
                 '''Objective to minimize to find good weights.'''
@@ -70,11 +73,11 @@ def gd(shape, updates, x0=None, alphas=None, costs=None, maxiter=200,
         update = sum([a*u(x) for u, a in zip(updates, alphas0)])
         x -= update
 
-        if disp:
-            tqdm.write(str(x))
-
         # Get cost at this iteration
-        cost[ii] = sum([c(x) for c in costs])
+        cost[ii] = sum([a*c(x) for c, a in zip(costs, alphas0)])
+
+        if disp:
+            tqdm.write(str(cost[ii]))
 
         # Break out if update is small enough
         if np.max(np.abs(update)) < tol:
