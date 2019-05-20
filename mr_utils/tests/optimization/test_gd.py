@@ -8,7 +8,7 @@ from mr_utils.test_data import optimization_functions as of
 from mr_utils.optimization import gd, fd_complex_step
 
 class TestGD(unittest.TestCase):
-    '''Using example optimization functions, demonstrate that GD can optimize.
+    '''Using example optimization functions show that GD can optimize.
     '''
 
     def setUp(self):
@@ -25,7 +25,8 @@ class TestGD(unittest.TestCase):
         x0 = 6
         num_iter = 5
         with self.assertWarnsRegex(Warning, 'GD hit maxiters!'):
-            _x, _iter = gd(of.quadratic, fd_complex_step, x0, maxiter=num_iter)
+            _x, _iter = gd(
+                of.quadratic, fd_complex_step, x0, maxiter=num_iter)
         # self.assertEqual(iter, num_iter)
 
     # def test_rosenbrock(self):

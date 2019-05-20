@@ -12,3 +12,4 @@ from .ordinator import ordinator1d
 from .convex.temporal_gd_tv.temporal_gd_tv import GD_temporal_TV
 from .relaxed_ordinator import relaxed_ordinator
 from .convex.split_bregman import SpatioTemporalTVSB
+from .convex.gd import gd
