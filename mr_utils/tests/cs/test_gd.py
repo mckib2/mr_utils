@@ -95,4 +95,4 @@ class TestGradientDescent(unittest.TestCase):
             disp=False)
 
         ssim = compare_ssim(np.abs(im), np.abs(x))
-        self.assertTrue(ssim > .9)
+        self.assertTrue(ssim > .93)
