@@ -1,11 +1,12 @@
 '''Try using modified sigpy app to use reordering.'''
 
+
 import numpy as np
 from sigpy.mri import poisson
-from sigpy.mri.app import TotalVariationRecon
+from sigpy.mri.app import L1WaveletRecon
 
 from mr_utils.test_data.phantom import modified_shepp_logan
-from mr_utils.cs import TotalVariationReconWithOrdering
+from mr_utils.cs import L1WaveletReconWithOrdering
 from mr_utils.cs.models import UFT
 from mr_utils import view
 
@@ -26,15 +27,16 @@ if __name__ == '__main__':
     idx = None
 
     # Try without reordering
-    lamda = .015
-    app0 = TotalVariationRecon(
-        y, mps, lamda, weights=mask, coord=None, show_pbar=True)
+    lamda = .01
+    app0 = L1WaveletRecon(
+        y, mps, lamda, weights=mask, coord=None, wave_name='db4',
+        show_pbar=True)
 
     # Now with ordering!
-    lamda = .015
+    lamda = .01
     idx = np.argsort(
         im.real.flatten()) + 1j*np.argsort(im.imag.flatten())
-    app1 = TotalVariationReconWithOrdering(
+    app1 = L1WaveletReconWithOrdering(
         y, mps, lamda, weights=mask, coord=None, idx=idx,
         show_pbar=True)
 

@@ -15,3 +15,5 @@ from .convex.split_bregman import SpatioTemporalTVSB
 from .convex.gd import gd
 from .sigpy.finite_difference_with_reordering import (
     TotalVariationReconWithOrdering)
+from .sigpy.l1_wavelet_recon_with_ordering import (
+    L1WaveletReconWithOrdering)
