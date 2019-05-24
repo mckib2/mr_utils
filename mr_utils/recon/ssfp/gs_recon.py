@@ -343,7 +343,7 @@ def mask_isophase(numerator_patches, patch_size, isophase):
 
 
 def compute_Iw(I0, I1, Id, patch_size=None, mode='constant',
-               isophase=np.pi):
+               isophase=np.pi, ret_weight=False):
     '''Computes weighted sum of image pair (I0,I1).
 
     Parameters
@@ -359,13 +359,17 @@ def compute_Iw(I0, I1, Id, patch_size=None, mode='constant',
         size of patches in pixels (x, y).  Defaults to (5, 5).
     mode : {'contant', 'edge'}, optional
         mode of numpy.pad. Probably choose 'constant' or 'edge'.
-    isophase : float
+    isophase : float, optional
         Only neighbours with isophase max phase difference contribute.
+    ret_weight : bool, optional
+        Return weight, w.
 
     Returns
     -------
     Iw : array_like
         The weighted sum of image pair (I0,I1), equation [14]
+    w : array_like, optional
+        If ret_weight=True, w is returned.
 
     Notes
     -----
@@ -424,6 +428,8 @@ def compute_Iw(I0, I1, Id, patch_size=None, mode='constant',
 
     # Find Iw, the weighted sum of image pair (I0,I1), equation [14]
     Iw = I0*weights + I1*(1 - weights)
+    if ret_weight:
+        return(Iw, weights)
     return Iw
 
 if __name__ == '__main__':

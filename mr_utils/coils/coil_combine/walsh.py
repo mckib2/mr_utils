@@ -101,7 +101,7 @@ def walsh(img, noise_ims=None, coil_axis=0):
 
     return csm
 
-def walsh_gs(img, coil_axis=0, pc_axis=-1, avg_method='z'):
+def walsh_gs(img, coil_axis=0, pc_axis=-1, avg_method='cov'):
     '''Walsh tailored for bSSFP GS recon.'''
 
     # Move coil axis to be first
