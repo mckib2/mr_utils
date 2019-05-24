@@ -34,7 +34,8 @@ if __name__ == '__main__':
     radius = .9
     npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
-    noise_std = 0.1
+    noise_std = 0.01
+    weighted_avg = False
 
     # Get npcs PCs of a cylinder
     I = bssfp_2d_cylinder(
@@ -74,8 +75,18 @@ if __name__ == '__main__':
             Is[ii, ..., 0], Is[ii, ..., 2], Id, ret_weight=True)
         _Iw1, w1[..., ii] = compute_Iw(
             Is[ii, ..., 1], Is[ii, ..., 3], Id, ret_weight=True)
-    w0 = np.mean(w0, axis=-1)
-    w1 = np.mean(w1, axis=-1)
+
+    if weighted_avg:
+        from scipy.stats import norm
+        xx = np.linspace(norm.ppf(0.01), norm.ppf(0.99), num_coils)
+        p = norm.pdf(xx)
+        p /= np.sum(p)
+        w0 = np.average(w0, axis=-1, weights=p)
+        w1 = np.average(w1, axis=-1, weights=p)
+    else:
+        w0 = np.mean(w0, axis=-1)
+        w1 = np.mean(w1, axis=-1)
+
     I_lGS = np.zeros((num_coils, N, N), dtype='complex')
     ns = I_lGS.copy()
     for ii in range(num_coils):
