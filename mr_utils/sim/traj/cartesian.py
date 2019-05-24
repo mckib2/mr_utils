@@ -1,8 +1,9 @@
 '''Create sampling patterns for Cartesian k-space trajectories.'''
 
 import numpy as np
+from scipy.stats import norm
 
-def cartesian_pe(shape, undersample=.5, reflines=20):
+def cartesian_pe(shape, undersample=.5, sigma=1, reflines=20):
     '''Randomly collect Cartesian phase encodes (lines).
 
     Parameters
@@ -11,6 +12,8 @@ def cartesian_pe(shape, undersample=.5, reflines=20):
         Shape of the image to be sampled.
     undersample : float, optional
         Undersampling factor (0 < undersample <= 1).
+    sigma : float, optional
+        Standard deviation of Gaussian pdf used to undersample.
     reflines : int, optional
         Number of lines in the center to collect regardless.
 
@@ -30,7 +33,12 @@ def cartesian_pe(shape, undersample=.5, reflines=20):
 
     M, _N = shape[:]
     k = int(undersample*M)
-    idx = np.random.permutation(M)[:k]
+    # idx = np.random.permutation(M)[:k]
+    xx = np.linspace(norm.ppf(0.01), norm.ppf(0.99), M)
+    p = norm.pdf(xx, scale=sigma)
+    p /= np.sum(p)
+    idx = np.random.choice(
+        np.arange(M, dtype=int), k, replace=False, p=p)
 
     mask = np.zeros(shape)*False
     mask[idx, :] = True

@@ -18,32 +18,46 @@ if __name__ == '__main__':
     # view(im)
 
     accel = 3
-    mask = poisson(im.shape, accel)
-    # view(mask)
+    from mr_utils.sim.traj import cartesian_pe
+    mask = cartesian_pe(
+        im.shape, undersample=1/accel, sigma=.8, reflines=10)
+    # mask = poisson(im.shape, accel)
+    view(mask)
     uft = UFT(mask)
     y = uft.forward_ortho(im)
     # view(y)
     mps = np.array([np.ones(im.shape)])
     idx = None
+    maxiter = 100
 
     # Try without reordering
     lamda = .01
     app0 = L1WaveletRecon(
         y, mps, lamda, weights=mask, coord=None, wave_name='db4',
-        show_pbar=True)
+        show_pbar=True, max_iter=maxiter)
 
-    # Now with ordering!
+    # Now with ordering from oracle
     lamda = .01
     idx = np.argsort(
         im.real.flatten()) + 1j*np.argsort(im.imag.flatten())
     app1 = L1WaveletReconWithOrdering(
         y, mps, lamda, weights=mask, coord=None, idx=idx,
-        show_pbar=True)
+        show_pbar=True, max_iter=maxiter)
+
+    # Now with ordering from CS prior
+    lamda = .01
+    idx = np.argsort(
+        app0.x.real.flatten()) + 1j*np.argsort(app0.x.imag.flatten())
+    app2 = L1WaveletReconWithOrdering(
+        y, mps, lamda, weights=mask, coord=None, idx=idx,
+        show_pbar=True, max_iter=maxiter)
 
     # Run it and look at the results:
     out0 = app0.run()
     out1 = app1.run()
+    out2 = app2.run()
     view(np.stack((
         uft.inverse_ortho(y),
         app0.x,
-        app1.x)))
+        app1.x,
+        app2.x)))
