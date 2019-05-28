@@ -122,8 +122,8 @@ def bssfp_2d_cylinder(TR=6e-3, alpha=np.pi/3, dims=(64, 64),
 
 
 def spgr_2d_cylinder(TR=0.3, TE=0.003, alpha=np.pi/3, dims=(64, 64),
-                     FOV=((-1, 1), (-1, 1)), radius=.5, field_map=None,
-                     kspace=False):
+                     FOV=((-1, 1), (-1, 1)), radius=.5,
+                     field_map=None, kspace=False):
     '''Simulates axial spoiled GRE scan of cylindrical phantom.
 
     Parameters
@@ -137,7 +137,8 @@ def spgr_2d_cylinder(TR=0.3, TE=0.003, alpha=np.pi/3, dims=(64, 64),
     dims : tuple of ints, optional
         Matrix size, (dim_x,dim_y)
     FOV : tuple of tuples, optional
-        Field of view in arbitrary units, ( (x_min,x_max), (y_min,y_max) )
+        Field of view in arbitrary units,
+        ( (x_min,x_max), (y_min,y_max) )
     radius : float, optional
         Radius of cylinder in arbitrary units.
     field_map : array_like, optional
