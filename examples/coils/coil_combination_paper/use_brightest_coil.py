@@ -1,16 +1,17 @@
-'''For regional differential energy minimization use brighest coil.
+'''Regional differential energy minimization optimization for coils.
 
 Notes
 -----
 So the idea is that doing regional differential energy minimization
 (RDEM) takes a long time if you want to do it on each coil one by one.
 Notice that the lGS only depends on weights, so if we can come up
-with good weights, no one's the wiser.  Try finding the brighest
-patch in the set of coils and using that one to find the weights.
+with good weights, no one's the wiser.
 
-That actually seems quite involved, and probably not something that
-would work anyway, because we still have banding, and we'd be getting
-intensity variation from that and the coil sensitivities.
+Try finding the brighest patch in the set of coils and using that one
+to find the weights.  That actually seems quite involved, and
+probably not something that would work anyway, because we still have
+banding, and we'd be getting intensity variation from that and the
+coil sensitivities.
 '''
 
 import numpy as np
@@ -77,10 +78,9 @@ if __name__ == '__main__':
             Is[ii, ..., 1], Is[ii, ..., 3], Id, ret_weight=True)
 
     if weighted_avg:
-        from scipy.stats import norm
-        xx = np.linspace(norm.ppf(0.01), norm.ppf(0.99), num_coils)
-        p = norm.pdf(xx)
-        p /= np.sum(p)
+
+        p = np.abs(mps)
+
         w0 = np.average(w0, axis=-1, weights=p)
         w1 = np.average(w1, axis=-1, weights=p)
     else:
@@ -109,13 +109,13 @@ if __name__ == '__main__':
         ns[ii, ...] = gs_recon(n[ii, ...], pc_axis=-1)
     csm = walsh(I_lGS0, noise_ims=ns, coil_axis=0)
     I_lGS0 = np.sum(np.conj(csm)*I_lGS0, axis=0)
-    ctr = int(N/2)
-    view(np.abs(I_lGS0) - np.abs(I_lGS))
-    shave = 10
-    plt.plot(np.abs(I_lGS0[shave:-shave, ctr]))
-    plt.plot(np.abs(I_lGS[shave:-shave, ctr]), '--')
-    plt.show()
-    # Pooled weights works marginally better!
+    # ctr = int(N/2)
+    # view(np.abs(I_lGS0) - np.abs(I_lGS))
+    # shave = 10
+    # plt.plot(np.abs(I_lGS0[shave:-shave, ctr]))
+    # plt.plot(np.abs(I_lGS[shave:-shave, ctr]), '--')
+    # plt.show()
+    # # Pooled weights works marginally better!
 
     # Try using walsh
     csm = walsh_gs(Is, coil_axis=0, pc_axis=-1)
@@ -128,34 +128,58 @@ if __name__ == '__main__':
     Iw13 = I_walsh[..., 1]*w1 + I_walsh[..., 3]*(1 - w1)
     I_lGS_walsh = (Iw02 + Iw13)/2
     # view(I_lGS_walsh)
-    print(compare_mse(np.abs(I_lGS), np.abs(I_lGS_walsh)))
+    print(
+        'Walsh true w',
+        compare_mse(np.abs(I_lGS), np.abs(I_lGS_walsh)))
 
     # Get weights from Id
     I_lGS_walsh = gs_recon(I_walsh, pc_axis=-1, second_pass=True)
     # view(I_lGS_walsh)
-    print(compare_mse(np.abs(I_lGS), np.abs(I_lGS_walsh)))
+    print(
+        'Walsh Id weights',
+        compare_mse(np.abs(I_lGS), np.abs(I_lGS_walsh)))
 
 
-    # # Now try using bad coil combine method
-    # I_inati_pcs = np.zeros(Is.shape[1:], dtype='complex')
-    # for ii in range(npcs):
-    #     I_inati_pcs[..., ii] = inati(Is[..., ii], smoothing=0)[1]
-    # I_inati = gs_recon(I_inati_pcs, pc_axis=-1)
-    # # view(I_inati)
-    #
-    # # Now combine using true weights:
-    # Iw02 = I_inati_pcs[..., 0]*w0 + I_inati_pcs[..., 2]*(1 - w0)
-    # Iw13 = I_inati_pcs[..., 1]*w1 + I_inati_pcs[..., 3]*(1 - w1)
-    # I_inati_lGS = (Iw02 + Iw13)/2
+    # Now try using bad coil combine method
+    I_inati_pcs = np.zeros(Is.shape[1:], dtype='complex')
+    for ii in range(npcs):
+        I_inati_pcs[..., ii] = inati(Is[..., ii])[1]
+    I_inati = gs_recon(I_inati_pcs, pc_axis=-1)
+    print('Inati', compare_mse(np.abs(I_lGS), np.abs(I_inati)))
+    # view(I_inati)
+
+    # Now combine using true weights:
+    Iw02 = I_inati_pcs[..., 0]*w0 + I_inati_pcs[..., 2]*(1 - w0)
+    Iw13 = I_inati_pcs[..., 1]*w1 + I_inati_pcs[..., 3]*(1 - w1)
+    I_inati_lGS = (Iw02 + Iw13)/2
+    print(
+        'Inati true w',
+        compare_mse(np.abs(I_lGS), np.abs(I_inati_lGS)))
     # view(I_inati_lGS)
-    # # Already a lot better, but not perfect...
+    # Already a lot better, but not perfect...
 
-    # # Now try using brighest coil
-    # # Id = np.max(np.max(np.abs(Is), axis=-1), axis=0)
-    # # Id = np.mean(I_inati_pcs, axis=-1)
-    # Iw0, w0 = compute_Iw(
-    #     I_inati_pcs[..., 0], I_inati_pcs[..., 2], Id, ret_weight=True)
-    # Iw1, w1 = compute_Iw(
-    #     I_inati_pcs[..., 1], I_inati_pcs[..., 3], Id, ret_weight=True)
-    # I_lGS = (Iw0 + Iw1)/2
-    # view(I_lGS)
+    # Now try using substituted phase
+    # Id = np.max(np.max(np.abs(Is), axis=-1), axis=0)
+    # Id = np.mean(I_inati_pcs, axis=-1)
+    # Id = gs_recon(I_inati_pcs, pc_axis=-1, second_pass=False)
+    Id = gs_recon(Is[0, ...], pc_axis=-1, second_pass=False)
+    I_inati_pcs = np.abs(I_inati_pcs).astype('complex')
+    phase = np.angle(Is[0, ...])
+    I_inati_pcs *= np.exp(1j*phase)
+
+    Iw0, w0 = compute_Iw(
+        I_inati_pcs[..., 0], I_inati_pcs[..., 2], Id, ret_weight=True)
+    Iw1, w1 = compute_Iw(
+        I_inati_pcs[..., 1], I_inati_pcs[..., 3], Id, ret_weight=True)
+    I_lGS_subphase = (Iw0 + Iw1)/2
+    view(I_lGS_subphase)
+    print(
+        'Inati sub phase',
+        compare_mse(np.abs(I_lGS), np.abs(I_lGS_subphase)))
+
+    # Compare to complex sum solution variants
+    cs0 = np.mean(I_inati_pcs, axis=-1)
+    cs1 = np.mean(Is, axis=-1)
+    cs1 = inati(cs1)[1]
+    print('CS0', compare_mse(np.abs(I_lGS), np.abs(cs0)))
+    print('CS1', compare_mse(np.abs(I_lGS), np.abs(cs1)))
