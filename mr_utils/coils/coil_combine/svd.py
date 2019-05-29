@@ -1,10 +1,10 @@
-'''Call BART's GCC.'''
+'''Python interface for BART SVD coil combine.'''
 
 import numpy as np
 from bart import bart
 
-def gcc(x0, vcoils=1, coil_axis=-1):
-    '''Python interface for Geometric coil compression.
+def svd(x0, vcoils=1, coil_axis=0):
+    '''SVD coil compression.
 
     Parameters
     ----------
@@ -25,6 +25,6 @@ def gcc(x0, vcoils=1, coil_axis=-1):
     ifft = lambda x0, ax=(1, 2): np.fft.fftshift(np.fft.ifft2(
         np.fft.fftshift(x0, axes=ax), axes=ax), axes=ax)
 
-    return ifft(bart(1, 'cc -p %d -A -G' % vcoils, fft(
+    return ifft(bart(1, 'cc -p %d -A -S' % vcoils, fft(
         np.moveaxis(x0, coil_axis, -1)[:, :, None, :],
         ax=(0, 1))), ax=(0, 1)).squeeze()

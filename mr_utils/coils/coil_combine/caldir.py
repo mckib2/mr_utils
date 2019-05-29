@@ -23,10 +23,8 @@ def caldir(x0, coil_axis=-1):
 
     sh = np.delete(x0.shape[:], coil_axis)
     N = np.min(sh)
-    val = np.sum(
+    return np.sum(
         np.moveaxis(bart(1, 'caldir %d' % int(N/2), fft(
             np.moveaxis(x0, coil_axis, -1)[:, :, None, :],
             ax=(0, 1))).squeeze(), -1, coil_axis).conj()*x0,
         axis=coil_axis)
-
-    return np.moveaxis(val, -1, coil_axis)

@@ -8,7 +8,8 @@ from mr_utils.sim.ssfp import ssfp
 from mr_utils.test_data.phantom import cylinder_2d
 from mr_utils.recon.ssfp import gs_recon
 from mr_utils.utils import sos
-from mr_utils.coils.coil_combine import gcc, caldir
+from mr_utils.coils.coil_combine import (
+    gcc, caldir, walsh, svd, espirit)
 from mr_utils import view # pylint: disable=W0611
 
 def get_coils(dims):
@@ -34,8 +35,8 @@ if __name__ == '__main__':
         'composite_ellipse',
         'reference'
     ][1]
-    noise_std = 0.1
-    N = 64
+    noise_std = 0.05
+    N = 128
     npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
     ncoils = 5
@@ -110,12 +111,20 @@ if __name__ == '__main__':
     # Now apply phase we found and do lGS to get band-reduced images
     I_sos_sub = I_sos_sub*np.exp(1j*phase)
     I_sos_sub = gs_recon(I_sos_sub, pc_axis=0)
+    I_sos = sos(I, axes=(0, 1)) # Compare to SOS across both PC, coils
     view(np.stack((
-        lGSsos, I_sos_sub, 5*(lGSsos - np.abs(I_sos_sub)))))
+        lGSsos, I_sos_sub, I_sos/3)))
 
-    # Compare to SOS across both PC and coil dims
-    I_sos = sos(I, axes=(0, 1))
-    view(I_sos)
+    # Try Walsh
+    I_walsh = np.zeros((npcs, N, N), dtype='complex')
+    for ii in range(npcs):
+        I_walsh[ii, ...] = np.sum(
+            walsh(I[:, ii, ...], coil_axis=0).conj()*I[:, ii, ...],
+            axis=0)
+    I_walsh_sub = np.abs(I_walsh)*np.exp(1j*phase)
+    I_walsh_sub = gs_recon(I_walsh_sub, pc_axis=0)
+    I_walsh = gs_recon(I_walsh, pc_axis=0)
+    view(np.stack((I_walsh, I_walsh_sub)))
 
     # Try it with GCC -- it helps, but still get bad artifacts
     vcoils = 1
@@ -126,9 +135,9 @@ if __name__ == '__main__':
 
     I_gcc = np.zeros((vcoils, N, N), dtype='complex')
     I_gcc_sub = np.zeros((vcoils, N, N), dtype='complex')
-    phase0 = phase.transpose((0, 2, 1)) # BART spits out transposed
+    # phase0 = phase.transpose((0, 2, 1)) # BART spits out transposed
     for vc in range(vcoils):
-        val = np.abs(I_gcc0[vc, ...])*np.exp(1j*phase0)
+        val = np.abs(I_gcc0[vc, ...])*np.exp(1j*phase)
         I_gcc_sub[vc, ...] = gs_recon(val, pc_axis=0)
         I_gcc[vc, ...] = gs_recon(I_gcc0[vc, ...], pc_axis=0)
     view(np.stack((
@@ -140,7 +149,31 @@ if __name__ == '__main__':
         I_caldir[ii, ...] = caldir(I[:, ii, ...], coil_axis=0)
     # view(I_caldir)
 
-    I_caldir_sub = np.abs(I_caldir)*np.exp(1j*phase0)
+    I_caldir_sub = np.abs(I_caldir)*np.exp(1j*phase)
     I_caldir_sub = gs_recon(I_caldir_sub, pc_axis=0)
     I_caldir = gs_recon(I_caldir, pc_axis=0)
     view(np.stack((I_caldir, I_caldir_sub)))
+
+
+    # Try SVD -- not much difference here, actually
+    I_svd = np.zeros((npcs, N, N), dtype='complex')
+    for ii in range(npcs):
+        I_svd[ii, ...] = svd(I[:, ii, ...], coil_axis=0)
+    # view(I_svd)
+
+    I_svd_sub = np.abs(I_svd)*np.exp(1j*phase)
+    I_svd_sub = gs_recon(I_svd_sub, pc_axis=0)
+    I_svd = gs_recon(I_svd, pc_axis=0)
+    view(np.stack((I_svd, I_svd_sub)))
+
+
+    # Try ESPIRiT -- working alright either way in simulation!
+    I_espirit = np.zeros((npcs, N, N), dtype='complex')
+    for ii in range(npcs):
+        I_espirit[ii, ...] = espirit(I[:, ii, ...], coil_axis=0)
+    # view(I_espirit)
+
+    I_espirit_sub = np.abs(I_espirit)*np.exp(1j*phase)
+    I_espirit_sub = gs_recon(I_espirit_sub, pc_axis=0)
+    I_espirit = gs_recon(I_espirit, pc_axis=0)
+    view(np.stack((I_espirit, I_espirit_sub)))
