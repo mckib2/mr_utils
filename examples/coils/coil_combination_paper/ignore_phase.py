@@ -2,6 +2,7 @@
 
 import numpy as np
 from sigpy.mri import birdcage_maps
+from scipy.spatial.distance import cdist
 
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.test_data.phantom import cylinder_2d
@@ -28,8 +29,12 @@ def PolyArea(x, y):
 
 if __name__ == '__main__':
 
-    find_max_intensity_coil = True
-    noise_std = 0.05
+    method = [
+        'largest_ellipse',
+        'composite_ellipse',
+        'reference'
+    ][1]
+    noise_std = 0.1
     N = 64
     npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
@@ -63,7 +68,7 @@ if __name__ == '__main__':
 
     # Copy phase from brighest coil at that pixel.  We find this by
     # finding the largest ellipse
-    if find_max_intensity_coil:
+    if method == 'largest_ellipse':
         phase = np.zeros((npcs, N, N), dtype='complex')
         for idx in np.ndindex((N, N)):
             xx, yy = idx[:]
@@ -76,12 +81,28 @@ if __name__ == '__main__':
                 # area[cc] = np.mean(np.abs(I0))
             ind = np.argmax(area)
             phase[:, xx, yy] = np.angle(I[ind, :, xx, yy])
-    else:
+
+    elif method == 'composite_ellipse':
+
+        # We want to build a composite ellipse from all coil ellipses
+        # use the phase of this composite image to guide lGS recon.
+
+        # Get rotation, arbitrarily going to 0
+        phase = 0 - np.angle(I)
+        phase = np.unwrap(phase, axis=0)
+        phase = np.mean(phase, axis=0)
+        # view(phase)
+        # I really want to weight the phases by the size of the
+        # ellipses they came from
+
+    elif method == 'reference':
         # Copy phase from a single reference coil.  This way is
         # quicker!  There will be more error where the SNR of the
         # coil sensitivity is lower
         ref_coil = 0
         phase = np.angle(I[ref_coil, ...])
+    else:
+        raise NotImplementedError()
 
     # Take SOS recon across coils to be magnitude of phase-cycles
     I_sos_sub = sos(I, axes=0)
