@@ -34,7 +34,7 @@ if __name__ == '__main__':
         'largest_ellipse',
         'composite_ellipse',
         'reference'
-    ][1]
+    ][0]
     noise_std = 0.05
     N = 128
     npcs = 4

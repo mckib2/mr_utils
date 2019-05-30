@@ -4,3 +4,4 @@ from .gcc import gcc
 from .caldir import caldir
 from .svd import svd
 from .espirit import espirit
+from .composite_ellipse import composite_ellipse
