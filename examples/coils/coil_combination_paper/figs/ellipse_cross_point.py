@@ -24,20 +24,24 @@ if __name__ == '__main__':
         T1, T2, TR, alpha, df, phase_cyc=pcs, M0=M0, phi_rf=rf)
     M = gs_recon(I)
 
+    # Set up LaTeX
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif', size=16)
+
     # Make ellipse outline
     plt.plot(E.real, E.imag, ':k', label='Ellipse')
 
     # Add and label acquired phase-cycles
     plt.plot(I.real, I.imag, 'xk', label='Phase cycle')
     for ii in range(npcs):
-        plt.text(I[ii].real, I[ii].imag, '%d°' % (ii*90))
+        plt.text(I[ii].real*1.05, I[ii].imag, '%d°' % (ii*90))
 
     # Get cross lines
     plt.plot(I[0::2].real, I[0::2].imag, 'k-')
     plt.plot(I[1::2].real, I[1::2].imag, 'k-')
 
     # Add the cross-point
-    plt.plot(M.real, M.imag, 'ok', label='Direct solution')
+    plt.plot(M.real, M.imag, 'ok', label='$I_d$')
     # plt.text(M.real, M.imag, 'I_d')
 
     plt.title('Geometric Solution')
