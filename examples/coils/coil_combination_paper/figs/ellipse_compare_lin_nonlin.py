@@ -6,23 +6,22 @@ from tqdm import trange
 from sigpy.mri import birdcage_maps
 
 from mr_utils.sim.ssfp import ssfp
-from mr_utils.recon.ssfp import gs_recon, compute_Iw
+from mr_utils.recon.ssfp import gs_recon #, compute_Iw
 from mr_utils.test_data.phantom import cylinder_2d
 from mr_utils.coils.coil_combine import gcc, walsh
 
 if __name__ == '__main__':
 
-    # Make coil maps
-    N = 64
-    ncoils = 5
-    mps = birdcage_maps((ncoils, N, N))
 
     # Generate bSSFP data
+    N = 64
     npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
-    nepcs = 500
+    nepcs = 200
     epcs = np.linspace(0, 2*np.pi, nepcs, endpoint=False)
+    assert not np.mod(nepcs, 4)
     ncoils = 2 # only 2 so we don't get too cluttered
+    mps = birdcage_maps((ncoils, N, N))
     TR = 3e-3
     alpha = np.deg2rad(30)
     df = _, df = np.meshgrid(
@@ -94,21 +93,29 @@ if __name__ == '__main__':
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')
 
-    # Now try Walsh
-    Iwalsh = np.zeros((npcs, N, N), dtype='complex')
+    # Now try Walsh - do for all ellipse, unwrap, and then pick out
+    # the correct phase-cycles
     Ewalsh = np.zeros((nepcs, N, N), dtype='complex')
-    for ii in range(npcs):
-        Iwalsh[ii, ...] = np.sum(
-            walsh(I[:, ii, ...], coil_axis=0).conj()*I[:, ii, ...],
-            axis=0)
     for ii in trange(nepcs, leave=False):
         Ewalsh[ii, ...] = np.sum(
             walsh(E[:, ii, ...], coil_axis=0).conj()*E[:, ii, ...],
             axis=0)
 
     plt.subplot(nx, ny, 3)
-    Iwalsh0 = Iwalsh[:, x, y]
     Ewalsh0 = Ewalsh[:, x, y]
+
+    # Unwrap : we know we're going around an ellipse
+    prev = Ewalsh0[0] # force the first one to flip
+    tol = 1 # adjust until ellipse is unwrapped
+    for ii in range(nepcs):
+        val = np.abs(Ewalsh0[ii] - prev)
+        print(val) # look to see where tol should be set
+        if val > tol:
+            Ewalsh0[ii] *= np.exp(-1j*np.pi)
+        prev = Ewalsh0[ii]
+    skip = int(nepcs/4)
+    Iwalsh0 = Ewalsh0[::skip]
+
     plt.plot(Ewalsh0.real, Ewalsh0.imag, ':k', alpha=alpha)
     plt.plot(Iwalsh0.real, Iwalsh0.imag, 'xk')
 

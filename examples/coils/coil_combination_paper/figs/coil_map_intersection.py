@@ -26,7 +26,8 @@ if __name__ == '__main__':
         mask0 = np.ones(mask.shape)
         mask0[mask == 0] = np.nan
         plt.pcolor(
-            X, Y, mask*np.angle(mps[cc, ...])*mask0, cmap=cm.afmhot)
+            X, Y, mask*np.angle(mps[cc, ...])*mask0,
+            cmap=cm.afmhot) # pylint: disable=E1101
 
     # # plt.pcolor(X, Y, max_amps)
     # cbar = plt.colorbar(ticks=[.4, .95])
