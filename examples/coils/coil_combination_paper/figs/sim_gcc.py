@@ -1,4 +1,4 @@
-'''Sum of squares comparison figure for simulation.'''
+'''GCC comparison figure for simulation.'''
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,7 +7,7 @@ from sigpy.mri import birdcage_maps
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.test_data.phantom import cylinder_2d
 from mr_utils.recon.ssfp import gs_recon
-from mr_utils.utils import sos
+from mr_utils.coils.coil_combine import gcc
 
 if __name__ == '__main__':
 
@@ -40,19 +40,21 @@ if __name__ == '__main__':
         n = n_r + 1j*n_i
         I += n
 
-    # Do coil by coil lGS and then SOS
+    # Do coil by coil lGS and then GCC
     lGS = np.zeros((ncoils, N, N), dtype='complex')
     for cc in range(ncoils):
         lGS[cc, ...] = gs_recon(I[cc, ...], pc_axis=0)
-    lGSsos = sos(lGS, axes=0)
+    lGSgcc = gcc(lGS, coil_axis=0)
 
-    # Now do SOS across coils and do lGS
-    I_sos = sos(I, axes=0)
-    I_sos_lGS = gs_recon(I_sos, pc_axis=0)
+    # Now do GCC across coils and do lGS
+    I_gcc = np.zeros((npcs, N, N), dtype='complex')
+    for ii in range(npcs):
+        I_gcc[ii, ...] = gcc(I[:, ii, ...], coil_axis=0)
+    I_gcc_lGS = gs_recon(I_gcc, pc_axis=0)
     # from mr_utils import view
-    # view(np.stack((lGSsos, I_sos_lGS)))
+    # view(np.stack((lGSgcc, I_gcc_lGS)))
 
-    # Now do SOS across coils, substitute phase, and do lGS
+    # Now do GCC across coils, substitute phase, and do lGS
     phase = np.zeros((npcs, N, N))
     for pc in range(npcs):
         for idx in np.ndindex((N, N)):
@@ -61,49 +63,14 @@ if __name__ == '__main__':
             phase[pc, ii, jj] = np.angle(I[midx, pc, ii, jj])
     phase = np.unwrap(phase, axis=0)
 
-    I_sos_sub = I_sos*np.exp(1j*phase)
-    I_sos_sub_lGS = gs_recon(I_sos_sub, pc_axis=0)
-    # from mr_utils import view
-    # view(np.unwrap(phase, axis=0))
-    # # view(np.stack((lGSsos, I_sos_lGS, I_sos_sub_lGS)))
-    # I_sos_sub_lGS = np.abs(I_sos_sub_lGS)*np.exp(
-    #     1j*np.unwrap(np.angle(I_sos_sub_lGS), axis=0))
-    # # view(np.unwrap(np.angle(I_sos_sub_lGS), axis=0))
+    I_gcc_sub = np.abs(I_gcc)*np.exp(1j*phase)
+    I_gcc_sub_lGS = gs_recon(I_gcc_sub, pc_axis=0)
+
 
     # Set up LaTeX
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif', size=16)
 
-
-    # First show the phase of the phase substitution
-    # nx, ny = 1, npcs
-    # args = {
-    #     # 'vmin': -np.pi,
-    #     # 'vmax': np.pi,
-    # }
-    mask = lGSsos > .5
-    plt.subplot(1, 2, 1)
-    plt.imshow(I_sos[0, ...]*mask, cmap='gray')
-    plt.xlabel('0° phase-cycle SOS combination.')
-    plt.tick_params(
-        top='off', bottom='off', left='off', right='off',
-        labelleft='off', labelbottom='off')
-
-    plt.subplot(1, 2, 2)
-    plt.imshow(phase[0, ...]*mask)
-    plt.colorbar()
-    plt.xlabel('Phase substitution for 0° phase-cycle.')
-    plt.tick_params(
-        top='off', bottom='off', left='off', right='off',
-        labelleft='off', labelbottom='off')
-    plt.show()
-    # # from skimage.restoration import unwrap_phase
-    # for ii in range(npcs):
-    #     # phase[ii, ...] = unwrap_phase(phase[ii, ...]*mask)
-    #     plt.subplot(nx, ny, ii+1)
-    #     plt.imshow(phase[ii, ...], **args)
-    #     plt.title('Phase-cycle: %d°' % (ii*90))
-    # plt.show()
 
     # Now show the recon results
     args = {
@@ -115,29 +82,29 @@ if __name__ == '__main__':
 
     # First row
     plt.subplot(nx, ny, 1)
-    plt.imshow(np.abs(lGSsos), **args)
-    plt.title('Coil-by-coil lGS + SOS')
+    plt.imshow(np.abs(lGSgcc), **args)
+    plt.title('Coil-by-coil lGS + GCC')
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')
 
     plt.subplot(nx, ny, 2)
-    plt.imshow(np.abs(I_sos_lGS), **args)
-    plt.title('Coil-SOS + lGS')
+    plt.imshow(np.abs(I_gcc_lGS), **args)
+    plt.title('Coil-GCC + lGS')
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')
 
     plt.subplot(nx, ny, 3)
-    plt.imshow(np.abs(I_sos_sub_lGS), **args)
-    plt.title('Coil-SOS + phase sub + lGS')
+    plt.imshow(np.abs(I_gcc_sub_lGS), **args)
+    plt.title('Coil-GCC + phase sub + lGS')
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')
 
     # Second row
     plt.subplot(nx, ny, 5)
-    plt.imshow(np.abs(lGSsos - I_sos_lGS), **args)
+    plt.imshow(np.abs(np.abs(lGSgcc) - np.abs(I_gcc_lGS)), **args)
     plt.ylabel('Residual Error')
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
@@ -145,7 +112,7 @@ if __name__ == '__main__':
 
     plt.subplot(nx, ny, 6)
     plt.imshow(
-        np.abs(lGSsos - np.abs(I_sos_sub_lGS)), **args)
+        np.abs(np.abs(lGSgcc) - np.abs(I_gcc_sub_lGS)), **args)
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')
