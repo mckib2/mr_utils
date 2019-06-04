@@ -46,22 +46,22 @@ def rigid_composite_ellipse(
 
     # Find rigid transformation to arbitrary location at every pixel
     composite_ellipse = np.zeros((npcs, npx), dtype='complex')
-    for ii in range(npx):
-        T = np.zeros(ncoils, dtype='complex')
-        R = np.zeros((ncoils, npcs), dtype='complex')
-        for cc in range(ncoils):
-            I0 = I[cc, :, ii]
-            T0 = np.linalg.lstsq(
-                I0[:, None], np.ones(npcs), rcond=None)[0][0]
-            T[cc] = T0
-            R[cc, :] = I0*T0
+    T = np.zeros((ncoils, npx), dtype='complex')
+    R = np.zeros((ncoils, npcs, npx), dtype='complex')
+    for cc in range(ncoils):
+        I0 = I[cc, :, ...]
+        T0 = np.linalg.lstsq(
+            I0, np.ones(npcs), rcond=None)[0][0]
+        T[cc] = T0
+        R[cc, ...] = I0*T0
 
-        # Construct composite ellipse for this pixel
-        weights = np.abs(1/T)
-        weights *= sigma2
-        weights /= np.sum(weights)
-        comp_ell = np.average(R, axis=0, weights=weights)
-        composite_ellipse[:, ii] = comp_ell
+    # Construct composite ellipse for this pixel
+    weights = np.abs(1/T)**2
+    weights *= sigma2
+    weights /= np.sum(weights)
+    # Do the weighted average:
+    composite_ellipse = np.multiply(
+        R, weights[:, None, :]).sum(axis=0)
 
     # The average removed the coil dim, but we still need it, so add
     # it back in as the first dimension

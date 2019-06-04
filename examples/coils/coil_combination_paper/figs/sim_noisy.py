@@ -16,8 +16,10 @@ from mr_utils.coils.coil_combine import rigid_composite_ellipse
 if __name__ == '__main__':
 
     SNRs = np.linspace(1, 70, 10)
-    # N = 256
-    N = 64
+    # fig_SNR = [SNRs[3], SNRs[-1]] # SNR to use for comparison figure
+    fig_SNR = [SNRs[6]]
+    N = 256
+    # N = 64
     npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
     ncoils = 5
@@ -40,6 +42,11 @@ if __name__ == '__main__':
     # from mr_utils import view
     # view(I, montage_axis=0, movie_axis=1)
 
+    # Make a reference image by doing lGS without any coils
+    Iref = ssfp(
+        T1s, T2s, TR, alpha, df, phase_cyc=pcs, M0=PD, phi_rf=0)
+    Iref = gs_recon(Iref, pc_axis=0)
+
     # Make mask for pretty figs
     mask = sos(Itrue, axes=(0, 1)) > .5
 
@@ -58,6 +65,12 @@ if __name__ == '__main__':
     # Get ready to measure MSE
     mse = np.zeros((len(ccs), 3, SNRs.size))
     ssim = np.zeros((len(ccs), 3, SNRs.size))
+
+    # Array to hold image comparsion figure data:
+    # (coil-comb, [ref, coil-by-coil, naive, full, simple]=5, images)
+    comp = np.zeros((len(fig_SNR), len(ccs), 5, N, N))
+
+    # Do the thing!
     for ccidx, cc in tqdm(
             enumerate(ccs), leave=False, total=len(ccs)):
         for SNRidx, SNR  in tqdm(
@@ -83,17 +96,29 @@ if __name__ == '__main__':
 
             # Get phase substitution using simple method
             phase = np.zeros((npcs, N, N))
-            for pc in range(npcs):
-                for idx in np.ndindex((N, N)):
-                    ii, jj = idx[:]
+            for idx in np.ndindex((N, N)):
+                ii, jj = idx[:]
+
+                coil_idxs = np.zeros(npcs, dtype=int)
+                for pc in range(npcs):
                     midx = np.argmax(np.abs(I[:, pc, ii, jj]))
-                    phase[pc, ii, jj] = np.angle(I[midx, pc, ii, jj])
+
+                    # We need to make sure all the phase cycles take
+                    # from the same coil!
+                    coil_idxs[pc] = midx
+                midx = np.bincount( # pylint: disable=E1101
+                    coil_idxs).argmax()
+
+                # Steal the phase!
+                phase[:, ii, jj] = np.angle(I[midx, :, ii, jj])
             phase = np.unwrap(phase, axis=0) # ellipse unwrapping
 
             # Get phase substitution using full method
             phase_full = rigid_composite_ellipse(
                 I, coil_axis=0, pc_axis=1)
             phase_full = np.unwrap(phase_full, axis=0)
+            # from skimage.restoration import unwrap_phase
+            # phase_full = unwrap_phase(phase_full*mask)
 
             # Get gold standard by coil combing the coil-by-coil lGS
             # lGSsos = sos(lGS, axes=0)
@@ -115,46 +140,105 @@ if __name__ == '__main__':
             I_cc_sub_full = np.abs(I_cc)*np.exp(1j*phase_full)
             I_cc_sub_full_lGS = gs_recon(I_cc_sub_full, pc_axis=0)
 
+            # Stuff the array for the comparison figure
+            if SNR in fig_SNR:
+                figidx = np.argwhere(fig_SNR == SNR).squeeze()
+                if ccidx == 0:
+                    # reference
+                    comp[figidx, ccidx, 0, ...] = np.abs(Iref)
+
+                # coil-by-coil
+                comp[figidx, ccidx, 1, ...] = np.abs(lGScc)
+
+                 # naive
+                comp[figidx, ccidx, 2, ...] = np.abs(I_cc_lGS)
+
+                # full
+                comp[figidx, ccidx, 3, ...] = np.abs(
+                    I_cc_sub_full_lGS)
+
+                # simple
+                comp[figidx, ccidx, 4, ...] = np.abs(I_cc_sub_lGS)
+
             # Measure MSE
             mse[ccidx, 0, SNRidx] = compare_mse(
-                np.abs(lGScc), np.abs(I_cc_lGS))
+                np.abs(Iref), np.abs(I_cc_lGS))
             mse[ccidx, 1, SNRidx] = compare_mse(
-                np.abs(lGScc), np.abs(I_cc_sub_lGS))
+                np.abs(Iref), np.abs(I_cc_sub_lGS))
             mse[ccidx, 2, SNRidx] = compare_mse(
-                np.abs(lGScc), np.abs(I_cc_sub_full_lGS))
+                np.abs(Iref), np.abs(I_cc_sub_full_lGS))
 
             # Measure similarity index
             ssim[ccidx, 0, SNRidx] = compare_ssim(
-                np.abs(lGScc), np.abs(I_cc_lGS))
+                np.abs(Iref), np.abs(I_cc_lGS))
             ssim[ccidx, 1, SNRidx] = compare_ssim(
-                np.abs(lGScc), np.abs(I_cc_sub_lGS))
+                np.abs(Iref), np.abs(I_cc_sub_lGS))
             ssim[ccidx, 2, SNRidx] = compare_ssim(
-                np.abs(lGScc), np.abs(I_cc_sub_full_lGS))
+                np.abs(Iref), np.abs(I_cc_sub_full_lGS))
 
     # Set up LaTeX
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif', size=16)
+
+    # Comparison figures
+    nx, ny = len(ccs), 5
+    args = {'vmin': 0, 'vmax': 1.1}
+    # args = {}
+    for kk in range(len(fig_SNR)):
+        titles = [
+            'Reference (SNR=%d)' % fig_SNR[kk],
+            'Coil-by-coil',
+            'Naive',
+            'Full',
+            'Simple']
+        idx = 1
+        for ii in range(nx):
+            for jj in range(ny):
+                if not np.allclose(
+                        comp[kk, ii, jj, ...], np.zeros((N, N))):
+                    plt.subplot(nx, ny, idx)
+                    plt.imshow(
+                        comp[kk, ii, jj, ...], cmap='gray', **args)
+
+                    # Add MSE to each figure
+                    plt.xlabel('MSE: %e' % compare_mse(
+                        comp[kk, 0, 0, ...],
+                        comp[kk, ii, jj, ...]), fontsize=10)
+
+                    # Add headers
+                    if ii == 0:
+                        plt.title(titles[jj])
+                    if jj == 1:
+                        plt.ylabel(cc_labels[ii])
+
+                    # Remove extras
+                    plt.tick_params(
+                        top='off', bottom='off', left='off',
+                        right='off', labelleft='off',
+                        labelbottom='off')
+                idx += 1
+        plt.show()
 
     # Plot MSE for no phase sub
     for ii in range(len(ccs)):
         plt.semilogy(
             SNRs,
             mse[ii, 0, :],
-            '-', label='%s: no sub' % cc_labels[ii])
+            '-', label='%s: Naive' % cc_labels[ii])
 
     # Plot MSE for phase sub
     for ii in range(len(ccs)):
         plt.semilogy(
             SNRs,
             mse[ii, 1, :],
-            '--', label='%s: sub' % cc_labels[ii])
+            '--', label='%s: Simple' % cc_labels[ii])
 
     # Plot MSE for full phase sub
     for ii in range(len(ccs)):
         plt.semilogy(
             SNRs,
             mse[ii, 2, :],
-            ':', label='%s: full' % cc_labels[ii])
+            ':', label='%s: Full' % cc_labels[ii])
 
     plt.legend()
     plt.title('log(MSE) vs SNR')
@@ -167,21 +251,21 @@ if __name__ == '__main__':
         plt.plot(
             SNRs,
             ssim[ii, 0, :],
-            '-', label='%s: no sub' % cc_labels[ii])
+            '-', label='%s: Naive' % cc_labels[ii])
 
     # Plot SSIM for phase sub
     for ii in range(len(ccs)):
         plt.plot(
             SNRs,
             ssim[ii, 1, :],
-            '--', label='%s: sub' % cc_labels[ii])
+            '--', label='%s: Simple' % cc_labels[ii])
 
     # Plot SSIM for full phase sub
     for ii in range(len(ccs)):
         plt.plot(
             SNRs,
             ssim[ii, 2, :],
-            ':', label='%s: full' % cc_labels[ii])
+            ':', label='%s: Full' % cc_labels[ii])
 
     plt.legend()
     plt.title('SSIM vs SNR')
