@@ -1,6 +1,7 @@
 '''Rigid transformation to find composite ellipses.'''
 
 import numpy as np
+from tqdm import trange
 
 def rigid_composite_ellipse(
         I, coil_axis=0, pc_axis=1, sigma2=1, ret_ellipse=False):
@@ -44,24 +45,46 @@ def rigid_composite_ellipse(
     I = np.reshape(I, I.shape[:2] + (-1,))
     npx = I.shape[2]
 
-    # Find rigid transformation to arbitrary location at every pixel
+    # The reference ellipse is important, so pixel-wise it is...
     composite_ellipse = np.zeros((npcs, npx), dtype='complex')
     T = np.zeros((ncoils, npx), dtype='complex')
     R = np.zeros((ncoils, npcs, npx), dtype='complex')
-    for cc in range(ncoils):
-        I0 = I[cc, :, ...]
-        T0 = np.linalg.lstsq(
-            I0, np.ones(npcs), rcond=None)[0][0]
-        T[cc] = T0
-        R[cc, ...] = I0*T0
+    for ii in trange(npx, leave=False, desc='Rigid comp. ellipse'):
 
-    # Construct composite ellipse for this pixel
-    weights = np.abs(1/T)**2
-    weights *= sigma2
-    weights /= np.sum(weights)
-    # Do the weighted average:
-    composite_ellipse = np.multiply(
-        R, weights[:, None, :]).sum(axis=0)
+        # Find the reference coil for this pixel (use arbitrarily
+        # chosen phase-cycle point)
+        # from mr_utils.utils import sos
+        # midx = np.argmax(sos(I[..., ii], axes=1))
+        midx = np.argmax(np.abs(I[:, 0, ii]))
+        ref = I[midx, :, ii]
+
+        # Compute the rigid transform to the reference coil
+        for cc in range(ncoils):
+            I0 = I[cc, :, ii].copy()
+            T0 = np.linalg.lstsq(
+                I0[:, None], ref, rcond=None)[0]
+            T[cc, ii] = T0
+            R[cc, :, ii] = I0*T0
+
+        weights = 1/np.abs(T[:, ii])**2
+        weights /= sigma2
+        weights /= np.sum(weights)
+        # print(weights.shape, R[..., ii].shape)
+        composite_ellipse[:, ii] = np.average(
+            R[..., ii], axis=0, weights=weights)
+
+    # composite_ellipse = np.zeros((npcs, npx), dtype='complex')
+    # T = np.zeros((ncoils, npx), dtype='complex')
+    # R = np.zeros((ncoils, npcs, npx), dtype='complex')
+    # midx = np.argmax(np.abs(I[:, 0, :]), axis=0)
+    # ref = np.zeros((npcs, npx), dtype='complex')
+    # for ii in range(npx):
+    #     ref[:, ii] = I[midx[ii], :, ii]
+    # for cc in range(ncoils):
+    #     I0 = I[cc, ...]
+    #     print(I0.shape, ref.shape)
+    #     T0 = np.linalg.lstsq(I0, ref, rcond=None)[0]
+    #     print(T0.shape)
 
     # The average removed the coil dim, but we still need it, so add
     # it back in as the first dimension

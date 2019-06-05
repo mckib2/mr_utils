@@ -6,3 +6,4 @@ from .svd import svd
 from .espirit import espirit
 from .composite_ellipse import composite_ellipse
 from .rigid_composite_ellipse import rigid_composite_ellipse
+from .simple_composite_ellipse import simple_composite_ellipse

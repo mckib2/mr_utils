@@ -11,7 +11,8 @@ from mr_utils.test_data.phantom import cylinder_2d
 from mr_utils.recon.ssfp import gs_recon
 from mr_utils.utils import sos
 from mr_utils.coils.coil_combine import gcc, walsh
-from mr_utils.coils.coil_combine import rigid_composite_ellipse
+from mr_utils.coils.coil_combine import (
+    rigid_composite_ellipse, simple_composite_ellipse)
 
 if __name__ == '__main__':
 
@@ -95,22 +96,8 @@ if __name__ == '__main__':
                 lGS[jj, ...] = gs_recon(I[jj, ...], pc_axis=0)
 
             # Get phase substitution using simple method
-            phase = np.zeros((npcs, N, N))
-            for idx in np.ndindex((N, N)):
-                ii, jj = idx[:]
-
-                coil_idxs = np.zeros(npcs, dtype=int)
-                for pc in range(npcs):
-                    midx = np.argmax(np.abs(I[:, pc, ii, jj]))
-
-                    # We need to make sure all the phase cycles take
-                    # from the same coil!
-                    coil_idxs[pc] = midx
-                midx = np.bincount( # pylint: disable=E1101
-                    coil_idxs).argmax()
-
-                # Steal the phase!
-                phase[:, ii, jj] = np.angle(I[midx, :, ii, jj])
+            phase = simple_composite_ellipse(
+                I, coil_axis=0, pc_axis=1)
             phase = np.unwrap(phase, axis=0) # ellipse unwrapping
 
             # Get phase substitution using full method
