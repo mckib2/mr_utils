@@ -4,9 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage.measure import compare_mse
 
+# Use this walsh as mine breaks for the really noisy data...
+from ismrmrdtools.coils import calculate_csm_walsh as walsh
+
 from mr_utils.test_data import load_test_data
 from mr_utils.recon.ssfp import gs_recon
-from mr_utils.coils.coil_combine import walsh, gcc
+from mr_utils.coils.coil_combine import gcc
 from mr_utils.coils.coil_combine import (
     rigid_composite_ellipse, simple_composite_ellipse)
 from mr_utils.utils import sos
@@ -63,8 +66,9 @@ if __name__ == '__main__':
     ccs = [
         lambda x0: sos(x0, axes=0),
         lambda x0: gcc(x0, vcoils=1, coil_axis=0),
-        lambda x0: np.sum(
-            walsh(x0, coil_axis=0).conj()*x0, axis=0)
+        # lambda x0: np.sum(
+        #     walsh(x0, coil_axis=0).conj()*x0, axis=0)
+        lambda x0: np.sum(walsh(x0)[0].conj()*x0, axis=0)
     ]
     cc_labels = [
         'SOS',
