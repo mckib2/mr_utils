@@ -38,9 +38,13 @@ acquired and start filling in all ellipses with the best neighboring
 values (the ellipses that most closely match the home ellipse),
 hoping that off-resonance will help us out by not being too little or
 too large.  So we do require a well-shimmed magnet, I suppose.
-'''
 
-import math
+After talking with Neal, seems like it becomes less interesting when
+you have to rely on other pixels.  Also, off-resonance probably won't
+change enough to give a well-conditioned cross-point -- there's a
+reason we use evenly spaced phase-cycles.  Maybe applying a shim to
+make a large off-resonance across the FOV like we've done before?
+'''
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,7 +53,7 @@ from mr_utils.test_data.phantom import cylinder_2d
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.recon.ssfp import gs_recon
 from mr_utils.utils import (
-    sos, fit_ellipse_halir, plot_conic, get_center)
+    sos, fit_ellipse_halir, plot_conic)
 from mr_utils import view # pylint: disable=W0611
 
 def intersect(P0, P1):

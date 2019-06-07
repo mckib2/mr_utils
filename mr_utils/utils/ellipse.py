@@ -428,7 +428,7 @@ def conic2parametric(C):
     M = np.array([[A, B/2], [B/2, C]])
 
     # Get eigenvalues
-    lams = np.linalg.eigvalsh(M)
+    lams = np.linalg.eigvalsh(M) # M is symmetric
 
     # Order eigenvalues so that:
     #     | lam0 - A | <= | lam1 - C |
@@ -437,13 +437,51 @@ def conic2parametric(C):
     else:
         lam1, lam0 = lams[:]
 
-    a = np.sqrt(-1*np.linalg.det(M0)/(np.linalg.det(M)*lam0))
-    b = np.sqrt(-1*np.linalg.det(M0)/(np.linalg.det(M)*lam1))
-    h = (B*E - 2*C*D)/(4*A*C - B**2)
-    k = (B*D - 2*A*E)/(4*A*C - B**2)
-    tau = np.arctan2(B, (A - C))/2
+    detM0 = np.linalg.det(M0)
+    detM = np.linalg.det(M)
+    a = np.sqrt(-1*detM0/(detM*lam0))
+    b = np.sqrt(-1*detM0/(detM*lam1))
+
+    den = 4*A*C - B**2
+    h = (B*E - 2*C*D)/den
+    k = (B*D - 2*A*E)/den
+    tau = np.arctan2(B, A - C)/2
 
     return(a, b, h, k, tau)
+
+def parametric2conic(a, b, h, k, tau):
+    '''Convert parametetric representation of ellipse to conic.
+
+    Notes
+    -----
+    See Page 18 of http://www.cs.cornell.edu/cv/OtherPdf/Ellipse.pdf.
+
+    Parameters
+    ----------
+    a : float
+    b : float
+    h : float
+    k : float
+    tau : float
+
+    Returns
+    -------
+    C : array_like
+        Conic parameters (implicit ellipse equation coefficients).
+    '''
+
+    c = np.cos(tau)
+    s = np.sin(tau)
+
+    C = np.zeros(6)
+    C[0] = (b*c)**2 + (a*s)**2
+    C[1] = -2*c*s*(a**2 - b**2)
+    C[2] = (b*s)**2 + (a*c)**2
+    C[3] = -2*C[0]*h - k*C[1]
+    c[4] = -2*C[2]*k - h*C[1]
+    C[5] = -(a*b)**2 + C[0]*h**2 + C[1]*h*k + C[2]*k**2
+    return C
+
 
 def plot_conic(C, n=100):
     '''Get points to plot ellipse defined by C.
