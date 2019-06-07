@@ -16,7 +16,6 @@ from mr_utils import view # pylint: disable=W0611
 
 if __name__ == '__main__':
 
-
     N = 64
     radius = .9
     PD, T1, T2 = cylinder_2d((N, N), radius=radius)
