@@ -6,22 +6,23 @@ import numpy as np
 from scipy.optimize import leastsq
 
 def get_semiaxes(c):
-    '''Solve for semi-axes of the cartesian form of the ellipse equation.
+    '''Solve for semi-axes of the cartesian form of ellipse equation.
 
     Parameters
-    ==========
+    ----------
     c : array_like
-        Coefficients of general quadratic polynomial function for conic funs.
+        Coefficients of general quadratic polynomial function for
+        conic functions.
 
     Returns
-    =======
+    -------
     float
         Semi-major axis
     float
         Semi-minor axis
 
     Notes
-    =====
+    -----
     https://en.wikipedia.org/wiki/Ellipse
     '''
     A, B, C, D, E, F = c[:]
@@ -41,12 +42,13 @@ def get_center(c):
     '''Compute center of ellipse from implicit function coefficients.
 
     Parameters
-    ==========
+    ----------
     c : array_like
-        Coefficients of general quadratic polynomial function for conic funs.
+        Coefficients of general quadratic polynomial function for
+        conic funs.
 
     Returns
-    =======
+    -------
     xc : float
         x coordinate of center.
     yc : float
@@ -62,7 +64,7 @@ def rotate_points(x, y, phi, p=(0, 0)):
     '''Rotate points x, y through angle phi w.r.t. point p.
 
     Parameters
-    ==========
+    ----------
     x : array_like
         x coordinates of points to be rotated.
     y : array_like
@@ -73,7 +75,7 @@ def rotate_points(x, y, phi, p=(0, 0)):
         Point to rotate around.
 
     Returns
-    =======
+    -------
     xr : array_like
         x coordinates of rotated points.
     yr : array_like
@@ -89,19 +91,20 @@ def rotate_coefficients(c, phi):
     '''Rotate coefficients of implicit equations through angle phi.
 
     Parameters
-    ==========
+    ----------
     c : array_like
-        Coefficients of general quadratic polynomial function for conic funs.
+        Coefficients of general quadratic polynomial function for
+        conic funs.
     phi : float
         Angle in radians to rotate ellipse.
 
     Returns
-    =======
+    -------
     array_like
         Coefficients of rotated ellipse.
 
     Notes
-    =====
+    -----
     http://www.mathamazement.com/Lessons/Pre-Calculus/09_Conic-Sections-and-Analytic-Geometry/rotation-of-axes.html
     '''
     cp, c2p = np.cos(phi), np.cos(2*phi)
@@ -115,15 +118,15 @@ def rotate_coefficients(c, phi):
     return np.array([Ar, Br, Cr, Dr, Er, F])
 
 def do_planet_rotation(I):
-    '''Rotate complex points to fit vertical ellipse centered at (xc, 0).
+    '''Rotate complex pts to fit vertical ellipse centered at (xc, 0).
 
     Parameters
-    ==========
+    ----------
     I : array_like
         Complex points from SSFP experiment.
 
     Returns
-    =======
+    -------
     xr : array_like
         x coordinates of rotated points.
     yr : array_like
@@ -131,8 +134,8 @@ def do_planet_rotation(I):
     cr : array_like
         Coefficients of rotated ellipse.
     phi : float
-        Rotation angle in radians of effective rotation to get ellipse vertical
-        and in the x > 0 half plane.
+        Rotation angle in radians of effective rotation to get
+        ellipse vertical and in the x > 0 half plane.
     '''
 
     # Represent complex number in 2d plane
@@ -140,10 +143,10 @@ def do_planet_rotation(I):
     y = I.imag.flatten()
 
     # Fit ellipse and find initial guess at what rotation will make it
-    # vertical with center at (xc, 0).  The arctan term rotates the ellipse
-    # to be horizontal, then we need to decide whether to add +/- 90 degrees
-    # to get it vertical.  We want xc to be positive, so we must choose the
-    # rotation to get it vertical.
+    # vertical with center at (xc, 0).  The arctan term rotates the
+    # ellipse to be horizontal, then we need to decide whether to add
+    # +/- 90 degrees to get it vertical.  We want xc to be positive,
+    # so we must choose the rotation to get it vertical.
     c = fit_ellipse_halir(x, y)
     phi = -.5*np.arctan2(c[1], (c[0] - c[2])) + np.pi/2
     xr, yr = rotate_points(x, y, phi)
@@ -161,12 +164,12 @@ def do_planet_rotation(I):
     cr = fit_ellipse_halir(xr, yr)
     # print(get_center(cr))
 
-    # With noisy measurements, sometimes the fit is incorrect in the above
-    # steps and the ellipse ends up horizontal.  We can realize this by finding
-    # the major and minor semiaxes of the ellipse.  The first axis returned
-    # should be the smaller if we were correct, if not, do above steps again
-    # with an extra factor of +/- 90 deg to get the ellipse standing up
-    # vertically.
+    # With noisy measurements, sometimes the fit is incorrect in the
+    # above steps and the ellipse ends up horizontal.  We can realize
+    # this by finding the major and minor semiaxes of the ellipse.
+    # The first axis returned should be the smaller if we were
+    # correct, if not, do above steps again with an extra factor of
+    # +/- 90 deg to get the ellipse standing up vertically.
     ax = get_semiaxes(c)
     if ax[0] > ax[1]:
         # print('FLIPPITY FLOPPITY!')
@@ -190,7 +193,7 @@ def check_fit(C, x, y):
     '''General quadratic polynomial function.
 
     Parameters
-    ==========
+    ----------
     C : array_like
         coefficients.
     x : array_like
@@ -199,81 +202,84 @@ def check_fit(C, x, y):
         y coordinates assumed to be on ellipse.
 
     Returns
-    =======
+    -------
     float
         Measure of how well the ellipse fits the points (x, y).
 
     Notes
-    =====
-    We want this to equal 0 for a good ellipse fit.   This polynomial is called
-    the algebraic distance of the point (x, y) to the given conic.
+    -----
+    We want this to equal 0 for a good ellipse fit.   This polynomial
+    is called the algebraic distance of the point (x, y) to the given
+    conic.
 
     This equation is referenced in [1]_ and [2]_.
 
     References
-    ==========
-    .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting approach for
-           simultaneous T1 and T2 mapping using phase‐cycled balanced
-           steady‐state free precession." Magnetic resonance in medicine 79.2
-           (2018): 711-722.
+    ----------
+    .. [1] Shcherbakova, Yulia, et al. "PLANET: an ellipse fitting
+           approach for simultaneous T1 and T2 mapping using
+           phase‐cycled balanced steady‐state free precession."
+           Magnetic resonance in medicine 79.2 (2018): 711-722.
 
-    .. [2] Halır, Radim, and Jan Flusser. "Numerically stable direct least
-           squares fitting of ellipses." Proc. 6th International Conference in
-           Central Europe on Computer Graphics and Visualization. WSCG. Vol.
-           98. 1998.
+    .. [2] Halır, Radim, and Jan Flusser. "Numerically stable direct
+           least squares fitting of ellipses." Proc. 6th
+           International Conference in Central Europe on Computer
+           Graphics and Visualization. WSCG. Vol. 98. 1998.
     '''
     x = x.flatten()
     y = y.flatten()
     return C[0]*x**2 + C[1]*x*y + C[2]*y**2 + C[3]*x + C[4]*y + C[5]
 
 def fit_ellipse_halir(x, y):
-    '''Python port of improved ellipse fitting algorithm by Halir and Flusser.
+    '''Improved ellipse fitting algorithm by Halir and Flusser.
 
     Parameters
-    ==========
+    ----------
     x : array_like
         y coordinates assumed to be on ellipse.
     y : array_like
         y coordinates assumed to be on ellipse.
 
     Returns
-    =======
+    -------
     array_like
         Ellipse coefficients.
 
     Notes
-    =====
+    -----
     Note that there should be at least 6 pairs of (x,y).
 
     From the paper's conclusion:
 
-        "Due to its systematic bias, the proposed fitting algorithm cannot be
-        used directly in applications where excellent accuracy of the fitting
-        is required. But even in that applications our method can be useful as
-        a fast and robust estimator of a good initial solution of the fitting
+        "Due to its systematic bias, the proposed fitting algorithm
+        cannot be used directly in applications where excellent
+        accuracy of the fitting is required. But even in that
+        applications our method can be useful as a fast and robust
+        estimator of a good initial solution of the fitting
         problem..."
 
     See figure 2 from [2]_.
     '''
 
-    # We should just have a bunch of points, so we can shape it into a column
-    # vector since shape doesn't matter
+    # We should just have a bunch of points, so we can shape it into
+    # a column vector since shape doesn't matter
     x = x.flatten()
     y = y.flatten()
 
     # Make sure we have at least 6 points (6 unknowns...)
     if x.size < 6 and y.size < 6:
-        logging.warning('We need at least 6 sample points for a good fit!')
+        logging.warning(
+            'We need at least 6 sample points for a good fit!')
 
     # Here's the heavy lifting
-    D1 = np.stack((x**2, x*y, y**2)).T # quadratic part of the design matrix
-    D2 = np.stack((x, y, np.ones(x.size))).T # linear part of the design matrix
+    D1 = np.stack((x**2, x*y, y**2)).T # quadratic pt of design matrix
+    D2 = np.stack((x, y, np.ones(x.size))).T # lin part design matrix
     S1 = np.dot(D1.T, D1) # quadratic part of the scatter matrix
     S2 = np.dot(D1.T, D2) # combined part of the scatter matrix
     S3 = np.dot(D2.T, D2) # linear part of the scatter matrix
     T = -1*np.linalg.inv(S3).dot(S2.T) # for getting a2 from a1
     M = S1 + S2.dot(T) # reduced scatter matrix
-    M = np.array([M[2, :]/2, -1*M[1, :], M[0, :]/2]) # premultiply by inv(C1)
+    M = np.array([M[2, :]/2, -1*M[1, :], M[0, :]/2]) #premult by C1^-1
     _eval, evec = np.linalg.eig(M) # solve eigensystem
     cond = 4*evec[0, :]*evec[2, :] - evec[1, :]**2 # evaluate a’Ca
     a1 = evec[:, cond > 0] # eigenvector for min. pos. eigenvalue
@@ -281,22 +287,22 @@ def fit_ellipse_halir(x, y):
     return a
 
 def fit_ellipse_fitzgibon(x, y):
-    '''Python port of direct ellipse fitting algorithm by Fitzgibon et. al.
+    '''Direct ellipse fitting algorithm by Fitzgibon et. al.
 
     Parameters
-    ==========
+    ----------
     x : array_like
         y coordinates assumed to be on ellipse.
     y : array_like
         y coordinates assumed to be on ellipse.
 
     Returns
-    =======
+    -------
     array_like
         Ellipse coefficients.
 
     Notes
-    =====
+    -----
     See Figure 1 from [2]_.
 
     Also see previous python port:
@@ -309,17 +315,20 @@ def fit_ellipse_fitzgibon(x, y):
 
     # Make sure we have at least 6 points (6 unknowns...)
     if x.size < 6 and y.size < 6:
-        logging.warning('We need at least 6 sample points for a good fit!')
+        logging.warning(
+            'We need at least 6 sample points for a good fit!')
 
     # Do the thing
     x = x[:, np.newaxis]
     y = y[:, np.newaxis]
-    D = np.hstack((x*x, x*y, y*y, x, y, np.ones_like(x))) # Design matrix
+    D = np.hstack(
+        (x*x, x*y, y*y, x, y, np.ones_like(x))) # Design matrix
     S = np.dot(D.T, D) # Scatter matrix
     C = np.zeros([6, 6]) # Constraint matrix
     C[(0, 2), (0, 2)] = 2
     C[1, 1] = -1
-    E, V = np.linalg.eig(np.dot(np.linalg.inv(S), C)) # solve eigensystem
+    E, V = np.linalg.eig(np.dot(
+        np.linalg.inv(S), C)) # solve eigensystem
     n = np.argmax(np.abs(E)) # find positive eigenvalue
     a = V[:, n].squeeze() # corresponding eigenvector
     return a
@@ -328,7 +337,7 @@ def fit_ellipse_nonlin(x, y, polar=False):
     '''Fit ellipse only depending on semi-major axis and eccentricity.
 
     Parameters
-    ==========
+    ----------
     x : array_like
         y coordinates assumed to be on ellipse.
     y : array_like
@@ -337,16 +346,16 @@ def fit_ellipse_nonlin(x, y, polar=False):
         Whether or not coordinates are provided as polar or Cartesian.
 
     Returns
-    =======
+    -------
     a : float
         Semi-major axis
     e : float
         Eccentricity
 
     Notes
-    =====
-    Note that if polar=True, then x will be assumed to be radius and y will be
-    assumed to be theta.
+    -----
+    Note that if polar=True, then x will be assumed to be radius and
+    y will be assumed to be theta.
 
     See:
     https://scipython.com/book/chapter-8-scipy/examples/non-linear-fitting-to-an-ellipse/
@@ -366,7 +375,7 @@ def fit_ellipse_nonlin(x, y, polar=False):
         return a * (1 - e**2)/(1 - e*np.cos(theta))
 
     def residuals(p, r, theta):
-        '''Return the observed - calculated residuals using f(theta, p).'''
+        '''Return the observed-calculated residuals using f().'''
         return r - f(theta, p)
 
     def jac(p, _r, theta):
@@ -380,7 +389,8 @@ def fit_ellipse_nonlin(x, y, polar=False):
         return(-da, -de)
 
     p0 = (1, 0.5)
-    plsq = leastsq(residuals, p0, Dfun=jac, args=(r, theta), col_deriv=True)
+    plsq = leastsq(
+        residuals, p0, Dfun=jac, args=(r, theta), col_deriv=True)
     # print(plsq[0])
 
     # import matplotlib.pyplot as plt
@@ -391,3 +401,74 @@ def fit_ellipse_nonlin(x, y, polar=False):
 
     # Return a, e
     return plsq[0]
+
+def conic2parametric(C):
+    '''Convert conic representation of ellipse to parametric.
+
+    Parameters
+    ----------
+    C : array_like
+        Conic parameters of ellipse.
+
+    Returns
+    -------
+    a : float
+    b : float
+    h : float
+    k : float
+    tau : float
+
+    Notes
+    -----
+    See Page 17 of http://www.cs.cornell.edu/cv/OtherPdf/Ellipse.pdf.
+    '''
+
+    A, B, C, D, E, F = C[:]
+    M0 = np.array([[F, D/2, E/2], [D/2, A, B/2], [E/2, B/2, C]])
+    M = np.array([[A, B/2], [B/2, C]])
+
+    # Get eigenvalues
+    lams = np.linalg.eigvalsh(M)
+
+    # Order eigenvalues so that:
+    #     | lam0 - A | <= | lam1 - C |
+    if np.abs(lams[0] - A) <= np.abs(lams[1] - C):
+        lam0, lam1 = lams[:]
+    else:
+        lam1, lam0 = lams[:]
+
+    a = np.sqrt(-1*np.linalg.det(M0)/(np.linalg.det(M)*lam0))
+    b = np.sqrt(-1*np.linalg.det(M0)/(np.linalg.det(M)*lam1))
+    h = (B*E - 2*C*D)/(4*A*C - B**2)
+    k = (B*D - 2*A*E)/(4*A*C - B**2)
+    tau = np.arctan2(B, (A - C))/2
+
+    return(a, b, h, k, tau)
+
+def plot_conic(C, n=100):
+    '''Get points to plot ellipse defined by C.
+
+    Parameters
+    ----------
+    C : array_like
+        Conic parameters.
+    n : int, optional
+        Number of points to return.  Last point will be the same as
+        the first, so n+1 points will actually be returned.
+
+    Returns
+    -------
+    x : array_like
+        n+1 points for the x-axis.
+    y : array_like
+        n+1 points for  the y-axis.
+    '''
+
+    a, b, h, k, tau = conic2parametric(C)
+    t = np.linspace(0, 2*np.pi, n+1)
+
+    c = np.cos(tau)
+    s = np.sin(tau)
+    x = h + c*a*np.cos(t) - s*b*np.sin(t)
+    y = k + s*a*np.cos(t) + c*b*np.sin(t)
+    return(x, y)
