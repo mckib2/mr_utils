@@ -39,12 +39,14 @@ if __name__ == '__main__':
         ('coils_out', str(num_coils))
     ])
     # RO asymmetric echo handling
-    config.add_gadget('AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
+    config.add_gadget(
+        'AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
     config.add_gadget('RemoveROOversampling')
     config.add_gadget('Grappa', props=[
         ('target_coils', str(num_coils)),
         ('use_gpu', 'false'),
-        ('uncombined_channels', ','.join(str(x) for x in range(num_coils))),
+        ('uncombined_channels',
+         ','.join(str(x) for x in range(num_coils))),
     ])
     config.add_gadget('GrappaUnmixing')
     # config.add_gadget('PassthroughPython', 'PythonGadget', props=[
@@ -68,6 +70,7 @@ if __name__ == '__main__':
 
     print(config.tostring())
 
-    im, hdr = client(data, config_local=config.tostring(), verbose=True)
+    im, hdr = client(
+        data, config_local=config.tostring(), verbose=True)
     print(im.shape)
     view(im[0, ...] + 1j*im[1, ...], montage_axis=0)

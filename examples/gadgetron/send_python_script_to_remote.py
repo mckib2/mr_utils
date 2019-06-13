@@ -1,7 +1,8 @@
 '''Remote Gadgetron execution of custom Python Gadget.
 
 Example demonstrating how to use the Gadgetron client to send a
-python Gadget to the remote Gadgetron server and use it in a Gadget chain.
+python Gadget to the remote Gadgetron server and use it in a Gadget
+chain.
 
 The idea is to "bundle" all of the dependencies of the script
 together so that there is no extra setup/installation step before the
@@ -31,11 +32,12 @@ if __name__ == '__main__':
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
     config.add_writer('1022', 'MRIImageWriter')
-    config.add_gadget('RemoveOversamplingPython', 'PythonGadget', props=[
-        ('python_path', default_dir),
-        ('python_module', 'remove_2x_oversampling'),
-        ('python_class', 'Remove2xOversampling'),
-    ])
+    config.add_gadget(
+        'RemoveOversamplingPython', 'PythonGadget', props=[
+            ('python_path', default_dir),
+            ('python_module', 'remove_2x_oversampling'),
+            ('python_class', 'Remove2xOversampling'),
+            ])
     config.add_gadget('AccReconPython', 'PythonGadget', props=[
         ('python_path', default_dir),
         ('python_module', 'accumulate_and_recon'),
@@ -53,7 +55,8 @@ if __name__ == '__main__':
 
     # Get the path to the script we want to send over
     script_path = os.path.join(
-        ROOT_DIR, 'mr_utils', 'gadgetron', 'gadgets', 'rms_coil_combine.py')
+        ROOT_DIR, 'mr_utils', 'gadgetron', 'gadgets',
+        'rms_coil_combine.py')
 
     # from mr_utils.utils import package_script
     # test = ROOT_DIR + '/mr_utils/utils/mi_ssfp.py'

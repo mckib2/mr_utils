@@ -13,7 +13,8 @@ if __name__ == '__main__':
     data = '%s/%s' % (path, file)
 
     config = python_short()
-    im, hdr = client(data, config_local=config.tostring(), verbose=True)
+    im, hdr = client(
+        data, config_local=config.tostring(), verbose=True)
     # im, hdr = client(data, config="python_short.xml", verbose=True)
 
     view(im)
