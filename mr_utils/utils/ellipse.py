@@ -393,11 +393,11 @@ def fit_ellipse_nonlin(x, y, polar=False):
         residuals, p0, Dfun=jac, args=(r, theta), col_deriv=True)
     # print(plsq[0])
 
-    # import matplotlib.pyplot as plt
-    # plt.polar(theta, r, 'x')
-    # theta_grid = np.linspace(0, 2*np.pi, 200)
-    # plt.polar(theta_grid, f(theta_grid, plsq[0]), lw=2)
-    # plt.show()
+    import matplotlib.pyplot as plt
+    plt.polar(theta, r, 'x')
+    theta_grid = np.linspace(0, 2*np.pi, 200)
+    plt.polar(theta_grid, f(theta_grid, plsq[0]), lw=2)
+    plt.show()
 
     # Return a, e
     return plsq[0]
