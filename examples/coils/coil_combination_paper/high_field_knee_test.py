@@ -12,8 +12,8 @@ if __name__ == '__main__':
 
     path = 'mr_utils/test_data/examples/coils/'
     # filename = 'knee_bssfp_7t.npy'
-    # filename = 'meas_MID203_djp_trufi_0ps_25fa_LK_FID49221.dat'
-    filename = 'knee_bssfp_7t_pc0.h5'
+    filename = 'meas_MID203_djp_trufi_0ps_25fa_LK_FID49221.dat'
+    # filename = 'knee_bssfp_7t_pc0.h5'
     load_test_data(path, [filename], do_return=False) # too big
     datafile = '%s/%s' % (path, filename)
 
