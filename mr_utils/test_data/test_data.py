@@ -52,7 +52,8 @@ def load_test_data(path, files, do_return=True):
 
         try:
             if do_return:
-                returnVals.append(np.load('%s/%s' % (path0, file)))
+                localpath = '%s/%s' % (path0, file)
+                returnVals.append(do_return_fun(localpath))
             else:
                 # We just need to make sure that it exists
                 with open('%s/%s' % (path0, file), 'rb') as f:
@@ -66,10 +67,19 @@ def load_test_data(path, files, do_return=True):
                 with open(filename, 'wb') as f:
                     shutil.copyfileobj(r.raw, f)
             if do_return:
-                returnVals.append(np.load('%s/%s' % (path0, file)))
+                localpath = '%s/%s' % (path0, file)
+                returnVals.append(do_return_fun(localpath))
     if do_return:
         return returnVals[:]
     return None
+
+def do_return_fun(localpath):
+    '''Get file to return.'''
+
+    if Path(localpath).suffix == '.dcm':
+        from mr_utils.load_data import load_dicom
+        return load_dicom(localpath)
+    return np.load(localpath)
 
 # ## XPROT FILES
 # # For xprot_parser
