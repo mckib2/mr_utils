@@ -3,6 +3,8 @@
 import numpy as np
 from skimage.util.shape import view_as_windows
 
+from mr_utils import view
+
 def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
     '''Generalized autocalibrating partially parallel acquisiton.
 
@@ -31,13 +33,14 @@ def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
 
     # We need to train the weights
     ky = 2
-    w = np.zeros((nc*(R-1), nc*kx*ky), dtype=np.complex64)
+    # w = np.zeros((nc*(R-1), nc*kx*ky), dtype=np.complex64)
+    # print(w.shape)
 
     # Split the auto-calibration signal into patches.  This is built
     # for ky=2!
     coords = np.argwhere(acs)
-    x0, y0 = coords.min(axis=0)
-    x1, y1 = coords.max(axis=0) + 1
+    y0, x0 = coords.min(axis=0)
+    y1, x1 = coords.max(axis=0) + 1
     ACS = x[:, x0:x1, y0:y1].copy()
 
     # Get all possible patches in the ACS
@@ -62,7 +65,7 @@ def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
 
     # Make the columns be from each patch
     S = S.reshape((-1, nc*kx*ky))
-    T = T.reshape((-1, kx*(R-1)))
+    T = T.reshape((-1, nc*(R-1)))
     print(S.shape, T.shape)
 
     # __                     __     __                     __
@@ -72,13 +75,78 @@ def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
     # | T0,{R-1} T1,{R-1} ... |     | S{kx*ky} S{kx*ky} ... |
     # --                     --     --                     --
 
+    w = np.linalg.lstsq(T, S, rcond=None)[0]
+    print(w.shape)
+
+    # Get all patches not in the ACS, assuming ACS is rectangular:
+    # _____________________
+    # |      ____0___      |
+    # |  2   | ACS  |   3  |
+    # |      --------      |
+    # ----------1----------
+    nACS0 = x[:, :, :y0].copy()
+    nACS1 = x[:, :, y1:].copy()
+    nACS2 = x[:, :x0, :].copy()
+    nACS3 = x[:, y1:, :].copy()
+    print(nACS0.shape, y0, y1)
+
+    S0 = view_as_windows(
+        nACS0, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    S1 = view_as_windows(
+        nACS1, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    # S2 = view_as_windows(
+    #     nACS2, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    # S3 = view_as_windows(
+    #     nACS3, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    print(S0.shape)
+
+    # move coil to end for stacking
+    sh = S0.shape[1:3]
+    S0 = np.moveaxis(S0, 0, -1)
+    S1 = np.moveaxis(S1, 0, -1)
+    S0 = S0.reshape((-1, nc*kx*ky))
+    S1 = S1.reshape((-1, nc*kx*ky))
+    print(S0.shape)
+
+    # Make targets by applying weights to sources
+    T0 = np.dot(w, S0.T).T # conjugate?
+    T1 = np.dot(w, S1.T).T # conjugate?
+    print(T0.shape)
+
+    # Un-reshape
+    T0 = np.moveaxis(T0.reshape((*sh, 1, R-1, nc)), -1, 0)
+    T1 = np.moveaxis(T1.reshape((*sh, 1, R-1, nc)), -1, 0)
+    print(T0.shape)
+
+    # Now put the targets in the right place
+    recon = np.zeros(x.shape, dtype=x.dtype)
+    for ii in range(T0.shape[2]):
+        # recon[:, :, ii*R] = x[:, :, ii*R]
+        # recon[:, :, y1+ii*R] = x[:, :, y1+ii*R]
+
+        # nACS0
+        recon[:, 1:-1, (ii*R+1):(ii*R + R)] = T0[:, :, ii, 0, :]
+
+        # nACS1
+        recon[:, 1:-1, y1+(ii*R+1):y1+(ii*R + R)] = T1[:, :, ii, 0, :]
+
+    # idx = R*(T0.shape[2]+1)
+    # recon[:, :, idx] = x[:, :, idx]
+    recon += x
+
+    # # Add in the ACS
+    # recon[:, x0:x1, y0:y1] = ACS
+
+    view(x, log=True)
+    view(recon, log=True)
+
+
 if __name__ == '__main__':
 
     from sigpy import shepp_logan
     from sigpy.mri import birdcage_maps
-    # from mr_utils import view
     N = 64
-    nc = 2
+    nc = 4
     im = shepp_logan((N, N))
     mps = birdcage_maps((nc, N, N))
     im = im[None, ...]*mps
@@ -99,6 +167,7 @@ if __name__ == '__main__':
     pad = 10
     acs[ctr-pad:ctr+pad, :] = True
     kspace_u[:, ctr-pad:ctr+pad, :] = kspace[:, ctr-pad:ctr+pad, :]
-    # view(kspace_u)
+    # view(kspace_u, fft=True)
 
+    # view(kspace_u, log=True)
     grappa2d(kspace_u, R, acs, kx=3, coil_axis=0, R_axis=1)
