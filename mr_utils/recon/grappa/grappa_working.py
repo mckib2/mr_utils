@@ -1,12 +1,12 @@
 '''Get a simple GRAPPA implementation up and running.'''
 
 import numpy as np
-from skimage.util.shape import view_as_windows
+from skimage.util import view_as_windows, pad as skipad
 
 from mr_utils import view
 
 def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
-    '''Generalized autocalibrating partially parallel acquisiton.
+    '''GRAPPA.
 
     Parameters
     ----------
@@ -30,6 +30,10 @@ def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
     #     (coil, x, y), where y is the dimension that is undersampled
     x = np.moveaxis(x, (coil_axis, R_axis), (0, -1))
     nc, nx, ny = x.shape[:]
+
+    # Pad x so we get boundary patches
+    x = skipad(x, 1, mode='constant')
+    print(x.shape)
 
     # We need to train the weights
     ky = 2
@@ -75,77 +79,96 @@ def grappa2d(x, R, acs, kx, coil_axis=0, R_axis=1):
     # | T0,{R-1} T1,{R-1} ... |     | S{kx*ky} S{kx*ky} ... |
     # --                     --     --                     --
 
-    w = np.linalg.lstsq(T, S, rcond=None)[0]
+    w = np.linalg.lstsq(S, T, rcond=None)[0]
     print(w.shape)
 
-    # Get all patches not in the ACS, assuming ACS is rectangular:
-    # _____________________
-    # |      ____0___      |
-    # |  2   | ACS  |   3  |
-    # |      --------      |
-    # ----------1----------
-    nACS0 = x[:, :, :y0].copy()
-    nACS1 = x[:, :, y1:].copy()
-    nACS2 = x[:, :x0, :].copy()
-    nACS3 = x[:, y1:, :].copy()
-    print(nACS0.shape, y0, y1)
+    # Get all patches
+    # P = view_as_windows(x, (1, kx, R+1))[..., 0, :, :]
+    # view(P[:, 10, 10, ...])
+    # print(P.shape)
+    #
+    # # Get the source matrices
+    # S = P[..., [0, -1]] # upper and lower fully sampled lines
+    # print(S.shape)
+    #
+    # sh = S.shape[1:3]
+    # S = np.moveaxis(S, 0, -1)
+    # S = S.reshape((-1, nc*kx*ky))
+    # T = np.dot(S, w)
+    # T = np.moveaxis(T.reshape((*sh, 1, R-1, nc)), -1, 0)
+    # print(T.shape)
+    #
+    # recon = np.zeros(x.shape, dtype=x.dtype)
+    # for ii in range(nx-2):
+    #     for jj in range(ny-3):
+    #         recon[:, ii, jj] = T[:, ii, jj, 0, 0]
+    # view(recon, log=True)
 
-    S0 = view_as_windows(
-        nACS0, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
-    S1 = view_as_windows(
-        nACS1, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
-    # S2 = view_as_windows(
-    #     nACS2, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
-    # S3 = view_as_windows(
-    #     nACS3, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
-    print(S0.shape)
 
-    # move coil to end for stacking
-    sh = S0.shape[1:3]
-    S0 = np.moveaxis(S0, 0, -1)
-    S1 = np.moveaxis(S1, 0, -1)
-    S0 = S0.reshape((-1, nc*kx*ky))
-    S1 = S1.reshape((-1, nc*kx*ky))
-    print(S0.shape)
-
-    # Make targets by applying weights to sources
-    T0 = np.dot(w, S0.T).T # conjugate?
-    T1 = np.dot(w, S1.T).T # conjugate?
-    print(T0.shape)
-
-    # Un-reshape
-    T0 = np.moveaxis(T0.reshape((*sh, 1, R-1, nc)), -1, 0)
-    T1 = np.moveaxis(T1.reshape((*sh, 1, R-1, nc)), -1, 0)
-    print(T0.shape)
-
-    # Now put the targets in the right place
-    recon = np.zeros(x.shape, dtype=x.dtype)
-    for ii in range(T0.shape[2]):
-        # recon[:, :, ii*R] = x[:, :, ii*R]
-        # recon[:, :, y1+ii*R] = x[:, :, y1+ii*R]
-
-        # nACS0
-        recon[:, 1:-1, (ii*R+1):(ii*R + R)] = T0[:, :, ii, 0, :]
-
-        # nACS1
-        recon[:, 1:-1, y1+(ii*R+1):y1+(ii*R + R)] = T1[:, :, ii, 0, :]
-
-    # idx = R*(T0.shape[2]+1)
-    # recon[:, :, idx] = x[:, :, idx]
-    recon += x
-
-    # # Add in the ACS
-    # recon[:, x0:x1, y0:y1] = ACS
-
-    view(x, log=True)
-    view(recon, log=True)
+    # # Get all patches not in the ACS, assuming ACS is rectangular:
+    # # _____________________
+    # # |      ____0___      |
+    # # |  2   | ACS  |   3  |
+    # # |      --------      |
+    # # ----------1----------
+    # nACS0 = x[:, :, :y0].copy()
+    # nACS1 = x[:, :, y1:].copy()
+    # nACS2 = x[:, :x0, :].copy()
+    # nACS3 = x[:, y1:, :].copy()
+    # print(nACS0.shape, y0, y1)
+    #
+    # S0 = view_as_windows(
+    #     nACS0, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    # S1 = view_as_windows(
+    #     nACS1, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    # # S2 = view_as_windows(
+    # #     nACS2, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    # # S3 = view_as_windows(
+    # #     nACS3, (1, kx, 2), step=(1, 1, R))[..., 0, :, :]
+    # print(S0.shape)
+    #
+    # # move coil to end for stacking
+    # sh = S0.shape[1:3]
+    # S0 = np.moveaxis(S0, 0, -1)
+    # S1 = np.moveaxis(S1, 0, -1)
+    # S0 = S0.reshape((-1, nc*kx*ky))
+    # S1 = S1.reshape((-1, nc*kx*ky))
+    # print(S0.shape)
+    #
+    # # Make targets by applying weights to sources
+    # T0 = np.dot(S0, w)
+    # T1 = np.dot(S1, w)
+    # print(T0.shape)
+    #
+    # # Un-reshape
+    # T0 = np.moveaxis(T0.reshape((*sh, 1, R-1, nc)), -1, 0)
+    # T1 = np.moveaxis(T1.reshape((*sh, 1, R-1, nc)), -1, 0)
+    # print(T0.shape)
+    #
+    # # Now put the targets in the right place
+    # recon = np.zeros(x.shape, dtype=x.dtype)
+    # for ii in range(T0.shape[2]):
+    #
+    #     # nACS0
+    #     recon[:, 1:-1, (ii*R+1):(ii*R + R)] = T0[:, :, ii, 0, :]
+    #
+    #     # nACS1
+    #     recon[:, 1:-1, y1+(ii*R+1):y1+(ii*R + R)] = T1[:, :, ii, 0, :]
+    #
+    # # Add in measured lines and the ACS
+    # recon += x
+    #
+    # view(x, log=True)
+    # view(recon, log=True)
+    # view(recon, fft=True)
+    # # view(x - recon, log=True)
 
 
 if __name__ == '__main__':
 
     from sigpy import shepp_logan
     from sigpy.mri import birdcage_maps
-    N = 64
+    N = 128
     nc = 4
     im = shepp_logan((N, N))
     mps = birdcage_maps((nc, N, N))

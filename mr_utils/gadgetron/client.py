@@ -36,10 +36,11 @@ def client(
         verbose=False):
     '''Send acquisitions to Gadgetron.
 
-    This client allows you to connect to a Gadgetron server and process data.
+    This client allows you to connect to a Gadgetron server and
+    process data.
 
     Parameters
-    ==========
+    ----------
     data : str or array_like
         Input file with file extension or numpy array.
     address : str, optional
@@ -66,21 +67,21 @@ def client(
         Verbose mode.
 
     Returns
-    =======
+    -------
     data : array_like
         Image from Gadgetron
     header : xml
         Header from Gadgetron
 
     Raises
-    ======
+    ------
     NotImplementedError
         `script` bundling is not currently implemented.
     Exception
         `data` is not provided in the correct format.
 
     Notes
-    =====
+    -----
     out_group=None will use the current date as the group name.
     '''
 
@@ -88,8 +89,8 @@ def client(
     if out_group is None:
         out_group = str(datetime.datetime.now())
 
-    # If user wanted to be verbose, let's give them verbose, otherwise just
-    # tell them about warnings
+    # If user wanted to be verbose, let's give them verbose,
+    # otherwise just tell them about warnings
     if verbose:
         logging.basicConfig(format='%(levelname)s: %(message)s',
                             level=logging.DEBUG)
@@ -108,10 +109,11 @@ def client(
     con = gt.Connector()
 
     ## Register all the readers we need:
-    # The readers need to know where to output the data that gadgetron sends
-    # back.  The output is an hdf5 file, but if we don't want that file and
-    # only care about the numpy array, then we'll create a temporary file to
-    # store the output in and then kill it when we're done.
+    # The readers need to know where to output the data that
+    # gadgetron sends back.  The output is an hdf5 file, but if we
+    # don't want that file and only care about the numpy array, then
+    # we'll create a temporary file to store the output in and then
+    # kill it when we're done.
     if outfile is None:
         outfile = NamedTemporaryFile().name
     logging.debug('Writing to filename: %s', outfile)
@@ -122,7 +124,8 @@ def client(
             gt.GADGET_MESSAGE_ISMRMRD_IMAGE_REAL_FLOAT,
             gt.GADGET_MESSAGE_ISMRMRD_IMAGE_CPLX_FLOAT,
             gt.GADGET_MESSAGE_ISMRMRD_IMAGE]:
-        con.register_reader(im_id, gt.ImageMessageReader(outfile, out_group))
+        con.register_reader(im_id, gt.ImageMessageReader(
+            outfile, out_group))
 
     # Images with attributes
     for im_id in [
@@ -134,12 +137,13 @@ def client(
 
     # DICOM
     con.register_reader(
-        gt.GADGET_MESSAGE_DICOM, gt.BlobMessageReader(out_group, 'dcm'))
+        gt.GADGET_MESSAGE_DICOM, gt.BlobMessageReader(
+            out_group, 'dcm'))
     con.register_reader(gt.GADGET_MESSAGE_DICOM_WITHNAME,
                         gt.BlobAttribMessageReader('', 'dcm'))
 
-    # Connect to Gadgetron - if no host, port were supplied then look at the
-    # active profile to get the values
+    # Connect to Gadgetron - if no host, port were supplied then look
+    # at the active profile to get the values
     if (address is None) or (port is None):
         from mr_utils.config import ProfileConfig
         profile = ProfileConfig()
@@ -156,16 +160,19 @@ def client(
         logging.debug('Sending gadgetron configuration script...')
         con.send_gadgetron_configuration_script(config_local)
     else:
-        logging.debug('Sending gadgetron configuration filename %s', config)
+        logging.debug(
+            'Sending gadgetron configuration filename %s', config)
         con.send_gadgetron_configuration_file(config)
 
 
     # Decide what the input was
     if isinstance(data, ismrmrd.Dataset):
-        # User has already given us the ismrmrd dataset that gadgetron expects
+        # User has already given us the ismrmrd dataset that
+        # gadgetron expects
         dset = data
 
-    ## I would like to figure out a way to pass in a numpy array with header!
+    ## I would like to figure out a way to pass in a numpy array with
+    # header!
 
     # If we've given a filename:
     elif isinstance(data, str):
@@ -190,7 +197,8 @@ def client(
     con.send_gadgetron_parameters(xml_config)
 
     # Next, send each acquisition to gadgetron
-    for idx in trange(dset.number_of_acquisitions(), desc='Send', leave=False):
+    for idx in trange(
+            dset.number_of_acquisitions(), desc='Send', leave=False):
         acq = dset.read_acquisition(idx)
         try:
             con.send_ismrmrd_acquisition(acq)
@@ -207,7 +215,8 @@ def client(
     with h5py.File(outfile, 'r') as f:
         # Group might not be image_0
         data = f[out_group][list(f[out_group].keys())[0]]['data'][:]
-        header = f[out_group][list(f[out_group].keys())[0]]['header'][:]
+        header = f[
+            out_group][list(f[out_group].keys())[0]]['header'][:]
         # data = f[out_group]['image_0']['data'][:]
         # header = f[out_group]['image_0']['header'][:]
     return(data, header)
@@ -219,17 +228,19 @@ if __name__ == '__main__':
         description='send acquisitions to Gadgetron',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('data', help='Input file')
-    parser.add_argument('-a', '--address',
-                        help='Address (hostname) of Gadgetron Host')
+    parser.add_argument(
+        '-a', '--address',
+        help='Address (hostname) of Gadgetron Host')
     parser.add_argument('-p', '--port', type=int, help='Port')
     parser.add_argument('-o', '--outfile', help='Output file')
     parser.add_argument('-g', '--in-group', help='Input data group')
     parser.add_argument('-G', '--out-group', help='Output group name')
-    parser.add_argument('-c', '--config', help='Remote configuration file')
-    parser.add_argument('-C', '--config-local',
-                        help='Local configuration file')
-    parser.add_argument('-v', '--verbose', action='store_true',
-                        help='Verbose mode')
+    parser.add_argument(
+        '-c', '--config', help='Remote configuration file')
+    parser.add_argument(
+        '-C', '--config-local', help='Local configuration file')
+    parser.add_argument(
+        '-v', '--verbose', action='store_true', help='Verbose mode')
 
     parser.set_defaults(
         address='localhost',

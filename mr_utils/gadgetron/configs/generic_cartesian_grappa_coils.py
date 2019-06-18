@@ -1,12 +1,12 @@
-'''Generic Gadgetron configuration files.'''
+'''Modified Gadgetron configuration file.'''
 
 from mr_utils.gadgetron import GadgetronConfig
 
-def generic_cartesian_grappa():
+def generic_cartesian_grappa_coils():
     # pylint: disable=C0301
-    '''Generic_Cartesian_Grappa.xml.
+    '''Modifies Generic_Cartesian_Grappa.xml to produce coil images.
 
-    Generates [1]_.
+    Based on [1]_.
 
     References
     ----------
@@ -50,17 +50,17 @@ def generic_cartesian_grappa():
             ('verbose', 'true'),
             ('average_all_ref_N', 'true'),
             ('average_all_ref_S', 'true'),
-            ('upstream_coil_compression', 'true'),
-            ('upstream_coil_compression_thres', '0.002'),
-            ('upstream_coil_compression_num_modesKept', '0')
+            ('upstream_coil_compression', 'false') # no upstream CC
+            # ('upstream_coil_compression_thres', '0.002'),
+            # ('upstream_coil_compression_num_modesKept', '0')
         ])
     config.add_gadget(
         'Recon', 'GenericReconCartesianGrappaGadget', props=[
             ('image_series', '0'),
-            ('coil_map_algorithm', 'Inati'),
-            ('downstream_coil_compression', 'true'),
-            ('downstream_coil_compression_thres', '0.01'),
-            ('downstream_coil_compression_num_modesKept', '0'),
+            # ('coil_map_algorithm', 'Inati'),
+            ('downstream_coil_compression', 'false'), # no downstream
+            # ('downstream_coil_compression_thres', '-1'),
+            # ('downstream_coil_compression_num_modesKept', '0'),
             ('debug_folder', ''),
             ('perform_timing', 'true'),
             ('verbose', 'true'),
@@ -104,24 +104,30 @@ def generic_cartesian_grappa():
             ('perform_timing', 'false'),
             ('verbose', 'false')
         ])
-    config.add_gadget(
-        'Scaling', 'GenericReconImageArrayScalingGadget', props=[
-            ('perform_timing', 'false'),
-            ('verbose', 'false'),
-            ('min_intensity_value', '64'),
-            ('max_intensity_value', '4095'),
-            ('scalingFactor', '10.0'),
-            ('use_constant_scalingFactor', 'true'),
-            ('auto_scaling_only_once', 'true'),
-            ('scalingFactor_dedicated', '100.0')
-        ])
+    # config.add_gadget(
+    #     'Scaling', 'GenericReconImageArrayScalingGadget', props=[
+    #         ('perform_timing', 'false'),
+    #         ('verbose', 'false'),
+    #         ('min_intensity_value', '64'),
+    #         ('max_intensity_value', '4095'),
+    #         ('scalingFactor', '10.0'),
+    #         ('use_constant_scalingFactor', 'true'),
+    #         ('auto_scaling_only_once', 'true'),
+    #         ('scalingFactor_dedicated', '100.0')
+    #     ])
+    config.add_gadget('AutoScale')
+    config.add_gadget('Extract', props=[
+        ('extract_real', 'true'),
+        ('extract_imag', 'true'),
+    ])
     config.add_gadget('ImageArraySplit')
-    config.add_gadget('ComplexToFloatAttrib', 'ComplexToFloatGadget')
-    config.add_gadget(
-        'FloatToShortAttrib', 'FloatToUShortGadget', props=[
-            ('max_intensity', '32767'),
-            ('min_intensity', '0'),
-            ('intensity_offset', '0')
-        ])
+    # config.add_gadget(
+    #     'ComplexToFloatAttrib', 'ComplexToFloatGadget')
+    # config.add_gadget(
+    #     'FloatToShortAttrib', 'FloatToUShortGadget', props=[
+    #         ('max_intensity', '32767'),
+    #         ('min_intensity', '0'),
+    #         ('intensity_offset', '0')
+    #     ])
     config.add_gadget('ImageFinish')
     return config

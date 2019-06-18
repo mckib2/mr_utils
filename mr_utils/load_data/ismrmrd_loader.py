@@ -8,24 +8,24 @@ def load_ismrmrd(filename, dataset='dataset'):
     '''Load data from ISMRM raw data format.
 
     Parameters
-    ==========
+    ----------
     filename : str
         Path to raw data file.
     dataset : str, optional
         Name of the hdf5 dataset where ISMRM raw data is stored.
 
     Returns
-    =======
+    -------
     all_data : array_like
         Complex raw data in a numpy array for your pleasure.
 
     Raises
-    ======
+    ------
     NotImplementedError
         When a non-cartesian dataset is asked for.
 
     Notes
-    =====
+    -----
     Dimensions of returned data are:
 
         (navgs, nreps, ncontrasts, nslices, ncoils, eNz, eNy, eNx)
@@ -40,12 +40,18 @@ def load_ismrmrd(filename, dataset='dataset'):
         except AttributeError:
             # AttributeError: 'str' object has no attribute 'decode'
             xmldict = xmltodict.parse(f[dataset]['xml'][0])
+        except KeyError:
+            # Maybe this dataset is a set of images, not raw data
+            # xmldict = xmltodict.parse(f[dataset]['attributes'][0])
+            # print(f[dataset]['data'].shape)
+            return f[dataset]['data'][...]
 
         header = xmldict['ismrmrdHeader']
 
         # Make sure we can deal with the trajectory
         if header['encoding']['trajectory'] not in ['cartesian']:
-            raise NotImplementedError('Only Cartesian datasets are supported!')
+            raise NotImplementedError(
+                'Only Cartesian datasets are supported!')
 
         # Grab all the necessary header information
         try:
@@ -55,26 +61,26 @@ def load_ismrmrd(filename, dataset='dataset'):
             ncoils = 1
 
         try:
-            nslices = int(header['encoding']['encodingLimits']['slice'][
-                'maximum']) + 1
+            nslices = int(header['encoding']['encodingLimits'][
+                'slice']['maximum']) + 1
         except KeyError:
             nslices = 1
 
         try:
-            navgs = int(header['encoding']['encodingLimits']['average'][
-                'maximum']) + 1
+            navgs = int(header['encoding']['encodingLimits'][
+                'average']['maximum']) + 1
         except KeyError:
             navgs = 1
 
         try:
-            nreps = int(header['encoding']['encodingLimits']['repetition'][
-                'maximum']) + 1
+            nreps = int(header['encoding']['encodingLimits'][
+                'repetition']['maximum']) + 1
         except KeyError:
             nreps = 1
 
         try:
-            ncontrasts = int(header['encoding']['encodingLimits']['contrasts'][
-                'maximum']) + 1
+            ncontrasts = int(header['encoding']['encodingLimits'][
+                'contrasts']['maximum']) + 1
         except KeyError:
             ncontrasts = 1
 
@@ -82,19 +88,24 @@ def load_ismrmrd(filename, dataset='dataset'):
         keys = [
             'version', 'flags', 'measurement_uid', 'scan_counter',
             'acquisition_time_stamp', 'physiology_time_stamp',
-            'number_of_samples', 'available_channels', 'active_channels',
-            'channel_mask', 'discard_pre', 'discard_post', 'center_sample',
-            'encoding_space_ref', 'trajectory_dimensions', 'sample_time_us',
-            'position', 'read_dir', 'phase_dir', 'slice_dir',
+            'number_of_samples', 'available_channels',
+            'active_channels', 'channel_mask', 'discard_pre',
+            'discard_post', 'center_sample', 'encoding_space_ref',
+            'trajectory_dimensions', 'sample_time_us', 'position',
+            'read_dir', 'phase_dir', 'slice_dir',
             'patient_table_position', 'idx', 'user_int', 'user_float'
         ]
         data = f[dataset]['data']['data'][:]
         dhead = f[dataset]['data']['head'][:].squeeze()
-        eNx = int(header['encoding']['encodedSpace']['matrixSize']['x'])
-        eNy = int(header['encoding']['encodedSpace']['matrixSize']['y'])
-        eNz = int(header['encoding']['encodedSpace']['matrixSize']['z'])
-        all_data = np.zeros((navgs, nreps, ncontrasts, nslices, ncoils, eNz,
-                             eNy, eNx), dtype=np.complex64)
+        eNx = int(header['encoding']['encodedSpace'][
+            'matrixSize']['x'])
+        eNy = int(header['encoding']['encodedSpace'][
+            'matrixSize']['y'])
+        eNz = int(header['encoding']['encodedSpace'][
+            'matrixSize']['z'])
+        all_data = np.zeros(
+            (navgs, nreps, ncontrasts, nslices, ncoils, eNz, eNy,
+             eNx), dtype=np.complex64)
         for ii, acq in np.ndenumerate(data):
 
             # Get params for this acq
