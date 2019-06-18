@@ -13,7 +13,7 @@ if __name__ == '__main__':
     sh = (1, 3)
 
     plt.subplot(*sh, 1)
-    N = 10
+    N = 20
     k = 3 # number of sinusoids
     n = np.linspace(0, 2*np.pi, N)
     x = np.sum(
@@ -22,10 +22,10 @@ if __name__ == '__main__':
     plt.title('x[n]')
 
     plt.subplot(*sh, 2)
-    k0 = k
+    k0 = 10
     idx = ordinator1d(
         x, k=k0, forward=S.forward_dct, inverse=S.inverse_dct,
-        chunksize=10, pdf=None, pdf_metric=None,
+        chunksize=50, pdf=None, pdf_metric=None,
         sparse_metric=lambda x0: 1/gini(x0), disp=False)
     # idx = relaxed_ordinator(
     #     x, lam=.3, k=k0, unsparsify=S.inverse_dct, norm=False,
