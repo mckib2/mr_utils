@@ -85,11 +85,13 @@ def undersample(
     # view(mask)
 
     if (forward_fun is None) and (inverse_fun is None):
-        forward_fun = lambda x0: np.fft.fftshift(np.fft.fft(
+        forward_fun = lambda x0: np.fft.fftshift(np.fft.fft2(
             np.fft.fftshift(x0)))
-        inverse_fun = lambda x0: np.fft.ifftshift(np.fft.ifft(
+        inverse_fun = lambda x0: np.fft.ifftshift(np.fft.ifft2(
             np.fft.ifftshift(x0)))
 
+    # from mr_utils import view
+    # view(forward_fun(x)*mask, log=True)
     if ret_kspace:
         y = forward_fun(x)*mask
     else:
