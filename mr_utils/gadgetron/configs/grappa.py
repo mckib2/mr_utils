@@ -9,7 +9,7 @@ def grappa_cpu():
     Generates [1]_.
 
     References
-    ==========
+    ----------
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_cpu.xml
     '''
     # pylint: enable=C0301
@@ -24,7 +24,8 @@ def grappa_cpu():
         ('coils_out', '16')
     ])
     # RO asymmetric echo handling
-    config.add_gadget('AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
+    config.add_gadget(
+        'AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
     config.add_gadget('RemoveROOversampling')
     config.add_gadget('Grappa', props=[
         ('target_coils', '8'),
@@ -44,7 +45,7 @@ def grappa_float_cpu():
     Generates [2]_.
 
     References
-    ==========
+    ----------
     .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_float_cpu.xml
     '''
     # pylint: enable=C0301
@@ -59,7 +60,8 @@ def grappa_float_cpu():
         ('coils_out', '16')
     ])
     # RO asymmetric echo handling
-    config.add_gadget('AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
+    config.add_gadget(
+        'AsymmetricEcho', 'AsymmetricEchoAdjustROGadget')
     config.add_gadget('RemoveROOversampling')
     config.add_gadget('Grappa', props=[
         ('target_coils', '8'),
@@ -77,7 +79,7 @@ def grappa_unoptimized_cpu():
     Generates [3]_.
 
     References
-    ==========
+    ----------
     .. [3] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized.xml
     '''
     # pylint: enable=C0301
@@ -105,7 +107,7 @@ def grappa_unoptimized_float_cpu():
     Generates [4]_.
 
     References
-    ==========
+    ----------
     .. [4] https://github.com/gadgetron/gadgetron/blob/master/gadgets/grappa/config/grappa_unoptimized_float.xml
     '''
     # pylint: enable=C0301

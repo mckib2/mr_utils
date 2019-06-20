@@ -1,7 +1,8 @@
 '''Programmatically generate local configurations for Gadgetron.
 
-Reconstruction pipelines can be created in the script, modified conditionally,
-etc...  Example config generation can be found in mr_utils.configs.
+Reconstruction pipelines can be created in the script, modified
+conditionally, etc...  Example config generation can be found in
+mr_utils.configs.
 '''
 
 import xml.etree.cElementTree as ET
@@ -43,7 +44,8 @@ class GadgetronConfig(object):
           <classname>GadgetIsmrmrdAcquisitionMessageReader</classname>
         </reader>
         '''
-        reader = ET.SubElement(self.gadgetronStreamConfiguration, 'reader')
+        reader = ET.SubElement(
+            self.gadgetronStreamConfiguration, 'reader')
         slot_el = ET.SubElement(reader, 'slot')
         slot_el.text = str(slot)
         dll_el = ET.SubElement(reader, 'dll')
@@ -61,7 +63,8 @@ class GadgetronConfig(object):
           <classname>MRIImageWriterCPLX</classname>
         </writer>
         '''
-        writer = ET.SubElement(self.gadgetronStreamConfiguration, 'writer')
+        writer = ET.SubElement(
+            self.gadgetronStreamConfiguration, 'writer')
         slot_el = ET.SubElement(writer, 'slot')
         slot_el.text = str(slot)
         dll_el = ET.SubElement(writer, 'dll')
@@ -86,7 +89,8 @@ class GadgetronConfig(object):
         if classname is None:
             classname = '%sGadget' % name
 
-        gadget = ET.SubElement(self.gadgetronStreamConfiguration, 'gadget')
+        gadget = ET.SubElement(
+            self.gadgetronStreamConfiguration, 'gadget')
         name_el = ET.SubElement(gadget, 'name')
         name_el.text = name
 
