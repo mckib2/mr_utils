@@ -41,20 +41,20 @@ if __name__ == '__main__':
 
     # Get a T1 phantom to use
     N = 256
-    nt = 6
+    nt = 5
     P = np.zeros((1, nt, N, N))
     r = .2
     X, Y = np.meshgrid(np.linspace(-1, 1, N), np.linspace(-1, 1, N))
     idx = np.sqrt(X**2 + Y**2) < r
     t = np.linspace(0, 3*np.min(T1s), nt+1)[1:]
-    P[0, :, idx] = 1 - np.exp(-t/T1s[0])
+    P[0, :, idx] = 1 - np.exp(-1*t/T1s[0])
     nph = 6
     tt = np.linspace(0, 2*np.pi, nph, endpoint=False)
     m = .5
     xx, yy = m*np.cos(tt), m*np.sin(tt)
     for ii in range(nph):
         idx = np.sqrt((X - xx[ii])**2 + (Y - yy[ii])**2) < r
-        P[0, :, idx] = 1 - np.exp(-t/T1s[ii+1])
+        P[0, :, idx] = 1 - np.exp(-1*t/T1s[ii+1])
     P = P.squeeze()
     # from mr_utils import view
     # view(P)
@@ -69,18 +69,23 @@ if __name__ == '__main__':
             ret_kspace=True, ret_mask=True)
 
     ax = (1, 2)
-    forward = lambda x0: np.fft.fftshift(np.fft.fft2(
-        np.fft.fftshift(x0, axes=ax), axes=ax), axes=ax)
-    inverse = lambda x0: np.fft.ifftshift(np.fft.ifft2(
+    forward = lambda x0: 1/np.sqrt(N**2)*np.fft.fftshift(np.fft.fft2(
+        np.fft.ifftshift(x0, axes=ax), axes=ax), axes=ax)
+    inverse = lambda x0: np.sqrt(N**2)*np.fft.fftshift(np.fft.ifft2(
         np.fft.ifftshift(x0*mask, axes=ax), axes=ax), axes=ax)
     # from  mr_utils import view
     # view(inverse(kspace))
 
     ## Sparsifying transforms
     # FD
-    sparsify = lambda x0: np.diff(np.concatenate((
-        np.zeros(x0.shape[1:])[None, ...], x0)), axis=0)
-    unsparsify = lambda x0: x0.cumsum(axis=0)
+    # sparsify = lambda x0: np.diff(np.concatenate((
+    #     np.zeros(x0.shape[1:])[None, ...], x0)), axis=0)
+    # unsparsify = lambda x0: x0.cumsum(axis=0)
+
+    # 2nd derivative?
+    sparsify = lambda x0: np.diff(
+        x0, n=2, axis=0, prepend=np.zeros((2,) + x0.shape[1:]))
+    unsparsify = lambda x0: x0.cumsum(axis=0).cumsum(axis=0)
 
     # # DCT
     # from scipy.fftpack import dct, idct
@@ -166,7 +171,7 @@ if __name__ == '__main__':
         return(ii, err, cost)
 
     # Run in parallel
-    chunksize = 5
+    chunksize = 3
     with Pool() as pool:
         res = list(tqdm(
             pool.imap(run_loop, range(perms.shape[0]), chunksize),
