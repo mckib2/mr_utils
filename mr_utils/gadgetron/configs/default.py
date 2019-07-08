@@ -9,7 +9,7 @@ def default():
     Generates [1]_.
 
     References
-    ==========
+    ----------
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/mri_core/config/default.xml
     '''
     # pylint: enable=C0301
@@ -19,10 +19,12 @@ def default():
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
     config.add_writer('1022', 'MRIImageWriter')
     config.add_gadget('RemoveROOversampling')
-    config.add_gadget('AccTrig', 'AcquisitionAccumulateTriggerGadget', props=[
-        ('trigger_dimension', 'repetition'),
-        ('sorting_dimension', 'slice')
-    ])
+    config.add_gadget(
+        'AccTrig', 'AcquisitionAccumulateTriggerGadget',
+        props=[
+            ('trigger_dimension', 'repetition'),
+            ('sorting_dimension', 'slice')
+        ])
     config.add_gadget('Buff', 'BucketToBufferGadget', props=[
         ('N_dimension', ''),
         ('S_dimension', ''),

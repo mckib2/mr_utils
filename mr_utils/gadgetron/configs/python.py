@@ -9,7 +9,7 @@ def python():
     Generates [1]_.
 
     References
-    ==========
+    ----------
     .. [1] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python.xml
     '''
     # pylint: enable=C0301
@@ -18,11 +18,13 @@ def python():
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
     config.add_writer('1022', 'MRIImageWriter')
-    config.add_gadget('RemoveOversamplingPython', 'PythonGadget', props=[
-        ('python_path', '/home/myuser/scripts/python'),
-        ('python_module', 'remove_2x_oversampling'),
-        ('python_class', 'Remove2xOversampling'),
-    ])
+    config.add_gadget(
+        'RemoveOversamplingPython', 'PythonGadget',
+        props=[
+            ('python_path', '/home/myuser/scripts/python'),
+            ('python_module', 'remove_2x_oversampling'),
+            ('python_class', 'Remove2xOversampling'),
+        ])
     config.add_gadget('AccReconPython', 'PythonGadget', props=[
         ('python_path', '/home/myuser/scripts/python'),
         ('python_module', 'accumulate_and_recon'),
@@ -49,7 +51,7 @@ def python_short():
     Generates [2]_.
 
     References
-    ==========
+    ----------
     .. [2] https://github.com/gadgetron/gadgetron/blob/master/gadgets/python/config/python_short.xml
     '''
     # pylint: enable=C0301
@@ -58,11 +60,13 @@ def python_short():
     config.add_reader('1008', 'GadgetIsmrmrdAcquisitionMessageReader')
     config.add_reader('1026', 'GadgetIsmrmrdWaveformMessageReader')
     config.add_writer('1022', 'MRIImageWriter')
-    config.add_gadget('RemoveOversamplingPython', 'PythonGadget', props=[
-        ('python_path', '/home/myuser/scripts/python'),
-        ('python_module', 'remove_2x_oversampling'),
-        ('python_class', 'Remove2xOversampling'),
-    ])
+    config.add_gadget(
+        'RemoveOversamplingPython', 'PythonGadget',
+        props=[
+            ('python_path', '/home/myuser/scripts/python'),
+            ('python_module', 'remove_2x_oversampling'),
+            ('python_class', 'Remove2xOversampling'),
+        ])
     config.add_gadget('AccReconPython', 'PythonGadget', props=[
         ('python_path', '/home/myuser/scripts/python'),
         ('python_module', 'accumulate_and_recon'),
