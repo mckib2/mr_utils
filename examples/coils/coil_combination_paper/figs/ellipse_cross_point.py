@@ -2,6 +2,10 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+del matplotlib.font_manager.weight_dict['roman']
+matplotlib.font_manager._rebuild()
+
 
 from mr_utils.sim.ssfp import ssfp
 from mr_utils.recon.ssfp import gs_recon
@@ -25,8 +29,9 @@ if __name__ == '__main__':
     M = gs_recon(I)
 
     # Set up LaTeX
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=16)
+    # plt.rc('text', usetex=True)
+    # plt.rc('font', family='serif', size=16)
+    plt.rc('font', family='Times New Roman', size=16)
 
     # Make ellipse outline
     plt.plot(E.real, E.imag, ':k', label='Ellipse')
@@ -46,7 +51,7 @@ if __name__ == '__main__':
 
     plt.title('Geometric Solution')
     plt.xlabel('Real')
-    plt.ylabel('Imag')
+    plt.ylabel('Imaginary')
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')

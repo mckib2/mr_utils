@@ -175,8 +175,10 @@ def proximal_GD(
         # Do reordering if we asked for it
         if reorder_fun is not None:
             reorder_idx = reorder_fun(grad_step)
-            reorder_idx_r = reorder_idx.real.astype(int)
-            reorder_idx_i = reorder_idx.imag.astype(int)
+
+            if np.any(np.iscomplex(reorder_idx)):
+                reorder_idx_r = reorder_idx.real.astype(int)
+                reorder_idx_i = reorder_idx.imag.astype(int)
 
             # unreorder_idx_r = inverse_permutation(reorder_idx_r)
             # unreorder_idx_i = inverse_permutation(reorder_idx_i)
@@ -186,15 +188,23 @@ def proximal_GD(
             # unreorder_idx_i = np.arange(
             #     reorder_idx_i.size).astype(int)
             # unreorder_idx_i[reorder_idx_i] = reorder_idx_i
-            try:
-                grad_step = (
-                    grad_step.real[np.unravel_index(
-                        reorder_idx_r, y.shape)] \
-                    + 1j*grad_step.imag[np.unravel_index(
-                        reorder_idx_i, y.shape)]).reshape(y.shape)
-            except ValueError:
-                # Try sorting along first axis
-                grad_step = grad_step.real[reorder_idx_r, ...] + 1j*grad_step.imag[reorder_idx_i, ...]
+                try:
+                    grad_step = (
+                        grad_step.real[np.unravel_index(
+                            reorder_idx_r, y.shape)] \
+                        + 1j*grad_step.imag[np.unravel_index(
+                            reorder_idx_i, y.shape)]).reshape(y.shape)
+                except ValueError:
+                    # Try sorting along first axis
+                    grad_step = (
+                        grad_step.real[reorder_idx_r, ...] +
+                        1j*grad_step.imag[reorder_idx_i, ...])
+            else:
+                try:
+                    grad_step = grad_step[
+                        np.unravel_index(reorder_idx, y.shape)].reshape(y.shape)
+                except ValueError:
+                    grad_step = grad_step[reorder_idx, ...]
 
         # Take the step, we would normally assign x_hat directly, but
         # because we might be reordering and selectively updating,
@@ -218,19 +228,25 @@ def proximal_GD(
             #     + 1j*update.imag[np.unravel_index(
             #         unreorder_idx_i, y.shape)]).reshape(y.shape)
 
-            update_r = np.zeros(y.shape)
-            update_i = np.zeros(y.shape)
-
-            try:
-                update_r[np.unravel_index(
-                    reorder_idx_r, y.shape)] = update.real.flatten()
-                update_i[np.unravel_index(
-                    reorder_idx_i, y.shape)] = update.imag.flatten()
-            except ValueError:
-                # Try along first axis
-                update_r[reorder_idx_r, ...] = update.real
-                update_i[reorder_idx_i, ...] = update.imag
-            update = update_r + 1j*update_i
+            if np.any(np.iscomplex(reorder_idx)):
+                try:
+                    update_r = np.zeros(y.shape)
+                    update_i = np.zeros(y.shape)
+                    update_r[np.unravel_index(
+                        reorder_idx_r, y.shape)] = update.real.flatten()
+                    update_i[np.unravel_index(
+                        reorder_idx_i, y.shape)] = update.imag.flatten()
+                except ValueError:
+                    # Try along first axis
+                    update_r[reorder_idx_r, ...] = update.real
+                    update_i[reorder_idx_i, ...] = update.imag
+                update = update_r + 1j*update_i
+            else:
+                try:
+                    update[np.unravel_index(
+                        reorder_idx, y.shape)] = update.flatten()
+                except ValueError:
+                    update[reorder_idx, ...] = update
 
         # Look at where we want to take the step - tread carefully...
         if selective is not None:

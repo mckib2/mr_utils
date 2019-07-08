@@ -23,6 +23,8 @@ References
 
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams.update({'font.size': 18})
 
 from mr_utils.sim.ssfp import ssfp
 
@@ -30,8 +32,8 @@ if __name__ == '__main__':
 
     # SSFP experiment params
     TR = 12e-3
-    alpha = np.deg2rad(10)
-    lpcs = 64
+    alpha = np.deg2rad(30)
+    lpcs = 128
     pcs = np.linspace(-2*np.pi, 2*np.pi, lpcs, endpoint=False)
 
     # Experiment conditions and tissue params
@@ -50,18 +52,22 @@ if __name__ == '__main__':
     aIdf = np.unwrap(np.angle(Idf)[::-1])[::-1]
 
     fig, ax1 = plt.subplots()
-    ax1.plot(pcs_deg, np.abs(I))
-    ax1.plot(pcs_deg, np.abs(Idf), '--')
-    ax1.set_ylabel('Magnitude')
-    ax1.set_xlabel('Frequency (deg)')
+    ax1.plot(pcs_deg, np.abs(I), 'k', linewidth=2)
+    # ax1.plot(pcs_deg, np.abs(Idf), '--')
+    ax1.set_ylabel('Magnitude (a.u.)')
+    ax1.set_xlabel('Frequency (Hz)')
 
     ax2 = ax1.twinx()
-    ax2.plot(pcs_deg, aI, '--', label='Phase, pcs')
-    ax2.plot(
-        pcs_deg, aI - pcs/2, '--', label='Phase - phase_cyc/2, pcs')
-    ax2.plot(pcs_deg, aIdf, ':', label='Phase, dfs')
+    ax2.plot(0, 0, 'k-', label='Magnitude')
+    ax2.plot(pcs_deg, aI, 'k:', label='Phase at t=TE/2', linewidth=2)
+    # ax2.plot(
+        # pcs_deg, aI - pcs/2, '--', label='Phase - phase_cyc/2, pcs')
+    ax2.plot(pcs_deg, aIdf, 'k--', label='Phase at t=0', linewidth=2)
     ax2.set_ylabel('Phase (rad)')
-    ax2.set_xlabel('Frequency (deg)')
+    ax2.set_xlabel('Frequency (Hz)')
     ax2.legend()
+
+    # ax2.get_xaxis().set_ticks([])
+    ax1.get_yaxis().set_ticks([])
 
     plt.show()

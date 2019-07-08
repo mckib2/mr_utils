@@ -46,8 +46,9 @@ if __name__ == '__main__':
     x, y = int(N/4), int(3*N/4)
 
     # Set up LaTeX
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=16)
+    # plt.rc('text', usetex=True)/
+    # plt.rc('font', family='serif', size=16)
+    plt.rc('font', family='Times New Roman', size=18)
 
     # Before coil combine
     nx, ny = 1, 3
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         plt.plot(I0.real, I0.imag, 'xk')
     plt.title('Coil Ellipses')
     plt.axis('square')
-    plt.ylabel('Imag')
+    plt.ylabel('Imaginary')
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
         labelleft='off', labelbottom='off')
@@ -82,7 +83,8 @@ if __name__ == '__main__':
     # Number the points and connect them
     for ii in range(npcs):
         plt.text(
-            Igcc0[ii].real + .05, Igcc0[ii].imag, '%d°' % (ii*90))
+            Igcc0[ii].real + .05,
+            Igcc0[ii].imag - .2, '%d°' % (ii*90))
     plt.plot(Igcc0[0::2].real, Igcc0[0::2].imag, '-k')
     plt.plot(Igcc0[1::2].real, Igcc0[1::2].imag, '-k')
 
