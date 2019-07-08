@@ -14,8 +14,8 @@ if __name__ == '__main__':
     mps = birdcage_maps((ncoils, N, N))
 
     # Set up LaTeX
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=16)
+    # plt.rc('text', usetex=True)
+    # plt.rc('font', family='serif', size=16)
 
     x = np.arange(N)
     X, Y = np.meshgrid(x, x)
@@ -32,8 +32,9 @@ if __name__ == '__main__':
     # # plt.pcolor(X, Y, max_amps)
     # cbar = plt.colorbar(ticks=[.4, .95])
     # cbar.ax.set_yticklabels(['Low', 'High'])
+    plt.rc('font', family='Times New Roman', size=18)
 
-    plt.title('Coil Sensitiviy Phase Discontinuities')
+    # plt.title('Coil Sensitiviy Phase Discontinuities')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.tick_params(
