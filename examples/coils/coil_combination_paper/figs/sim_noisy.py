@@ -2,8 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as path_effects
 from sigpy.mri import birdcage_maps
-from skimage.measure import compare_mse, compare_ssim
+from skimage.measure import compare_nrmse, compare_ssim
 from tqdm import tqdm
 
 from mr_utils.sim.ssfp import ssfp
@@ -19,6 +20,7 @@ if __name__ == '__main__':
     SNRs = np.linspace(1, 70, 10)
     # fig_SNR = [SNRs[3], SNRs[-1]] # SNR to use for comparison figure
     fig_SNR = [SNRs[6]]
+    SNRs = np.atleast_1d(SNRs[6])
     N = 256
     # N = 64
     npcs = 4
@@ -100,6 +102,23 @@ if __name__ == '__main__':
                 I, coil_axis=0, pc_axis=1)
             phase = np.unwrap(phase, axis=0) # ellipse unwrapping
 
+            # plt.rc('font', family='Times New Roman', size=18)
+            # plt.subplot(1, 2, 1)
+            # plt.imshow(sos(I[:, 0, ...], axes=0), cmap='gray')
+            # plt.tick_params(
+            #     top='off', bottom='off', left='off', right='off',
+            #     labelleft='off', labelbottom='off')
+            #
+            # plt.subplot(1, 2, 2)
+            # plt.imshow(phase[0, ...]*mask)
+            # plt.colorbar()
+            # plt.tick_params(
+            #     top='off', bottom='off', left='off', right='off',
+            #     labelleft='off', labelbottom='off')
+            #
+            # plt.show()
+            # assert False
+
             # Get phase substitution using full method
             phase_full = rigid_composite_ellipse(
                 I, coil_axis=0, pc_axis=1)
@@ -148,11 +167,11 @@ if __name__ == '__main__':
                 comp[figidx, ccidx, 4, ...] = np.abs(I_cc_sub_lGS)
 
             # Measure MSE
-            mse[ccidx, 0, SNRidx] = compare_mse(
+            mse[ccidx, 0, SNRidx] = compare_nrmse(
                 np.abs(Iref), np.abs(I_cc_lGS))
-            mse[ccidx, 1, SNRidx] = compare_mse(
+            mse[ccidx, 1, SNRidx] = compare_nrmse(
                 np.abs(Iref), np.abs(I_cc_sub_lGS))
-            mse[ccidx, 2, SNRidx] = compare_mse(
+            mse[ccidx, 2, SNRidx] = compare_nrmse(
                 np.abs(Iref), np.abs(I_cc_sub_full_lGS))
 
             # Measure similarity index
@@ -164,16 +183,17 @@ if __name__ == '__main__':
                 np.abs(Iref), np.abs(I_cc_sub_full_lGS))
 
     # Set up LaTeX
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=16)
+    # plt.rc('text', usetex=True)
+    # plt.rc('font', family='serif', size=16)
+    plt.rc('font', family='Times New Roman', size=18)
 
     # Comparison figures
     nx, ny = len(ccs), 5
-    args = {'vmin': 0, 'vmax': 1.1}
+    args = {'vmin': 0, 'vmax': 1}
     # args = {}
     for kk in range(len(fig_SNR)):
         titles = [
-            'Reference (SNR=%d)' % fig_SNR[kk],
+            'Reference',
             'Coil-by-coil',
             'Naive',
             'Full',
@@ -181,29 +201,59 @@ if __name__ == '__main__':
         idx = 1
         for ii in range(nx):
             for jj in range(ny):
-                if not np.allclose(
-                        comp[kk, ii, jj, ...], np.zeros((N, N))):
-                    plt.subplot(nx, ny, idx)
-                    plt.imshow(
-                        comp[kk, ii, jj, ...], cmap='gray', **args)
+                if not (ii == 0 and jj == 0): # skip ref
 
-                    # Add MSE to each figure
-                    plt.xlabel('MSE: %e' % compare_mse(
-                        comp[kk, 0, 0, ...],
-                        comp[kk, ii, jj, ...]), fontsize=10)
+                    if not np.allclose(
+                            comp[kk, ii, jj, ...], np.zeros((N, N))):
+                        plt.subplot(nx, ny, idx)
 
-                    # Add headers
-                    if ii == 0:
-                        plt.title(titles[jj])
-                    if jj == 1:
-                        plt.ylabel(cc_labels[ii])
 
-                    # Remove extras
-                    plt.tick_params(
-                        top='off', bottom='off', left='off',
-                        right='off', labelleft='off',
-                        labelbottom='off')
+                        # plt.imshow(
+                        #     comp[kk, ii, jj, ...], cmap='gray', **args)
+                        #
+                        # # Add MSE to each figure
+                        # plt.xlabel('MSE: %e' % compare_nrmse(
+                        #     comp[kk, 0, 0, ...],
+                        #     comp[kk, ii, jj, ...]), fontsize=10)
+
+                        val = np.abs(
+                            (comp[kk, 0, 0, ...] - comp[kk, ii, jj, ...])/comp[kk, 0, 0, ...])*mask
+                        val = np.nan_to_num(val)
+                        mse_val = compare_nrmse(
+                            comp[kk, 0, 0, ...],
+                            comp[kk, ii, jj, ...])
+
+                        fac = np.max(np.abs(val).astype(float).flatten())
+                        if fac > 0:
+                            val /= fac
+                            msg = 'MSE: %.2e (x%.1f)' % (mse_val, 1/fac)
+                        else:
+                            msg = ''
+                        plt.imshow(val, cmap='gray', **args)
+
+                        ann = plt.annotate(
+                            msg, xy=(1, 0), xycoords='axes fraction',
+                            fontsize=12, xytext=(-5, 5),
+                            textcoords='offset points', color='white',
+                            ha='right', va='bottom')
+                        ann.set_path_effects([
+                            path_effects.Stroke(linewidth=2,
+                            foreground='black'),
+                            path_effects.Normal()])
+
+                        # Add headers
+                        if ii == 0:
+                            plt.title(titles[jj])
+                        if jj == 1:
+                            plt.ylabel(cc_labels[ii])
+
+                        # Remove extras
+                        plt.tick_params(
+                            top='off', bottom='off', left='off',
+                            right='off', labelleft='off',
+                            labelbottom='off')
                 idx += 1
+        plt.subplots_adjust(wspace=0, hspace=0)
         plt.show()
 
     # Plot MSE for no phase sub
@@ -211,21 +261,24 @@ if __name__ == '__main__':
         plt.semilogy(
             SNRs,
             mse[ii, 0, :],
-            '-', label='%s: Naive' % cc_labels[ii])
+            '-', linewidth=2,
+             label='%s: Naive' % cc_labels[ii])
 
     # Plot MSE for phase sub
     for ii in range(len(ccs)):
         plt.semilogy(
             SNRs,
             mse[ii, 1, :],
-            '--', label='%s: Simple' % cc_labels[ii])
+            '--', linewidth=2,
+            label='%s: Simple' % cc_labels[ii])
 
     # Plot MSE for full phase sub
     for ii in range(len(ccs)):
         plt.semilogy(
             SNRs,
             mse[ii, 2, :],
-            ':', label='%s: Full' % cc_labels[ii])
+            ':', linewidth=2,
+            label='%s: Full' % cc_labels[ii])
 
     plt.legend()
     plt.title('log(MSE) vs SNR')
@@ -238,21 +291,21 @@ if __name__ == '__main__':
         plt.plot(
             SNRs,
             ssim[ii, 0, :],
-            '-', label='%s: Naive' % cc_labels[ii])
+            '-', linewidth=2, label='%s: Naive' % cc_labels[ii])
 
     # Plot SSIM for phase sub
     for ii in range(len(ccs)):
         plt.plot(
             SNRs,
             ssim[ii, 1, :],
-            '--', label='%s: Simple' % cc_labels[ii])
+            '--', linewidth=2, label='%s: Simple' % cc_labels[ii])
 
     # Plot SSIM for full phase sub
     for ii in range(len(ccs)):
         plt.plot(
             SNRs,
             ssim[ii, 2, :],
-            ':', label='%s: Full' % cc_labels[ii])
+            ':', linewidth=2, label='%s: Full' % cc_labels[ii])
 
     plt.legend()
     plt.title('SSIM vs SNR')

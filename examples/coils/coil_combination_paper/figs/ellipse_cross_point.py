@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 del matplotlib.font_manager.weight_dict['roman']
-matplotlib.font_manager._rebuild()
+# matplotlib.font_manager._rebuild()
 
 
 from mr_utils.sim.ssfp import ssfp

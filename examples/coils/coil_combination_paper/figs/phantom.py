@@ -2,7 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.measure import compare_mse
+import matplotlib.patheffects as path_effects
+from skimage.measure import compare_nrmse
 
 # Use this walsh as mine breaks for the really noisy data...
 from ismrmrdtools.coils import calculate_csm_walsh as walsh
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     # Make a mask for pretty pics
     mask = sos(data, axes=(0, 1))
     mask = mask > np.mean(mask.flatten())
+    print(mask.shape)
     # from mr_utils import view
     # view(mask)
 
@@ -40,12 +42,13 @@ if __name__ == '__main__':
     # view(phase)
 
     # Set up LaTeX
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=16)
+    # plt.rc('text', usetex=True)
+    # plt.rc('font', family='serif', size=16)
+    plt.rc('font', family='Times New Roman', size=18)
 
     # Show phase of simple phase substitution
     plt.imshow(phase[1, ...]*mask)
-    plt.xlabel('Phase substitution for 90° phase-cycle.')
+    # plt.xlabel('Phase substitution for 90° phase-cycle.')
     plt.colorbar()
     plt.tick_params(
         top='off', bottom='off', left='off', right='off',
@@ -128,16 +131,50 @@ if __name__ == '__main__':
         'Full',
         'Simple']
     idx = 1
+    mse_plots = True
+
+    if mse_plots:
+        args = {'vmin':0, 'vmax': 1}
     for ii in range(nx):
         for jj in range(ny):
             plt.subplot(nx, ny, idx)
-            plt.imshow(
-                np.abs(res[ii, jj, ...]), cmap='gray', **args)
 
-            # Add MSE to each figure
-            plt.xlabel('MSE: %e' % compare_mse(
-                res[ii, 0, ...],
-                res[ii, jj, ...]), fontsize=10)
+            if not mse_plots:
+                plt.imshow(
+                    np.abs(res[ii, jj, ...]), cmap='gray', **args)
+            else:
+                val = np.abs(
+                    (res[ii, 0, ...] - res[ii, jj, ...])/res[ii, 0, ...])*mask
+                mse_val = compare_nrmse(
+                    res[ii, 0, ...],
+                    res[ii, jj, ...])
+
+                fac = np.max(np.abs(val).astype(float).flatten())
+                print(fac)
+                if fac > 0:
+                    val /= fac
+                    msg = 'MSE: %.2e (x%.1f)' % (mse_val, 1/fac)
+                else:
+                    msg = ''
+                #     plt.imshow(
+                #         np.abs(1/np.log(np.abs(
+                #             res[ii, 0, ...] - res[ii, jj, ...])))/1e2,
+                #         cmap='gray', **args)
+                # else:
+                #     msg = 'MSE: %.2e' % mse_val
+                plt.imshow(val, cmap='gray', **args)
+                # plt.text(0, 0, 'MSE: %e' % compare_mse(
+                #     res[ii, 0, ...],
+                #     res[ii, jj, ...]), fontsize=10)
+                ann = plt.annotate(
+                    msg, xy=(1, 0), xycoords='axes fraction',
+                    fontsize=12, xytext=(-5, 5),
+                    textcoords='offset points', color='white',
+                    ha='right', va='bottom')
+                ann.set_path_effects([
+                    path_effects.Stroke(linewidth=2,
+                    foreground='black'),
+                    path_effects.Normal()])
 
             # Add headers
             if ii == 0:
@@ -151,4 +188,5 @@ if __name__ == '__main__':
                 right='off', labelleft='off',
                 labelbottom='off')
             idx += 1
+    plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()

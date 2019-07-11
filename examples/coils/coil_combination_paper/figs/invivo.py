@@ -4,7 +4,7 @@ from os.path import isfile
 
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.measure import compare_mse
+from skimage.measure import compare_nrmse
 
 # Use this walsh as mine breaks for the really noisy data...
 from ismrmrdtools.coils import calculate_csm_walsh as walsh
@@ -173,17 +173,34 @@ if __name__ == '__main__':
                 plt.imshow(
                     np.abs(res[ii, jj, ...]), cmap='gray', **args)
             else:
-                plt.imshow(
-                    np.abs(
-                        res[ii, 0, ...] - res[ii, jj, ...]),
-                    cmap='gray', **args)
-                msg = 'MSE: %e' % compare_mse(
+                val = np.abs(
+                    (res[ii, 0, ...] - res[ii, jj, ...])/res[ii, 0, ...])*np.abs(mask)
+                mse_val = compare_nrmse(
                     res[ii, 0, ...],
                     res[ii, jj, ...])
+
+                fac = np.max(np.abs(val).astype(float).flatten())
+                print(fac)
+                if fac > 0:
+                    val /= fac
+                    msg = 'MSE: %.2e (x%.1f)' % (mse_val, 1/fac)
+                else:
+                    msg = ''
+                #     plt.imshow(
+                #         np.abs(1/np.log(np.abs(
+                #             res[ii, 0, ...] - res[ii, jj, ...])))/1e2,
+                #         cmap='gray', **args)
+                # else:
+                #     msg = 'MSE: %.2e' % mse_val
+                plt.imshow(val, cmap='gray', **args)
                 # plt.text(0, 0, 'MSE: %e' % compare_mse(
                 #     res[ii, 0, ...],
                 #     res[ii, jj, ...]), fontsize=10)
-                plt.annotate(msg, xy=(1, 0), xycoords='axes fraction', fontsize=16, xytext=(-5, 5), textcoords='offset points', color='white', ha='right', va='bottom')
+                plt.annotate(
+                    msg, xy=(1, 0), xycoords='axes fraction',
+                    fontsize=12, xytext=(-5, 5),
+                    textcoords='offset points', color='white',
+                    ha='right', va='bottom')
 
             # # Add MSE to each figure
             # plt.xlabel('MSE: %e' % compare_mse(
