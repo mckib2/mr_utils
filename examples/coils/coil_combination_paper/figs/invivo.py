@@ -52,6 +52,7 @@ if __name__ == '__main__':
     sl = int(data.shape[0]/4)
     data = data[sl:-sl, :, ...]
     data = np.moveaxis(data, (-1, -2), (0, 1))
+    data = np.rot90(data, axes=(-2, -1))
     ncoils, npcs, M, N = data.shape[:]
 
 
@@ -164,7 +165,7 @@ if __name__ == '__main__':
         'Full',
         'Simple']
     idx = 1
-    mse_plots = True
+    mse_plots = False
     for ii in range(nx):
         for jj in range(ny):
             plt.subplot(nx, ny, idx)
