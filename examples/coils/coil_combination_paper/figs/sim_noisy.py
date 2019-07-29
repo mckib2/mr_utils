@@ -20,9 +20,9 @@ if __name__ == '__main__':
     SNRs = np.linspace(1, 70, 10)
     # fig_SNR = [SNRs[3], SNRs[-1]] # SNR to use for comparison figure
     fig_SNR = [SNRs[6]]
-    SNRs = np.atleast_1d(SNRs[6])
+    # SNRs = np.atleast_1d(SNRs[6])
     N = 256
-    # N = 64
+    # N = 32
     npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
     ncoils = 5

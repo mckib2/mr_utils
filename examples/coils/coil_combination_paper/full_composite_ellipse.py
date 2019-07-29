@@ -21,7 +21,7 @@ if __name__ == '__main__':
         np.linspace(-1/TR, 1/TR, N))
     radius = .9
     PD, T1s, T2s = cylinder_2d(dims=(N, N), radius=radius)
-    npcs = 16
+    npcs = 4
     pcs = np.linspace(0, 2*np.pi, npcs, endpoint=False)
     ncoils = 5
     mps = birdcage_maps((ncoils, N, N))

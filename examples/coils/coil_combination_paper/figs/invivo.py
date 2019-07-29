@@ -84,6 +84,7 @@ if __name__ == '__main__':
     # Now get full phase
     filename = path + 'phase_full_invivo.npy'
     if not isfile(filename):
+    # if True:
         phase_full = rigid_composite_ellipse(
             data, coil_axis=0, pc_axis=1)
         np.save(filename, phase_full)
@@ -165,7 +166,7 @@ if __name__ == '__main__':
         'Full',
         'Simple']
     idx = 1
-    mse_plots = False
+    mse_plots = True
     for ii in range(nx):
         for jj in range(ny):
             plt.subplot(nx, ny, idx)

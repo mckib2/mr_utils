@@ -58,20 +58,34 @@ def rigid_composite_ellipse(
         midx = np.argmax(np.abs(I[:, 0, ii]))
         ref = I[midx, :, ii]
 
-        # Compute the rigid transform to the reference coil
-        for cc in range(ncoils):
-            I0 = I[cc, :, ii].copy()
-            T0 = np.linalg.lstsq(
-                I0[:, None], ref, rcond=None)[0]
-            T[cc, ii] = T0
-            R[cc, :, ii] = I0*T0
+        # # Compute the rigid transform to the reference coil
+        # for cc in range(ncoils):
+        #     I0 = I[cc, :, ii].copy()
+        #     T0 = np.linalg.lstsq(
+        #         I0[:, None], ref, rcond=None)[0]
+        #     T[cc, ii] = T0
+        #     R[cc, :, ii] = I0*T0
+        #
+        # weights = 1/np.abs(T[:, ii])**2
+        # weights /= sigma2
+        # weights /= np.sum(weights)
+        # # print(weights.shape, R[..., ii].shape)
+        # composite_ellipse[:, ii] = np.average(
+        #     R[..., ii], axis=0, weights=weights)
 
+        ref = ref[None, :]
+        for cc in range(ncoils):
+            I0 = I[cc, :, ii].copy()[None, :]
+            T0 = (ref @ I0.conj().T)[0, 0]
+            T0 /= (I0 @ I0.conj().T)[0, 0]
+            T[cc, ii] = T0
+            R[cc, :, ii] = T0*I0
         weights = 1/np.abs(T[:, ii])**2
         weights /= sigma2
         weights /= np.sum(weights)
-        # print(weights.shape, R[..., ii].shape)
         composite_ellipse[:, ii] = np.average(
             R[..., ii], axis=0, weights=weights)
+
 
     # composite_ellipse = np.zeros((npcs, npx), dtype='complex')
     # T = np.zeros((ncoils, npx), dtype='complex')

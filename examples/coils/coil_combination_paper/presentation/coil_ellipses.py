@@ -29,12 +29,13 @@ if __name__ == '__main__':
     print(I.shape)
 
     # view(I)
-    ctr = int(N/2)
-    plt.plot(I[:, ctr, ctr].real, I[:, ctr, ctr].imag)
-    plt.axis('square')
-    plt.xlabel('Real')
-    plt.ylabel('Imaginary')
-    plt.show()
+
+    # ctr = int(N/2)
+    # plt.plot(I[:, ctr, ctr].real, I[:, ctr, ctr].imag)
+    # plt.axis('square')
+    # plt.xlabel('Real')
+    # plt.ylabel('Imaginary')
+    # plt.show()
 
 
     # Make maps
@@ -50,10 +51,12 @@ if __name__ == '__main__':
         Im[ii, ...] = np.abs(mps[ii, ...])*ssfp(
             T1, T2, TR, alpha, df, phase_cyc=pcs, M0=M0, phi_rf=rf)
 
-        plt.plot(Im[ii, :, xx, yy].real, Im[ii, :, xx, yy].imag)
-    plt.axis('square')
-    plt.xlabel('Real')
-    plt.ylabel('Imaginary')
-    plt.show()
+    #     plt.plot(Im[ii, :, xx, yy].real, Im[ii, :, xx, yy].imag)
+    # plt.axis('square')
+    # plt.xlabel('Real')
+    # plt.ylabel('Imaginary')
+    # plt.show()
 
     # view(Im, montage_axis=1, movie_axis=0)
+
+    # view(Im[:, 0, ...], fft=True, log=True)
