@@ -42,8 +42,9 @@ if __name__ == '__main__':
         I[cc, ...] = np.abs(mps[cc, ...])*ssfp(
             T1s, T2s, TR, alpha, df, phase_cyc=pcs, M0=PD, phi_rf=rf)
     Itrue = I.copy()
-    # from mr_utils import view
-    # view(I, montage_axis=0, movie_axis=1)
+
+    from mr_utils import view
+    view(I, montage_axis=1, movie_axis=0)
 
     # Make a reference image by doing lGS without any coils
     Iref = ssfp(
